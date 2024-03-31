@@ -1,9 +1,9 @@
 {
   "$schema": "https://enconvo.com/schemas/extension.json",
   "name": "llm",
-  "version": "1.3.6",
+  "version": "1.3.7",
   "description": "Large Language Models (LLM) services providers",
-  "title": "LLM",
+  "title": "LLM Providers",
   "icon": "icon.png",
   "author": "ysnows",
   "license": "MIT",
