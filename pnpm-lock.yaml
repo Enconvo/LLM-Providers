@@ -6,8 +6,8 @@ settings:
 
 dependencies:
   '@enconvo/api':
-    specifier: ^0.1.2
-    version: 0.1.2
+    specifier: ^0.1.3
+    version: 0.1.3
   '@google/generative-ai':
     specifier: ^0.1.3
     version: 0.1.3
@@ -89,8 +89,8 @@ packages:
       - encoding
     dev: false
 
-  /@enconvo/api@0.1.2:
-    resolution: {integrity: sha512-j0/BtktmhmgVXBnhDj34Q+Wj1BGrRVB3qJr2CAKjD51LQ0X1LlzqzQz5tIFaj2t2/2LGz/FaoNkQbc0q3iOJPQ==}
+  /@enconvo/api@0.1.3:
+    resolution: {integrity: sha512-sAtUsa51rUY5PW+qJ4ih4frR6IogsF8djwV74U9QrrdVtUomHzMEGCMEGkqLTFdvUiwWzZl2JfVjOVysubuxJg==}
     hasBin: true
     dev: false
 
