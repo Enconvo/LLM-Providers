@@ -1,5 +1,4 @@
-import { ChatOpenAI } from "langchain/chat_models/openai";
-
+import { ChatOpenAI } from '@langchain/openai'
 export default function main(options: any) {
     // change options.temperature to number
     options.temperature = Number(options.temperature);
@@ -24,7 +23,6 @@ export default function main(options: any) {
             ...customHeaders
         }
     }
-    console.log("config", config)
 
     return new ChatOpenAI({
         ...options,
