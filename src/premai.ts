@@ -1,16 +1,16 @@
 import { ChatPrem } from "@langchain/community/chat_models/premai";
-import Prem from '@premai/prem-sdk';
+// import Prem from '@premai/prem-sdk';
 export default function main(options: any) {
     // change options.temperature to number
     options.temperature = Number(options.temperature);
     options.frequencyPenalty = Number(options.frequencyPenalty || "0.0");
 
-    const prem = new Prem({
-        apiKey: options.apiKey,
-    })
-    prem.models.list().then((models) => {
-        console.log("models", models)
-    })
+    // const prem = new Prem({
+    //     apiKey: options.apiKey,
+    // })
+    // prem.models.list().then((models) => {
+    //     console.log("models", models)
+    // })
 
     // streaming to boolean
     options.stream = options.stream === "true";
