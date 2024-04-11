@@ -9,7 +9,7 @@ export default function main(options: any) {
         // modelName: 'claude-3-sonnet@20240229'
         ...options,
         authOptions: {
-            projectId: options.project_Id,
+            projectId: options.project_id,
         }
     })
 
