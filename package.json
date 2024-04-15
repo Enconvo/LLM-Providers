@@ -1499,7 +1499,7 @@
     }
   ],
   "dependencies": {
-    "@enconvo/api": "^0.1.106",
+    "@enconvo/api": "^0.1.111",
     "@google/generative-ai": "^0.5.0",
     "@langchain/anthropic": "^0.1.14",
     "@langchain/cohere": "^0.0.6",
