@@ -1,5 +1,7 @@
+import { MD5Util } from '@enconvo/api';
 import { ChatOpenAI } from '@langchain/openai'
 export default function main(options: any) {
+    console.log("MD5Util.getMd5('hello')", MD5Util.getMd5("hello"))
     // change options.temperature to number
     options.temperature = Number(options.temperature);
     options.frequencyPenalty = Number(options.frequencyPenalty || "0.0");

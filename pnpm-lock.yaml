@@ -6,8 +6,8 @@ settings:
 
 dependencies:
   '@enconvo/api':
-    specifier: ^0.1.9
-    version: 0.1.9
+    specifier: ^0.1.106
+    version: 0.1.106
   '@google/generative-ai':
     specifier: ^0.5.0
     version: 0.5.0
@@ -19,7 +19,7 @@ dependencies:
     version: 0.0.6
   '@langchain/community':
     specifier: ^0.0.44
-    version: 0.0.44(@premai/prem-sdk@0.3.37)
+    version: 0.0.44(@premai/prem-sdk@0.3.38)
   '@langchain/core':
     specifier: ^0.1.57
     version: 0.1.57
@@ -39,11 +39,11 @@ dependencies:
     specifier: ^0.0.26
     version: 0.0.26
   '@premai/prem-sdk':
-    specifier: ^0.3.37
-    version: 0.3.37
+    specifier: ^0.3.38
+    version: 0.3.38
   langchain:
     specifier: ^0.1.33
-    version: 0.1.33(@premai/prem-sdk@0.3.37)(axios@1.6.8)
+    version: 0.1.33(@premai/prem-sdk@0.3.38)(axios@1.6.8)
 
 devDependencies:
   '@types/node':
@@ -69,8 +69,8 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
-  /@anthropic-ai/sdk@0.20.3:
-    resolution: {integrity: sha512-unr02ncd/+uIyWE6Zwcp6Z831hi8RIxh95O82St+2EUG9vUNwFzfQVcoU1Xv4tpPMotu+3+RLkKn5MsfL8zdhA==}
+  /@anthropic-ai/sdk@0.20.4:
+    resolution: {integrity: sha512-ULzz+0Smk9SNkAi1tcjJByxbt4taBhnQkRAB75iH0ku5dRwiPxGxN0WOWHoNIq22dGWBXJByrQRhVf80V4xAPA==}
     dependencies:
       '@types/node': 18.19.31
       '@types/node-fetch': 2.6.11
@@ -100,8 +100,8 @@ packages:
       - encoding
     dev: false
 
-  /@enconvo/api@0.1.9:
-    resolution: {integrity: sha512-4idGM9yDkmTu3RiDnDF0iTMOHjq1BQiGSE08QRfrHHF37Z7LJOck9UMFj16HvGEx3CEQKuC6qSFd7tMvo9eRKg==}
+  /@enconvo/api@0.1.106:
+    resolution: {integrity: sha512-vPEdLzcExIV7qLseC86kU6kU2aNhW33JWgczrVD0GpiYGaKMi6H61mK2zHbjji9eBFUfmcVfArr2knUenxk4wA==}
     hasBin: true
     dev: false
 
@@ -416,7 +416,7 @@ packages:
     resolution: {integrity: sha512-7wkBVT0FiuuM6YovDivJmVxLppRul6ID+lQqJPDLrkp0tdEE2yjDvdlrYQJ9thlJ7d4XNV3B95wqXgG3CO8QHQ==}
     engines: {node: '>=18'}
     dependencies:
-      '@anthropic-ai/sdk': 0.20.3
+      '@anthropic-ai/sdk': 0.20.4
       '@langchain/core': 0.1.57
       fast-xml-parser: 4.3.6
       zod: 3.22.4
@@ -435,7 +435,7 @@ packages:
       - encoding
     dev: false
 
-  /@langchain/community@0.0.44(@premai/prem-sdk@0.3.37):
+  /@langchain/community@0.0.44(@premai/prem-sdk@0.3.38):
     resolution: {integrity: sha512-II9Hz90jJmfWRICtxTg1auQWzFw0npqacWiiOpaxNhzs6rptdf56gyfC48Z6n1ii4R8FfAlfX6YxhOE7lGGKXg==}
     engines: {node: '>=18'}
     peerDependencies:
@@ -716,7 +716,7 @@ packages:
     dependencies:
       '@langchain/core': 0.1.57
       '@langchain/openai': 0.0.26
-      '@premai/prem-sdk': 0.3.37
+      '@premai/prem-sdk': 0.3.38
       expr-eval: 2.0.2
       flat: 5.0.2
       langsmith: 0.1.14
@@ -727,8 +727,8 @@ packages:
       - encoding
     dev: false
 
-  /@langchain/community@0.0.47(@premai/prem-sdk@0.3.37):
-    resolution: {integrity: sha512-j20KhnWs16K/qxaY3QccOFMfcEmiTXN00NB1IPeO1pexRsvHL7GfqZ8rR5cOSSBfft2iuoGxaj1EZIyxh5ftgA==}
+  /@langchain/community@0.0.48(@premai/prem-sdk@0.3.38):
+    resolution: {integrity: sha512-jG7dpJkgKtwbrSLsxW4mXmECopTj5tRt4+B+QcKCqZm7yEghFR44Xj5OkDWtzzsjpL47RJck5AJ8MsQnmi7WDQ==}
     engines: {node: '>=18'}
     peerDependencies:
       '@aws-crypto/sha256-js': ^5.0.0
@@ -743,7 +743,7 @@ packages:
       '@azure/search-documents': ^12.0.0
       '@clickhouse/client': ^0.2.5
       '@cloudflare/ai': '*'
-      '@datastax/astra-db-ts': ^0.1.4
+      '@datastax/astra-db-ts': ^1.0.0
       '@elastic/elasticsearch': ^8.4.0
       '@getmetal/metal-sdk': '*'
       '@getzep/zep-js': ^0.9.0
@@ -1008,7 +1008,7 @@ packages:
     dependencies:
       '@langchain/core': 0.1.57
       '@langchain/openai': 0.0.28
-      '@premai/prem-sdk': 0.3.37
+      '@premai/prem-sdk': 0.3.38
       expr-eval: 2.0.2
       flat: 5.0.2
       langsmith: 0.1.14
@@ -1026,7 +1026,7 @@ packages:
       ansi-styles: 5.2.0
       camelcase: 6.3.0
       decamelize: 1.2.0
-      js-tiktoken: 1.0.10
+      js-tiktoken: 1.0.11
       langsmith: 0.1.14
       ml-distance: 4.0.1
       p-queue: 6.6.2
@@ -1036,8 +1036,8 @@ packages:
       zod-to-json-schema: 3.22.5(zod@3.22.4)
     dev: false
 
-  /@langchain/google-common@0.0.8(zod@3.22.4):
-    resolution: {integrity: sha512-9w+7GpG1NqtlypDohvZRaoQgPlcci9Yv72fYm2ojzlWOl1ZAkzuM85ZKZAGi8d8BWyYOwcjnIHhVmO8wz3oAMw==}
+  /@langchain/google-common@0.0.9(zod@3.22.4):
+    resolution: {integrity: sha512-jP7vIgsigUSYYVyT5hej4rg8fV8sutxI6Vm2B2xQGNwUXiCQIDPfA9bmlGyXPWomILKB21dRUqNkun/AMYAWvA==}
     engines: {node: '>=18'}
     dependencies:
       '@langchain/core': 0.1.57
@@ -1052,7 +1052,7 @@ packages:
     engines: {node: '>=18'}
     dependencies:
       '@langchain/core': 0.1.57
-      '@langchain/google-common': 0.0.8(zod@3.22.4)
+      '@langchain/google-common': 0.0.9(zod@3.22.4)
       google-auth-library: 8.9.0
     transitivePeerDependencies:
       - encoding
@@ -1106,8 +1106,8 @@ packages:
     engines: {node: '>=18'}
     dependencies:
       '@langchain/core': 0.1.57
-      js-tiktoken: 1.0.10
-      openai: 4.33.0
+      js-tiktoken: 1.0.11
+      openai: 4.33.1
       zod: 3.22.4
       zod-to-json-schema: 3.22.5(zod@3.22.4)
     transitivePeerDependencies:
@@ -1119,8 +1119,8 @@ packages:
     engines: {node: '>=18'}
     dependencies:
       '@langchain/core': 0.1.57
-      js-tiktoken: 1.0.10
-      openai: 4.33.0
+      js-tiktoken: 1.0.11
+      openai: 4.33.1
       zod: 3.22.4
       zod-to-json-schema: 3.22.5(zod@3.22.4)
     transitivePeerDependencies:
@@ -1132,8 +1132,8 @@ packages:
     engines: {node: '>=18'}
     dependencies:
       '@langchain/core': 0.1.57
-      js-tiktoken: 1.0.10
-      openai: 4.33.0
+      js-tiktoken: 1.0.11
+      openai: 4.33.1
       zod: 3.22.4
       zod-to-json-schema: 3.22.5(zod@3.22.4)
     transitivePeerDependencies:
@@ -1177,8 +1177,8 @@ packages:
     dev: true
     optional: true
 
-  /@premai/prem-sdk@0.3.37:
-    resolution: {integrity: sha512-OrdWtNsHWmAoVWKb4P4NaVsVrwOvbMkAlAjVhQRdGLidz4BooVCLM8Tj+QwbxJRy2kZGdnrlS3MMazJbEvtCOA==}
+  /@premai/prem-sdk@0.3.38:
+    resolution: {integrity: sha512-QLOrLW+fSWQUIQzSAwUzOjTco8juqd4mHYAA6R9OdfpWZhsJbOr1cZzKz6e4s8c4xsDxTU9YqZYOYNpsNCfcgg==}
     dependencies:
       axios: 1.6.8
     transitivePeerDependencies:
@@ -2189,8 +2189,8 @@ packages:
     resolution: {integrity: sha512-NnRs6dsyqUXejqk/yv2aiXlAvOs56sLkX6nUdeaNezI5LFFLlsZjOThmwnrcwh5ZZRwZlCMnVAY3CvhIhoVEKQ==}
     dev: false
 
-  /js-tiktoken@1.0.10:
-    resolution: {integrity: sha512-ZoSxbGjvGyMT13x6ACo9ebhDha/0FHdKA+OsQcMOWcm1Zs7r90Rhk5lhERLzji+3rA7EKpXCgwXcM5fF3DMpdA==}
+  /js-tiktoken@1.0.11:
+    resolution: {integrity: sha512-PajXFLq2vx7/8jllQZ43vzNpAai/0MOVdJjW/UrNyJorNQRTjHrqdGJG/mjHVy7h9M6dW6CaG43eNLMYFkTh6w==}
     dependencies:
       base64-js: 1.5.1
     dev: false
@@ -2245,7 +2245,7 @@ packages:
       json-buffer: 3.0.1
     dev: true
 
-  /langchain@0.1.33(@premai/prem-sdk@0.3.37)(axios@1.6.8):
+  /langchain@0.1.33(@premai/prem-sdk@0.3.38)(axios@1.6.8):
     resolution: {integrity: sha512-IrRd839x8eAmDutHNDMHGzIjufyWt/ckJrnRB2WifIJmtLWNRNQo5jZd7toeBU0UOVOQxoPtQGYf8lR0ar7vIQ==}
     engines: {node: '>=18'}
     peerDependencies:
@@ -2405,12 +2405,12 @@ packages:
         optional: true
     dependencies:
       '@anthropic-ai/sdk': 0.9.1
-      '@langchain/community': 0.0.47(@premai/prem-sdk@0.3.37)
+      '@langchain/community': 0.0.48(@premai/prem-sdk@0.3.38)
       '@langchain/core': 0.1.57
       '@langchain/openai': 0.0.28
       axios: 1.6.8
       binary-extensions: 2.3.0
-      js-tiktoken: 1.0.10
+      js-tiktoken: 1.0.11
       js-yaml: 4.1.0
       jsonpointer: 5.0.1
       langchainhub: 0.0.8
@@ -2726,8 +2726,8 @@ packages:
       mimic-fn: 2.1.0
     dev: true
 
-  /openai@4.33.0:
-    resolution: {integrity: sha512-Sh4KvplkvkAREuhb8yZpohqsOo08cBBu6LNWLD8YyMxe8yCxbE+ouJYUs1X2oDPrzQGANj0rFNQYiwW9gWLBOg==}
+  /openai@4.33.1:
+    resolution: {integrity: sha512-0DH572aSxGTT1JPOXgJQ9mjiuSPg/7scPot8hLc5I1mfQxPxLXTZWJpWerKaIWOuPkR2nrB0SamGDEehH8RuWA==}
     hasBin: true
     dependencies:
       '@types/node': 18.19.31
