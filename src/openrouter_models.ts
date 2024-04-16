@@ -7,7 +7,12 @@ async function fetch_model() {
     return json['data'].map((model: any) => {
         return {
             title: model['name'],
-            value: model['id']
+            value: model['id'],
+            "context": model['context_length'],
+            "inputPrice": model['pricing']['prompt'],
+            "outputPrice": model['pricing']['completion'],
+            "toolUse": model['id'].includes('openai/'),
+            "visionEnable": model['architecture']['modality'] === 'multimodal'
         }
     })
 }

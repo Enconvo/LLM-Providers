@@ -31,15 +31,28 @@
           "data": [
             {
               "title": "OpenAI: GPT-3.5 Turbo 16k (50 points)",
-              "value": "openai/gpt-35-turbo"
+              "value": "openai/gpt-35-turbo",
+              "toolUse": true
             },
             {
               "title": "OpenAI: GPT-4 Turbo 128k (875 points)",
-              "value": "openai/gpt4"
+              "value": "openai/gpt-4-turbo",
+              "context": 128000,
+              "visionEnable": true,
+              "toolUse": true
             },
             {
               "title": "OpenAI: GPT-4 Vision 128k (1250 points)",
-              "value": "openai/gpt4-vision"
+              "value": "openai/gpt4-vision",
+              "context": 128000,
+              "visionEnable": true,
+              "toolUse": true
+            },
+            {
+              "title": "OpenAI: GPT-4 8k (875 points)",
+              "value": "openai/gpt4",
+              "toolUse": true,
+              "context": 8191
             },
             {
               "title": "Mistral Medium (900 points)",
@@ -133,59 +146,126 @@
           "data": [
             {
               "title": "gpt-3.5-turbo-0125",
-              "value": "gpt-3.5-turbo-0125"
+              "value": "gpt-3.5-turbo-0125",
+              "context": 16385,
+              "inputPrice": 0.0005,
+              "outputPrice": 0.0015,
+              "toolUse": true
             },
             {
-              "title": "gpt-4-0125-preview",
-              "value": "gpt-4-0125-preview"
+              "title": "gpt-4-turbo",
+              "value": "gpt-4-turbo",
+              "context": 128000,
+              "inputPrice": 0.01,
+              "outputPrice": 0.03,
+              "visionEnable": true,
+              "toolUse": true
             },
             {
-              "title": "gpt-4-vision-preview",
-              "value": "gpt-4-vision-preview"
+              "title": "gpt-4-turbo-2024-04-09",
+              "value": "gpt-4-turbo-2024-04-09",
+              "context": 128000,
+              "inputPrice": 0.01,
+              "outputPrice": 0.03,
+              "visionEnable": true,
+              "toolUse": true
             },
             {
               "title": "gpt-3.5-turbo",
-              "value": "gpt-3.5-turbo"
+              "value": "gpt-3.5-turbo",
+              "context": 4096,
+              "inputPrice": 0.0005,
+              "outputPrice": 0.0015,
+              "toolUse": true
             },
             {
               "title": "gpt-3.5-turbo-1106",
-              "value": "gpt-3.5-turbo-1106"
+              "value": "gpt-3.5-turbo-1106",
+              "context": 16385,
+              "inputPrice": 0.0005,
+              "outputPrice": 0.0015,
+              "toolUse": true
             },
             {
               "title": "gpt-3.5-turbo-0613",
-              "value": "gpt-3.5-turbo-0613"
+              "value": "gpt-3.5-turbo-0613",
+              "context": 4096,
+              "inputPrice": 0.0005,
+              "outputPrice": 0.0015,
+              "toolUse": true
             },
             {
               "title": "gpt-3.5-turbo-16k",
-              "value": "gpt-3.5-turbo-16k"
+              "value": "gpt-3.5-turbo-16k",
+              "context": 16385,
+              "inputPrice": 0.0005,
+              "outputPrice": 0.0015,
+              "toolUse": true
             },
             {
               "title": "gpt-3.5-turbo-16k-0613",
-              "value": "gpt-3.5-turbo-16k-0613"
+              "value": "gpt-3.5-turbo-16k-0613",
+              "context": 16385,
+              "inputPrice": 0.0005,
+              "outputPrice": 0.0015,
+              "toolUse": true
             },
             {
               "title": "gpt-4-turbo-preview",
-              "value": "gpt-4-turbo-preview"
+              "value": "gpt-4-turbo-preview",
+              "context": 128000,
+              "inputPrice": 0.01,
+              "outputPrice": 0.03,
+              "toolUse": true
             },
             {
               "title": "gpt-4",
-              "value": "gpt-4"
+              "value": "gpt-4",
+              "context": 8192,
+              "inputPrice": 0.03,
+              "outputPrice": 0.06,
+              "toolUse": true
             },
             {
               "title": "gpt-4-0613",
-              "value": "gpt-4-0613"
+              "value": "gpt-4-0613",
+              "context": 8192,
+              "inputPrice": 0.03,
+              "outputPrice": 0.06,
+              "toolUse": true
             },
             {
               "title": "gpt-4-32k",
-              "value": "gpt-4-32k"
+              "value": "gpt-4-32k",
+              "context": 32768,
+              "inputPrice": 0.06,
+              "outputPrice": 0.12,
+              "toolUse": true
             },
             {
               "title": "gpt-4-32k-0613",
-              "value": "gpt-4-32k-0613"
+              "value": "gpt-4-32k-0613",
+              "context": 32768,
+              "inputPrice": 0.06,
+              "outputPrice": 0.12,
+              "toolUse": true
             },
             {
               "title": "gpt-4-1106-preview",
-              "value": "gpt-4-1106-preview"
+              "value": "gpt-4-1106-preview",
+              "context": 128000,
+              "inputPrice": 0.01,
+              "outputPrice": 0.03,
+              "toolUse": true
+            },
+            {
+              "title": "gpt-4-vision-preview",
+              "value": "gpt-4-vision-preview",
+              "context": 128000,
+              "inputPrice": 0.01,
+              "outputPrice": 0.03,
+              "visionEnable": true,
+              "toolUse": true
             }
           ]
         },
@@ -356,23 +436,30 @@
           "data": [
             {
               "title": "Claude 3 Opus 200k",
-              "value": "claude-3-opus-20240229"
+              "value": "claude-3-opus-20240229",
+              "context": 200000,
+              "inputPrice": 0.15,
+              "outputPrice": 0.75,
+              "toolUse": true,
+              "visionEnable": true
             },
             {
               "title": "Claude 3 Sonnet 200k",
-              "value": "claude-3-sonnet-20240229"
+              "value": "claude-3-sonnet-20240229",
+              "context": 200000,
+              "inputPrice": 0.03,
+              "outputPrice": 0.15,
+              "toolUse": true,
+              "visionEnable": true
             },
             {
               "title": "Claude 3 Haiku 200k",
-              "value": "claude-3-haiku-20240307"
-            },
-            {
-              "title": "claude-2 100k",
-              "value": "claude-2"
-            },
-            {
-              "title": "claude-instant-1 100k",
-              "value": "claude-instant-1"
+              "value": "claude-3-haiku-20240307",
+              "inputPrice": 0.00025,
+              "outputPrice": 0.00125,
+              "context": 200000,
+              "toolUse": true,
+              "visionEnable": true
             }
           ]
         },
