@@ -32,6 +32,7 @@
             {
               "title": "OpenAI: GPT-3.5 Turbo 16k (50 points)",
               "value": "openai/gpt-35-turbo",
+              "context": 16000,
               "toolUse": true
             },
             {
