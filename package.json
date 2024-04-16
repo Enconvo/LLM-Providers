@@ -827,24 +827,28 @@
           "default": "mistral-tiny",
           "data": [
             {
-              "title": "Mistral 7B",
-              "value": "open-mistral-7b"
-            },
-            {
-              "title": "Mixtral 8x7B",
-              "value": "open-mixtral-8x7b"
-            },
-            {
               "title": "Mistral Small",
-              "value": "mistral-small-latest"
+              "value": "mistral-small-latest",
+              "context": 16385,
+              "inputPrice": 0.002,
+              "outputPrice": 0.006,
+              "toolUse": true
             },
             {
               "title": "Mistral Medium",
-              "value": "mistral-medium-latest"
+              "value": "mistral-medium-latest",
+              "context": 16385,
+              "inputPrice": 0.0027,
+              "outputPrice": 0.0081,
+              "toolUse": true
             },
             {
               "title": "Mistral Large",
-              "value": "mistral-large-latest"
+              "value": "mistral-large-latest",
+              "context": 16385,
+              "inputPrice": 0.008,
+              "outputPrice": 0.024,
+              "toolUse": true
             }
           ]
         },
