@@ -3,7 +3,11 @@ import { HarmBlockThreshold, HarmCategory } from "@google/generative-ai";
 
 export default function main(options: any) {
     // change options.temperature to number
-    options.temperature = Number(options.temperature);
+    options.temperature = Number(options.temperature.value);
+
+    const modelOptions = options.modelName
+    const modelName = modelOptions.value
+    options.modelName = modelName;
 
     // streaming to boolean
     // options.streaming = options.stream === "true";

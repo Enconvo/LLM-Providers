@@ -14,7 +14,8 @@ async function fetch_model(options: any) {
         models = json.models.map((item: any) => {
             return {
                 "title": item.name,
-                "value": item.name
+                "value": item.name,
+                "visionEnable": item.name.includes('llava'),
             }
         })
     } catch (err) {

@@ -1,12 +1,12 @@
 import { ChatGroq } from "@langchain/groq";
 
 export default function main(options: any) {
-    // change options.temperature to number
-    options.temperature = Number(options.temperature);
-    options.frequencyPenalty = Number(options.frequencyPenalty || "0.0");
+    options.temperature = Number(options.temperature.value);
 
-    // streaming to boolean
-    options.stream = options.stream === "true";
+    const modelOptions = options.modelName
+    const modelName = modelOptions.value
+    options.modelName = modelName;
+
 
     const model = new ChatGroq(options);
 

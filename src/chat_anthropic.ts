@@ -9,10 +9,12 @@ export default function main(options: any): ChatAnthropic {
     const modelOptions = options.modelName
     const modelName = modelOptions.value
     options.modelName = modelName;
+    options.streaming = true;
 
     let config: any = {
         // defaultHeaders: options.headers
     }
+    console.log("options", options);
 
     return new ChatAnthropic({
         ...options,

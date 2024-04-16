@@ -1,7 +1,11 @@
-import { ChatCloudflareWorkersAI } from "@langchain/community/chat_models/cloudflare_workersai";
+import { ChatCloudflareWorkersAI } from "@langchain/cloudflare";
+
 export default function main(options: any) {
-    // streaming to boolean
-    options.streaming = options.streaming === "true";
+    console.log("Options: ", options);
+
+    const modelOptions = options.modelName
+    const modelName = modelOptions.value
+    options.modelName = modelName;
 
     const model = new ChatCloudflareWorkersAI({
         model: options.modelName, // Default value

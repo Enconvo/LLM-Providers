@@ -14,6 +14,9 @@ dependencies:
   '@langchain/anthropic':
     specifier: ^0.1.14
     version: 0.1.14
+  '@langchain/cloudflare':
+    specifier: ^0.0.4
+    version: 0.0.4
   '@langchain/cohere':
     specifier: ^0.0.6
     version: 0.0.6
@@ -98,6 +101,10 @@ packages:
       web-streams-polyfill: 3.3.3
     transitivePeerDependencies:
       - encoding
+    dev: false
+
+  /@cloudflare/ai@1.1.0:
+    resolution: {integrity: sha512-6j2aeelMfPj2YVj/zQBAj9PAbEZSrO/t+Wywy3Gvk93JsTlsZvEH+V9JYIZHynhSt0juuOrSWP9ju3vN6lUDMQ==}
     dev: false
 
   /@enconvo/api@0.1.111:
@@ -423,6 +430,15 @@ packages:
       zod-to-json-schema: 3.22.5(zod@3.22.4)
     transitivePeerDependencies:
       - encoding
+    dev: false
+
+  /@langchain/cloudflare@0.0.4:
+    resolution: {integrity: sha512-7ylEr8cqECdZLK0TEsy8PsewNXKHec1rripegYlQs+XU5pviEXZKZG4y1n52d3u1ApSJ4S+lyqjBGsMRTj7blQ==}
+    engines: {node: '>=18'}
+    dependencies:
+      '@cloudflare/ai': 1.1.0
+      '@langchain/core': 0.1.57
+      uuid: 9.0.1
     dev: false
 
   /@langchain/cohere@0.0.6:

@@ -832,24 +832,21 @@
               "value": "mistral-small-latest",
               "context": 16385,
               "inputPrice": 0.002,
-              "outputPrice": 0.006,
-              "toolUse": true
+              "outputPrice": 0.006
             },
             {
               "title": "Mistral Medium",
               "value": "mistral-medium-latest",
               "context": 16385,
               "inputPrice": 0.0027,
-              "outputPrice": 0.0081,
-              "toolUse": true
+              "outputPrice": 0.0081
             },
             {
               "title": "Mistral Large",
               "value": "mistral-large-latest",
               "context": 16385,
               "inputPrice": 0.008,
-              "outputPrice": 0.024,
-              "toolUse": true
+              "outputPrice": 0.024
             }
           ]
         },
@@ -999,15 +996,30 @@
           "data": [
             {
               "title": "Gemini 1.0 Pro",
-              "value": "gemini-1.0-pro"
+              "value": "gemini-1.0-pro",
+              "context": 1000000,
+              "inputPrice": 0.0005,
+              "outputPrice": 0.0015,
+              "visionEnable": true,
+              "toolUse": true
             },
             {
               "title": "Gemini 1.0 Pro Vision",
-              "value": "gemini-1.0-pro-vision"
+              "value": "gemini-1.0-pro-vision",
+              "context": 1000000,
+              "inputPrice": 0.0005,
+              "outputPrice": 0.0015,
+              "visionEnable": true,
+              "toolUse": true
             },
             {
               "title": "Gemini 1.5 Pro",
-              "value": "gemini-1.5-pro-preview-0409"
+              "value": "gemini-1.5-pro-preview-0409",
+              "context": 1000000,
+              "inputPrice": 0.007,
+              "outputPrice": 0.021,
+              "visionEnable": true,
+              "toolUse": true
             }
           ]
         },
@@ -1152,7 +1164,7 @@
           "dataProxy": "llm|cloudflare_models"
         },
         {
-          "name": "account_id",
+          "name": "cloudflareAccountId",
           "description": "Cloudflare AccountID",
           "type": "textfield",
           "required": false,
@@ -1161,7 +1173,7 @@
           "placeholder": "Cloudflare AccountID"
         },
         {
-          "name": "apiKey",
+          "name": "cloudflareApiToken",
           "description": "Cloudflare api Token",
           "type": "password",
           "required": false,
@@ -1594,6 +1606,7 @@
     "@enconvo/api": "^0.1.111",
     "@google/generative-ai": "^0.5.0",
     "@langchain/anthropic": "^0.1.14",
+    "@langchain/cloudflare": "^0.0.4",
     "@langchain/cohere": "^0.0.6",
     "@langchain/community": "^0.0.44",
     "@langchain/core": "^0.1.57",
