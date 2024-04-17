@@ -41,51 +41,6 @@
               "context": 128000,
               "visionEnable": true,
               "toolUse": true
-            },
-            {
-              "title": "OpenAI: GPT-4 Vision 128k (1250 points)",
-              "value": "openai/gpt4-vision",
-              "context": 128000,
-              "visionEnable": true,
-              "toolUse": true
-            },
-            {
-              "title": "OpenAI: GPT-4 8k (875 points)",
-              "value": "openai/gpt4",
-              "toolUse": true,
-              "context": 8191
-            },
-            {
-              "title": "Mistral Medium (900 points)",
-              "value": "mistralai/mistral-medium"
-            },
-            {
-              "title": "Mistral Large (1200 points)",
-              "value": "mistralai/mistral-large"
-            },
-            {
-              "title": "Nous: Capybara 7B (5 points)",
-              "value": "nousresearch/nous-capybara-7b:free"
-            },
-            {
-              "title": "Mistral 7B Instruct (5 points)",
-              "value": "mistralai/mistral-7b-instruct:free"
-            },
-            {
-              "title": "MythoMist 7B (5 points)",
-              "value": "gryphe/mythomist-7b:free"
-            },
-            {
-              "title": "Toppy M 7B (5 points)",
-              "value": "undi95/toppy-m-7b:free"
-            },
-            {
-              "title": "Cinematika 7B (alpha) (5 points)",
-              "value": "openrouter/cinematika-7b:free"
-            },
-            {
-              "title": "Google: Gemma 7B (5 points)",
-              "value": "google/gemma-7b-it:free"
             }
           ]
         },
@@ -641,7 +596,16 @@
           "required": false,
           "title": "Model Name",
           "default": "openai/gpt-3.5-turbo",
-          "data": [],
+          "data": [
+            {
+              "title": "Openai Gpt-3.5-turbo",
+              "value": "openai/gpt-3.5-turbo",
+              "context": 16385,
+              "inputPrice": 0.0005,
+              "outputPrice": 0.0015,
+              "toolUse": true
+            }
+          ],
           "dataProxy": "llm|openrouter_models"
         },
         {
