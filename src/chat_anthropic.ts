@@ -14,7 +14,6 @@ export default function main(options: any): ChatAnthropic {
     let config: any = {
         // defaultHeaders: options.headers
     }
-    console.log("options", options);
 
     return new ChatAnthropic({
         ...options,

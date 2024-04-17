@@ -810,7 +810,19 @@
       "description": "get premai model list",
       "icon": "premai.png",
       "showInCommandList": false,
-      "mode": "no-view"
+      "mode": "no-view",
+      "preferences": [
+        {
+          "name": "apiKey",
+          "description": "api key",
+          "type": "password",
+          "required": false,
+          "title": "Api Key",
+          "default": "",
+          "defaultProxy": "llm|premai",
+          "placeholder": "Api Key"
+        }
+      ]
     },
     {
       "name": "chat_mistral",
