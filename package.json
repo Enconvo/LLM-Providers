@@ -1527,6 +1527,26 @@
       ]
     },
     {
+      "name": "cohere_models",
+      "title": "cohere Models",
+      "description": "get cohere model list",
+      "icon": "cohere.jpg",
+      "showInCommandList": false,
+      "mode": "no-view",
+      "preferences": [
+        {
+          "name": "apiKey",
+          "description": "api key",
+          "type": "password",
+          "required": false,
+          "title": "Api Key",
+          "default": "",
+          "defaultProxy": "llm|chat_cohere",
+          "placeholder": "Api Key"
+        }
+      ]
+    },
+    {
       "name": "chat_cohere",
       "title": "Cohere AI",
       "description": "Chat using [Cohere](cohere.com), get [API KEY](https://dashboard.cohere.com/)",
@@ -1540,26 +1560,12 @@
           "required": false,
           "title": "Model Name",
           "default": "command-r-plus",
+          "dataProxy": "llm|cohere_models",
           "data": [
             {
-              "title": "Command-R (128k)",
-              "value": "command-r"
-            },
-            {
               "title": "Command-R-Plus (116k)",
-              "value": "command-r-plus"
-            },
-            {
-              "title": "Command (4k)",
-              "value": "command"
-            },
-            {
-              "title": "Command-Light (4k)",
-              "value": "command-light"
-            },
-            {
-              "title": "Command-Light-Nightly (4k)",
-              "value": "command-light-nightly"
+              "value": "command-r-plus",
+              "context": 116000
             }
           ]
         },
