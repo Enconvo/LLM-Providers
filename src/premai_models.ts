@@ -19,7 +19,8 @@ async function fetch_model(apiKey: string) {
         return {
             // 第一个字母大写
             title: `${capitalizeFirstLetter(item.model_provider)}  ${capitalizeFirstLetter(item.name)}`,
-            value: item.name
+            value: item.name,
+            "toolUse": item.model_provider === 'openai'
         }
     })
 }
