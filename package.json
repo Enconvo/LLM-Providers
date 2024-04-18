@@ -26,11 +26,18 @@
           "type": "dropdown",
           "required": false,
           "title": "Model Name",
-          "default": "openai/gpt-35-turbo",
+          "default": "enconvoai/assistant",
           "data": [
             {
+              "title": "EnconvoAI: Assistant 16k (50 points)",
+              "value": "enconvoai/assistant",
+              "context": 16000,
+              "toolUse": true,
+              "visionEnable": true
+            },
+            {
               "title": "OpenAI: GPT-3.5 Turbo 16k (50 points)",
-              "value": "openai/gpt-35-turbo",
+              "value": "openai/gpt-3.5-turbo",
               "context": 16000,
               "toolUse": true
             },
@@ -124,7 +131,7 @@
           "type": "hidden",
           "required": false,
           "title": "OpenAI Api Key",
-          "default": "default",
+          "default": "http://127.0.0.1:8181/v1/",
           "placeholder": "OpenAI Api Key"
         },
         {

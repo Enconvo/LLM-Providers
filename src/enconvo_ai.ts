@@ -10,6 +10,9 @@ export default function main(options: any): BaseChatModel {
         case "openai":
             options.commandName = "chat_open_ai";
             break;
+        case "enconvoai":
+            options.commandName = "chat_open_ai";
+            break;
         case "anthropic":
             options.commandName = "chat_anthropic";
             break;
