@@ -32,8 +32,7 @@
               "title": "EnconvoAI: Assistant 16k (50 points)",
               "value": "enconvoai/assistant",
               "context": 16000,
-              "toolUse": true,
-              "visionEnable": true
+              "toolUse": true
             },
             {
               "title": "OpenAI: GPT-3.5 Turbo 16k (50 points)",
