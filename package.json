@@ -32,7 +32,8 @@
               "title": "EnconvoAI: Assistant 16k (50 points)",
               "value": "enconvoai/assistant",
               "context": 16000,
-              "toolUse": true
+              "toolUse": true,
+              "visionEnable": true
             },
             {
               "title": "OpenAI: GPT-3.5 Turbo 16k (50 points)",
@@ -130,7 +131,7 @@
           "type": "hidden",
           "required": false,
           "title": "OpenAI Api Key",
-          "default": "https://api.enconvo.com/v1/",
+          "default": "http://127.0.0.1:8181/v1/",
           "placeholder": "OpenAI Api Key"
         },
         {
