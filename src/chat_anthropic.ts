@@ -12,7 +12,7 @@ export default function main(options: any): ChatAnthropic {
     options.streaming = true;
 
     let config: any = {
-        // defaultHeaders: options.headers
+        defaultHeaders: options.headers
     }
 
     return new ChatAnthropic({

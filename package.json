@@ -19,7 +19,6 @@
       "description": "Chat using EnconvoAI which provide LLM service",
       "icon": "enconvo.png",
       "mode": "llm",
-      "targetCommand": "llm/chat_open_ai",
       "preferences": [
         {
           "name": "modelName",
@@ -41,6 +40,33 @@
               "context": 128000,
               "visionEnable": true,
               "toolUse": true
+            },
+            {
+              "title": "Claude 3 Opus 200k",
+              "value": "anthropic/claude-3-opus-20240229",
+              "context": 200000,
+              "inputPrice": 0.15,
+              "outputPrice": 0.75,
+              "toolUse": true,
+              "visionEnable": true
+            },
+            {
+              "title": "Claude 3 Sonnet 200k",
+              "value": "anthropic/claude-3-sonnet-20240229",
+              "context": 200000,
+              "inputPrice": 0.03,
+              "outputPrice": 0.15,
+              "toolUse": true,
+              "visionEnable": true
+            },
+            {
+              "title": "Claude 3 Haiku 200k",
+              "value": "anthropic/claude-3-haiku-20240307",
+              "inputPrice": 0.00025,
+              "outputPrice": 0.00125,
+              "context": 200000,
+              "toolUse": true,
+              "visionEnable": true
             }
           ]
         },
@@ -73,6 +99,42 @@
               "value": "2.0"
             }
           ]
+        },
+        {
+          "name": "openAIApiKey",
+          "description": "OpenAI api key",
+          "type": "hidden",
+          "required": false,
+          "title": "OpenAI Api Key",
+          "default": "default",
+          "placeholder": "OpenAI Api Key"
+        },
+        {
+          "name": "anthropicApiKey",
+          "description": "OpenAI api key",
+          "type": "hidden",
+          "required": false,
+          "title": "OpenAI Api Key",
+          "default": "default",
+          "placeholder": "OpenAI Api Key"
+        },
+        {
+          "name": "baseUrl",
+          "description": "OpenAI api key",
+          "type": "hidden",
+          "required": false,
+          "title": "OpenAI Api Key",
+          "default": "default",
+          "placeholder": "OpenAI Api Key"
+        },
+        {
+          "name": "anthropicApiUrl",
+          "description": "OpenAI api key",
+          "type": "hidden",
+          "required": false,
+          "title": "OpenAI Api Key",
+          "default": "http://127.0.0.1:8181/",
+          "placeholder": "OpenAI Api Key"
         },
         {
           "name": "streaming",
