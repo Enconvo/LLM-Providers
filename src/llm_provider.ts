@@ -12,10 +12,12 @@ export type LLMOptions = {
     [key: string]: any;
 };
 
+type Bindings = { tools: StructuredToolInterface[], [key: string]: any }
 
 export abstract class LLMProviderBase {
     protected options: LLMOptions;
     protected tools: StructuredToolInterface[] = [];
+    protected bindings: Bindings = { tools: [] }
     protected autoInit?: boolean = true;
     protected lcChatModel?: Runnable
 
@@ -35,8 +37,9 @@ export abstract class LLMProviderBase {
         return this._initLCChatModel(options)
     }
 
-    bind({ tools }: { tools: StructuredToolInterface[] }): LLMProviderBase {
-        this.tools = tools
+    bind(bindings: { tools: StructuredToolInterface[], [key: string]: any }): LLMProviderBase {
+        this.bindings = bindings
+        this.tools = bindings.tools || []
         return this
     }
 

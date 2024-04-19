@@ -12,7 +12,8 @@ export default function main(options: any) {
 class EnconvoAIProvider extends LLMProviderBase {
 
     protected async _call({ messages }: { messages: BaseMessage[]; }): Promise<LLMResult> {
-        const llmArr = this.options.modelName.value.split("/")
+        console.log("modelProvider", this.options)
+        const llmArr = (this.options.modelName.value || this.options.modelName).split("/")
         let modelProvider = llmArr[0]
         let newLLMOptions: LLMOptions = {}
 
@@ -66,9 +67,8 @@ class EnconvoAIProvider extends LLMProviderBase {
 
         }
 
+        await this.initLCChatModel(JSON.parse(JSON.stringify(newLLMOptions)))
 
-        await this.initLCChatModel(newLLMOptions)
-        // console.log("newLLMLL", this.tools)
         if (this.tools.length > 0) {
             //@ts-ignore
             this.lcChatModel = this.lcChatModel?.bind({ tools: this.tools })
@@ -83,7 +83,7 @@ class EnconvoAIProvider extends LLMProviderBase {
 
     protected async _initLCChatModel(newLLMOptions: LLMOptions): Promise<Runnable | undefined> {
         // console.log("LLLLLLLLL", newLLMOptions)
-        const newLLMArr = newLLMOptions.modelName.value.split("/")
+        const newLLMArr = (newLLMOptions.modelName.value || newLLMOptions.modelName).split("/")
         const modelProvider = newLLMArr[0]
 
         switch (modelProvider) {
