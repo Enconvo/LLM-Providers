@@ -6,34 +6,32 @@ import { AnthropicOpenAIProvider } from "./chat_anthropic.ts";
 
 
 export default function main(options: any) {
-    return new AnthropicOpenAIProvider({ options })
-    // return new PremAIProvider({ options })
+    return new PremAIProvider({ options })
 }
 
-// class PremAIProvider extends LLMProviderBase {
-//     protected async _call({ messages }: { messages: BaseMessage[]; }): Promise<LLMResult> {
+class PremAIProvider extends LLMProviderBase {
+    protected async _call({ messages }: { messages: BaseMessage[]; }): Promise<LLMResult> {
 
-//         const stream = await this.lcChatModel?.stream(messages)
+        const stream = await this.lcChatModel?.stream(messages)
 
-//         return {
-//             stream
-//         }
-//     }
-
-
-//     protected async _initLCChatModel(options: LLMOptions): Promise<Runnable | undefined> {
-//         // options.temperature = Number(options.temperature.value);
-
-//         // const modelOptions = options.model
-//         // const modelName = modelOptions.value
-//         // options.model = modelName;
+        return {
+            stream
+        }
+    }
 
 
-//         // const model = new ChatPrem({
-//         //     ...options,
-//         // });
+    protected async _initLCChatModel(options: LLMOptions): Promise<Runnable | undefined> {
+        options.temperature = Number(options.temperature.value);
 
-//         // return model;
-//         return undefined
-//     }
-// }
+        const modelOptions = options.model
+        const modelName = modelOptions.value
+        options.model = modelName;
+
+
+        const model = new ChatPrem({
+            ...options,
+        });
+
+        return model;
+    }
+}
