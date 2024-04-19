@@ -7,17 +7,16 @@ export interface LLMResult {
     stream: IterableReadableStream<BaseMessageChunk> | undefined
 }
 
-
 export type LLMOptions = {
     [key: string]: any;
 };
 
-type Bindings = { tools: StructuredToolInterface[], [key: string]: any }
+type Bindings = { tools?: StructuredToolInterface[], [key: string]: any }
 
 export abstract class LLMProviderBase {
     protected options: LLMOptions;
     protected tools: StructuredToolInterface[] = [];
-    protected bindings: Bindings = { tools: [] }
+    protected bindings: Bindings = {}
     protected autoInit?: boolean = true;
     protected lcChatModel?: Runnable
 
@@ -27,7 +26,7 @@ export abstract class LLMProviderBase {
 
     constructor(fields: { options: LLMOptions, autoInit?: boolean }) {
         this.options = fields.options
-        this.autoInit = fields.autoInit
+        this.autoInit = fields.autoInit === undefined ? true : fields.autoInit
     }
 
 
@@ -37,9 +36,11 @@ export abstract class LLMProviderBase {
         return this._initLCChatModel(options)
     }
 
-    bind(bindings: { tools: StructuredToolInterface[], [key: string]: any }): LLMProviderBase {
+    bind(bindings: Bindings): LLMProviderBase {
         this.bindings = bindings
+
         this.tools = bindings.tools || []
+
         return this
     }
 
@@ -48,12 +49,19 @@ export abstract class LLMProviderBase {
             this.lcChatModel = await this.initLCChatModel(this.options)
         }
 
-        if (this.lcChatModel && this.tools.length > 0) {
+        if (this.lcChatModel) {
+            //@ts-ignore
 
-            this.lcChatModel = this.lcChatModel?.bind({
-                //@ts-ignore
-                tools: this.tools,
-            })
+            for (let key in this.bindings) {
+                const value = this.bindings[key]
+                // 如果是数组
+                console.log("key", key, value)
+                if (Array.isArray(value) && value.length <= 0) {
+                    delete this.bindings[key]
+                }
+            }
+
+            this.lcChatModel = this.lcChatModel?.bind(this.bindings)
         }
         return await this._call({ messages })
     }

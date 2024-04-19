@@ -1512,7 +1512,7 @@
         {
           "name": "project_id",
           "description": "project_id",
-          "type": "textfield",
+          "type": "number",
           "required": false,
           "title": "Project ID",
           "default": "",
