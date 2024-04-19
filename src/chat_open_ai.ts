@@ -1,14 +1,14 @@
 import { ChatOpenAI } from '@langchain/openai'
 import { LLMOptions, LLMProviderBase, LLMResult } from './llm_provider.ts';
 import { BaseMessage } from 'langchain/schema';
-import { BaseChatModel } from 'langchain/chat_models/base';
+import { Runnable } from 'langchain/runnables';
 
 export default function main(options: any) {
     return new ChatOpenAIProvider({ options })
 }
 
 class ChatOpenAIProvider extends LLMProviderBase {
-    protected _initLCChatModel(options: LLMOptions): BaseChatModel | undefined {
+    protected async _initLCChatModel(options: LLMOptions): Promise<Runnable> {
 
         // change options.temperature to number
         options.temperature = Number(options.temperature.value);

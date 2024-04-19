@@ -16,7 +16,6 @@ class EnconvoAIProvider extends LLMProviderBase {
         let modelProvider = llmArr[0]
         let newLLMOptions: LLMOptions = {}
 
-        console.log("toollll", modelProvider)
 
         newLLMOptions = this.options
         if (modelProvider === 'anthropic') {
@@ -107,7 +106,5 @@ class EnconvoAIProvider extends LLMProviderBase {
         this.lcChatModel = await llmProvider.initLCChatModel(newLLMOptions)
         return this.lcChatModel
     }
-
-
 }
 
