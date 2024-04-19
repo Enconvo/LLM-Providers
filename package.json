@@ -131,7 +131,7 @@
           "type": "hidden",
           "required": false,
           "title": "OpenAI Api Key",
-          "default": "https://api.enconvo.com/v1/",
+          "default": "http://127.0.0.1:8181/v1/",
           "placeholder": "OpenAI Api Key"
         },
         {
@@ -140,7 +140,7 @@
           "type": "hidden",
           "required": false,
           "title": "OpenAI Api Key",
-          "default": "https://api.enconvo.com/",
+          "default": "http://127.0.0.1:8181/",
           "placeholder": "OpenAI Api Key"
         },
         {
