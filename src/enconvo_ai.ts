@@ -16,7 +16,6 @@ class EnconvoAIProvider extends LLMProviderBase {
 
     originalTools: StructuredToolInterface[] = []
     protected async _call({ messages }: { messages: BaseMessage[]; }): Promise<LLMResult> {
-        console.log("modelProvider", this.options)
         const llmArr = (this.options.modelName.value || this.options.modelName).split("/")
         let modelProvider = llmArr[0]
         let newLLMOptions: LLMOptions = {}
@@ -62,6 +61,8 @@ class EnconvoAIProvider extends LLMProviderBase {
             }
 
         }
+
+        // console.log("modelProvider", newLLMOptions)
 
         await this.initLCChatModel(JSON.parse(JSON.stringify(newLLMOptions)))
 
