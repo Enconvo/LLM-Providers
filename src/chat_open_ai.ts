@@ -34,7 +34,7 @@ class ChatOpenAIProvider extends LLMProviderBase {
             defaultHeaders: {
                 ...options.headers,
                 ...customHeaders
-            }
+            },
         }
 
         return new ChatOpenAI({

@@ -34,7 +34,7 @@ class EnconvoAIProvider extends LLMProviderBase {
             const visionEnabled = this.isVisionEnabled(messages)
             const isGPT4 = modelName.value === 'openai/gpt-4-turbo'
             if (isGPT4 && visionEnabled) {
-                modelName.value = 'anthropic/claude-3-sonnet-20240229'
+                modelName.value = 'anthropic/claude-3-haiku-20240307'
                 newLLMOptions.modelName = modelName
                 this.clearTools()
             }
@@ -55,14 +55,13 @@ class EnconvoAIProvider extends LLMProviderBase {
                 }
 
                 let modelName = newLLMOptions.modelName
-                modelName.value = 'anthropic/claude-3-sonnet-20240229'
+                modelName.value = 'anthropic/claude-3-haiku-20240307'
                 // modelName.value = 'anthropic/claude-3-haiku-20240307'
                 newLLMOptions.modelName = modelName
             }
 
         }
 
-        // console.log("modelProvider", newLLMOptions)
 
         await this.initLCChatModel(JSON.parse(JSON.stringify(newLLMOptions)))
 

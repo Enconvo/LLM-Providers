@@ -57,6 +57,8 @@ export abstract class LLMProviderBase {
     }
 
     async call({ messages }: { messages: BaseMessage[] }): Promise<LLMResult> {
+        console.log("call", this.options.model || this.options.modelName)
+
         if (this.autoInit && !this.lcChatModel) {
             this.lcChatModel = await this.initLCChatModel(this.options)
         }
