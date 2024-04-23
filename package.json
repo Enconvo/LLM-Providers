@@ -22,7 +22,7 @@
       "preferences": [
         {
           "name": "modelName",
-          "description": "md:The model to generate the completion. Every call will consume points, and the specific consumption details are as follows\uff1a\n\n  **OpenAI:** \n\n | Model Name | Points |\n | --- | --- |\n | gpt-35-turbo | 50 |\n | gpt4 | 875 |\n\n\n | gpt4 | 875 |\n\n\n | gpt4-vision | 1250 |\n\n\n | Claude 3 Sonnet | 1250 |\n\n\n | Claude 3 Opus | 6000 |\n\n",
+          "description": "md:The model to generate the completion. Every call will consume points, and the specific consumption details are as follows：\n\n  **OpenAI:** \n\n | Model Name | Points |\n | --- | --- |\n | gpt-35-turbo | 50 |\n | gpt4 | 875 |\n\n\n | gpt4 | 875 |\n\n\n | gpt4-vision | 1250 |\n\n\n | Claude 3 Sonnet | 1250 |\n\n\n | Claude 3 Opus | 6000 |\n\n",
           "type": "dropdown",
           "required": false,
           "title": "Model Name",
@@ -1425,12 +1425,29 @@
           "default": "llama2-70b-4096",
           "data": [
             {
-              "title": "LLaMA2-70b-chat",
-              "value": "llama2-70b-4096"
+              "title": "LLaMA2 70b",
+              "value": "llama2-70b-4096",
+              "context": 4096
             },
             {
-              "title": "Mixtral-8x7b-Instruct-v0.1",
-              "value": "mixtral-8x7b-32768"
+              "title": "LLaMA3 8b",
+              "value": "llama3-8b-8192",
+              "context": 8192
+            },
+            {
+              "title": "LLaMA3 70b",
+              "value": "llama3-70b-8192",
+              "context": 8192
+            },
+            {
+              "title": "Mixtral 8x7b",
+              "value": "mixtral-8x7b-32768",
+              "context": 32768
+            },
+            {
+              "title": "Gemma 7b",
+              "value": "gemma-7b-it",
+              "context": 8192
             }
           ]
         },
@@ -1654,7 +1671,7 @@
     }
   ],
   "dependencies": {
-    "@enconvo/api": "^0.1.123",
+    "@enconvo/api": "^0.1.124",
     "@google/generative-ai": "^0.5.0",
     "@langchain/anthropic": "^0.1.16",
     "@langchain/cloudflare": "^0.0.4",
