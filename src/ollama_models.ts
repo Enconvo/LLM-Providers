@@ -35,7 +35,7 @@ export default async function main(req: Request) {
     }
     const modelCachePath = `${modelCacheDir}/${environment.commandName}.json`
 
-    console.log('text', text)
+    console.log('text', text, modelCacheDir)
 
     fs.existsSync(modelCachePath) || fs.writeFileSync(modelCachePath, '[]')
     const modelContent = fs.readFileSync(modelCachePath, 'utf8')
