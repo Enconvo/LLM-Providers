@@ -58,7 +58,7 @@ export abstract class LLMProviderBase {
 
 
         if (this.autoInit && !this.lcChatModel) {
-            this.lcChatModel = await this.initLCChatModel(this.options)
+            this.lcChatModel = await this.initLCChatModel(JSON.parse(JSON.stringify(this.options)))
         }
 
         if (this.lcChatModel) {
@@ -73,7 +73,6 @@ export abstract class LLMProviderBase {
                         return message._getType() !== 'system'
                     })
 
-                    console.log("lcChatModel", isSupportSystemMessage(llmOptions), systemMsg, messages)
 
                     if (isSupportSystemPrompt(llmOptions)) {
                         //@ts-ignore
@@ -106,7 +105,12 @@ export abstract class LLMProviderBase {
 
 
 export const isSupportSystemMessage = (llmOptions: any) => {
-    if (llmOptions.commandName === 'premai' || llmOptions.originCommandName === 'premai' || llmOptions.commandName === "chat_cohere" || llmOptions.originCommandName === "chat_cohere") {
+    const isPremAI = llmOptions.commandName === 'premai' || llmOptions.originCommandName === 'premai'
+    const isCohere = llmOptions.commandName === "chat_cohere" || llmOptions.originCommandName === "chat_cohere"
+    const isYi = llmOptions.commandName === "chat_yii" || llmOptions.originCommandName === "chat_yii"
+    const isYiVisionModel = llmOptions?.modelName?.value === 'yi-vl-plus'
+    console.log(llmOptions, isYi, isYiVisionModel)
+    if (isPremAI || isCohere || (isYi && isYiVisionModel)) {
         return false
     }
     return true
