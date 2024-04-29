@@ -19,7 +19,7 @@ class ChatOpenAIProvider extends LLMProviderBase {
         const modelName = modelOptions.value
 
         options.modelName = modelName;
-        options.maxTokens = 4096;
+        options.maxTokens = 4000;
 
         // streaming to boolean
         let customHeaders = {}
