@@ -1,11 +1,7 @@
-import { BaseMessage, BaseMessageChunk } from "langchain/schema";
+import { BaseMessage, BaseMessageChunk, HumanMessage, SystemMessage } from "langchain/schema";
 import { IterableReadableStream } from "@langchain/core/utils/stream";
 import { Runnable } from "@langchain/core/runnables";
 import { StructuredToolInterface } from "@langchain/core/tools";
-import { BaseChatModel } from "langchain/chat_models/base";
-import { LocalFileCache } from "langchain/cache/file_system";
-import { environment } from "./environment.ts";
-import path from "path";
 
 export interface LLMResult {
     stream: IterableReadableStream<BaseMessageChunk> | undefined
@@ -58,6 +54,8 @@ export abstract class LLMProviderBase {
 
     async call({ messages }: { messages: BaseMessage[] }): Promise<LLMResult> {
         console.log("call", this.options.model || this.options.modelName)
+        const llmOptions = this.options
+
 
         if (this.autoInit && !this.lcChatModel) {
             this.lcChatModel = await this.initLCChatModel(this.options)
@@ -65,6 +63,30 @@ export abstract class LLMProviderBase {
 
         if (this.lcChatModel) {
             //@ts-ignore
+
+            if (!isSupportSystemMessage(llmOptions)) {
+                const systemMsg = messages.find((message) => {
+                    return message._getType() === 'system'
+                })
+                if (systemMsg) {
+                    messages = messages.filter((message) => {
+                        return message._getType() !== 'system'
+                    })
+
+                    console.log("lcChatModel", isSupportSystemMessage(llmOptions), systemMsg, messages)
+
+                    if (isSupportSystemPrompt(llmOptions)) {
+                        //@ts-ignore
+                        this.lcChatModel.system_prompt = systemMsg.content
+                    } else {
+                        if (systemMsg.content) {
+                            const firstMessage = new HumanMessage(systemMsg.content as string)
+                            // add to first
+                            messages = [firstMessage, ...messages]
+                        }
+                    }
+                }
+            }
 
             for (let key in this.bindings) {
                 const value = this.bindings[key]
@@ -81,3 +103,18 @@ export abstract class LLMProviderBase {
     }
 }
 
+
+
+export const isSupportSystemMessage = (llmOptions: any) => {
+    if (llmOptions.commandName === 'premai' || llmOptions.originCommandName === 'premai' || llmOptions.commandName === "chat_cohere" || llmOptions.originCommandName === "chat_cohere") {
+        return false
+    }
+    return true
+}
+
+export const isSupportSystemPrompt = (llmOptions: any) => {
+    if (llmOptions.commandName === 'premai' || llmOptions.originCommandName === 'premai') {
+        return true
+    }
+    return false
+}
