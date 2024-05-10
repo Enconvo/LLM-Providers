@@ -13,6 +13,8 @@ export default function main(options: any) {
 export class LLMProvider extends LLMProviderBase {
     protected async _initLCChatModel(options: LLMOptions): Promise<Runnable | undefined> {
 
+        options.temperature = Number(options.temperature.value);
+
         const modelOptions = options.model
         const modelName = modelOptions.value
         options.model = modelName;
