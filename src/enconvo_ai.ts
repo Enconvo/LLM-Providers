@@ -31,13 +31,13 @@ class EnconvoAIProvider extends LLMProviderBase {
 
         } else if (modelProvider === 'openai') {
 
-            const visionEnabled = this.isVisionEnabled(messages)
-            const isGPT4 = modelName.value === 'openai/gpt-4-turbo'
-            if (isGPT4 && visionEnabled) {
-                modelName.value = 'anthropic/claude-3-haiku-20240307'
-                newLLMOptions.modelName = modelName
-                this.clearTools()
-            }
+            // const visionEnabled = this.isVisionEnabled(messages)
+            // const isGPT4 = modelName.value === 'openai/gpt-4-turbo'
+            // if (isGPT4 && visionEnabled) {
+            //     modelName.value = 'anthropic/claude-3-haiku-20240307'
+            //     newLLMOptions.modelName = modelName
+            //     this.clearTools()
+            // }
 
         } else if (modelProvider === 'enconvoai') {
             // 如果带有 tools就用 openai
@@ -65,10 +65,14 @@ class EnconvoAIProvider extends LLMProviderBase {
 
         await this.initLCChatModel(JSON.parse(JSON.stringify(newLLMOptions)))
 
+        console.log("bindings", this.bindings)
+        this.lcChatModel = this.lcChatModel?.bind(this.bindings)
+
         if (this.tools.length > 0) {
             //@ts-ignore
             this.lcChatModel = this.lcChatModel?.bind({ tools: this.tools })
         }
+
 
         const stream = await this.lcChatModel?.stream(messages)
         return {

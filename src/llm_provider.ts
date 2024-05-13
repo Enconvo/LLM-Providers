@@ -96,6 +96,7 @@ export abstract class LLMProviderBase {
                 }
             }
 
+            console.log("bindings", this.bindings)
             this.lcChatModel = this.lcChatModel?.bind(this.bindings)
         }
         return await this._call({ messages })

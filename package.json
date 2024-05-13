@@ -1,7 +1,7 @@
 {
   "$schema": "https://enconvo.com/schemas/extension.json",
   "name": "llm",
-  "version": "1.3.85",
+  "version": "1.3.86",
   "description": "Large Language Models (LLM) services providers",
   "title": "LLM Providers",
   "icon": "icon.png",
@@ -40,6 +40,20 @@
               "value": "openai/gpt-3.5-turbo",
               "context": 16000,
               "toolUse": true
+            },
+            {
+              "title": "OpenAI: gpt-4o (437 points)",
+              "value": "openai/gpt-4o",
+              "context": 128000,
+              "toolUse": true,
+              "visionEnable": true
+            },
+            {
+              "title": "OpenAI: gpt-4o-2024-05-13 (437 points)",
+              "value": "openai/gpt-4o-2024-05-13",
+              "context": 128000,
+              "toolUse": true,
+              "visionEnable": true
             },
             {
               "title": "OpenAI: GPT-4 Turbo 128k (875 points)",
@@ -169,6 +183,24 @@
           "title": "Model Name",
           "default": "gpt-3.5-turbo-0125",
           "data": [
+            {
+              "title": "gpt-4o",
+              "value": "gpt-4o",
+              "context": 128000,
+              "inputPrice": 0.005,
+              "outputPrice": 0.015,
+              "toolUse": true,
+              "visionEnable": true
+            },
+            {
+              "title": "gpt-4o-2024-05-13",
+              "value": "gpt-4o-2024-05-13",
+              "context": 128000,
+              "inputPrice": 0.005,
+              "outputPrice": 0.015,
+              "toolUse": true,
+              "visionEnable": true
+            },
             {
               "title": "gpt-3.5-turbo-0125",
               "value": "gpt-3.5-turbo-0125",
@@ -1715,6 +1747,38 @@
           "title": "Model Name",
           "default": "yi-34b-chat-0205",
           "data": [
+            {
+              "title": "yi-large",
+              "value": "yi-large",
+              "context": 4000,
+              "inputPrice": 0.0005,
+              "outputPrice": 0.0015,
+              "maxTokens": 3000
+            },
+            {
+              "title": "yi-medium",
+              "value": "yi-medium",
+              "context": 4000,
+              "inputPrice": 0.0005,
+              "outputPrice": 0.0015,
+              "maxTokens": 3000
+            },
+            {
+              "title": "yi-vision",
+              "value": "yi-vision",
+              "context": 4000,
+              "inputPrice": 0.0005,
+              "outputPrice": 0.0015,
+              "maxTokens": 3000
+            },
+            {
+              "title": "yi-large-turbo",
+              "value": "yi-large-turbo",
+              "context": 4000,
+              "inputPrice": 0.0005,
+              "outputPrice": 0.0015,
+              "maxTokens": 3000
+            },
             {
               "title": "yi-34b-chat-0205",
               "value": "yi-34b-chat-0205",
