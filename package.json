@@ -398,10 +398,47 @@
         {
           "name": "azureOpenAIApiDeploymentName",
           "description": "Azure OpenAI api deployment name",
-          "type": "textfield",
+          "type": "dropdown",
           "required": false,
           "title": "Azure OpenAI Api Deployment Name",
-          "default": ""
+          "default": "",
+          "data": [
+            {
+              "title": "gpt-4o",
+              "value": "gpt-4o",
+              "context": 128000,
+              "inputPrice": 0.005,
+              "outputPrice": 0.015,
+              "toolUse": true,
+              "visionEnable": true
+            },
+            {
+              "title": "gpt-4-turbo",
+              "value": "gpt-4-turbo",
+              "context": 128000,
+              "inputPrice": 0.01,
+              "outputPrice": 0.03,
+              "visionEnable": true,
+              "toolUse": true
+            },
+            {
+              "title": "gpt-35-turbo",
+              "value": "gpt-35-turbo",
+              "context": 16000,
+              "inputPrice": 0.0005,
+              "outputPrice": 0.0015,
+              "toolUse": true
+            },
+            {
+              "title": "gpt-4",
+              "value": "gpt-4",
+              "context": 128000,
+              "inputPrice": 0.01,
+              "outputPrice": 0.03,
+              "visionEnable": true,
+              "toolUse": true
+            }
+          ]
         },
         {
           "name": "azureOpenAIApiInstanceName",
