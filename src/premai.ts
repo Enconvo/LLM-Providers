@@ -2,7 +2,6 @@ import { ChatPrem } from "@langchain/community/chat_models/premai";
 import { BaseMessage } from "langchain/schema";
 import { LLMProviderBase, LLMOptions, LLMResult } from "./llm_provider.ts";
 import { Runnable } from "@langchain/core/runnables";
-import { AnthropicOpenAIProvider } from "./chat_anthropic.ts";
 
 
 export default function main(options: any) {
