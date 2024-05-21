@@ -1982,10 +1982,26 @@
               "title": "qwen-turbo",
               "value": "qwen-turbo",
               "context": 10000000
-            },            {
+            },
+            {
               "title": "qwen-long",
               "value": "qwen-long",
               "context": 10000000
+            },
+            {
+              "title": "moonshot-v1-128k",
+              "value": "moonshot-v1-128k",
+              "context": 128000
+            },
+            {
+              "title": "moonshot-v1-32k",
+              "value": "moonshot-v1-32k",
+              "context": 32000
+            },
+            {
+              "title": "moonshot-v1-8k",
+              "value": "moonshot-v1-8k",
+              "context": 8000
             }
           ]
         },
