@@ -22,16 +22,14 @@ class ChatOpenAIProvider extends LLMProviderBase {
 
             const modelName = modelOptions.value
 
-            options.modelName = modelName;
+            if (options.originCommandName === 'azure_openai') {
+                options.azureOpenAIApiDeploymentName = modelName;
+                delete options.modelName;
+            } else {
+                options.modelName = modelName;
+            }
         }
 
-        const azureOpenAIApiDeploymentNameOptions = options.azureOpenAIApiDeploymentName
-
-        if (azureOpenAIApiDeploymentNameOptions) {
-            options.maxTokens = azureOpenAIApiDeploymentNameOptions.maxTokens || 4096;
-            const modelName = azureOpenAIApiDeploymentNameOptions.value
-            options.azureOpenAIApiDeploymentName = modelName;
-        }
 
         console.log("options", options)
 

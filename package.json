@@ -396,12 +396,12 @@
       "targetCommand": "llm/chat_open_ai",
       "preferences": [
         {
-          "name": "azureOpenAIApiDeploymentName",
+          "name": "modelName",
           "description": "Azure OpenAI api deployment name",
           "type": "dropdown",
           "required": false,
           "title": "Azure OpenAI Api Deployment Name",
-          "default": "",
+          "default": "gpt-4o",
           "data": [
             {
               "title": "gpt-4o",
