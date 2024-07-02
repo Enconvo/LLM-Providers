@@ -17,7 +17,6 @@ export class LLMProvider extends LLMProviderBase {
         options.temperature = Number(options.temperature.value);
         options.modelName = options.modelName.value
 
-        console.log(options)
 
         const model = new ChatMistralAI({
             ...options,

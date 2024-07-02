@@ -31,7 +31,6 @@ class ChatOpenAIProvider extends LLMProviderBase {
         }
 
 
-        console.log("options", options)
 
         // streaming to boolean
         let customHeaders = {}

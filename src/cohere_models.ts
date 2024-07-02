@@ -40,7 +40,6 @@ export default async function main(req: Request) {
     }
     const modelCachePath = `${modelCacheDir}/${environment.commandName}.json`
 
-    console.log('text', text, modelCachePath)
     fs.existsSync(modelCachePath) || fs.writeFileSync(modelCachePath, '[]')
     const modelContent = fs.readFileSync(modelCachePath, 'utf8')
     let models = JSON.parse(modelContent)
