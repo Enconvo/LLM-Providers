@@ -1,7 +1,7 @@
 {
   "$schema": "https://enconvo.com/schemas/extension.json",
   "name": "llm",
-  "version": "1.3.90",
+  "version": "1.3.91",
   "description": "Large Language Models (LLM) services providers",
   "title": "LLM Providers",
   "icon": "icon.png",
@@ -183,7 +183,7 @@
           "type": "dropdown",
           "required": false,
           "title": "Model Name",
-          "default": "gpt-3.5-turbo-0125",
+          "default": "gpt-4o",
           "data": [
             {
               "title": "gpt-4o",
@@ -1356,6 +1356,14 @@
       "mode": "no-view"
     },
     {
+      "name": "groq_models",
+      "title": "groq Models",
+      "description": "get groq model list",
+      "icon": "groq.png",
+      "showInCommandList": false,
+      "mode": "no-view"
+    },
+    {
       "name": "chat_together_ai",
       "title": "Together AI",
       "description": "Chat with together.ai, learn more : [together.ai](https://docs.together.ai/docs/quickstart), get chat models from [together models](https://docs.together.ai/docs/inference-models)",
@@ -1532,34 +1540,9 @@
           "type": "dropdown",
           "required": false,
           "title": "Model Name",
-          "default": "llama2-70b-4096",
-          "data": [
-            {
-              "title": "LLaMA2 70b",
-              "value": "llama2-70b-4096",
-              "context": 4096
-            },
-            {
-              "title": "LLaMA3 8b",
-              "value": "llama3-8b-8192",
-              "context": 8192
-            },
-            {
-              "title": "LLaMA3 70b",
-              "value": "llama3-70b-8192",
-              "context": 8192
-            },
-            {
-              "title": "Mixtral 8x7b",
-              "value": "mixtral-8x7b-32768",
-              "context": 32768
-            },
-            {
-              "title": "Gemma 7b",
-              "value": "gemma-7b-it",
-              "context": 8192
-            }
-          ]
+          "default": "gemma2-9b-it",
+          "dataProxy": "llm|groq_models",
+          "data": []
         },
         {
           "name": "temperature",

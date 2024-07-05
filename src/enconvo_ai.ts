@@ -2,8 +2,6 @@ import { LLMOptions, LLMProviderBase, LLMResult } from "./llm_provider.ts";
 import { BaseMessage } from "@langchain/core/messages";
 import { Runnable } from "@langchain/core/runnables";
 import { ServiceProvider } from "./provider.ts";
-import { ChatMessage } from "@enconvo/api";
-import { StructuredTool } from "langchain/tools";
 import { StructuredToolInterface } from "@langchain/core/tools";
 
 
