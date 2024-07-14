@@ -2,6 +2,7 @@ import { ChatAnthropic } from "@langchain/anthropic";
 import { BaseMessage } from "langchain/schema";
 import { LLMProviderBase, LLMOptions, LLMResult } from "./llm_provider.ts";
 import { Runnable } from "@langchain/core/runnables";
+import { env } from "process";
 
 export default function main(options: any) {
     return new AnthropicOpenAIProvider({ options })
@@ -19,7 +20,12 @@ export class AnthropicOpenAIProvider extends LLMProviderBase {
         options.streaming = true;
 
         let config: any = {
-            defaultHeaders: options.headers
+            defaultHeaders: {
+                ...options.headers,
+                "accessToken": `${env['accessToken']}`,
+                "client_id": `${env['client_id']}`,
+                "commandKey": `${env['commandKey']}`
+            }
         }
 
         return new ChatAnthropic({

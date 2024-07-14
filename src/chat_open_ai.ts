@@ -2,6 +2,7 @@ import { ChatOpenAI } from '@langchain/openai'
 import { LLMOptions, LLMProviderBase, LLMResult } from './llm_provider.ts';
 import { BaseMessage } from 'langchain/schema';
 import { Runnable } from 'langchain/runnables';
+import { env } from 'process';
 
 export default function main(options: any) {
     return new ChatOpenAIProvider({ options })
@@ -44,7 +45,10 @@ class ChatOpenAIProvider extends LLMProviderBase {
             baseURL: options.baseUrl,
             defaultHeaders: {
                 ...options.headers,
-                ...customHeaders
+                ...customHeaders,
+                "accessToken": `${env['accessToken']}`,
+                "client_id": `${env['client_id']}`,
+                "commandKey": `${env['commandKey']}`
             },
         }
 
