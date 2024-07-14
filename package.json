@@ -2095,6 +2095,26 @@
       ]
     },
     {
+      "name": "silliconflow_models",
+      "title": "silliconflow_models",
+      "description": "get silliconflow model list",
+      "icon": "openrouter.png",
+      "showInCommandList": false,
+      "mode": "no-view",
+      "preferences": [
+        {
+          "name": "openAIApiKey",
+          "description": "api key",
+          "type": "password",
+          "required": false,
+          "title": "Api Key",
+          "default": "",
+          "placeholder": "Api Key",
+          "defaultProxy": "llm|siliconflow"
+        }
+      ]
+    },
+    {
       "name": "siliconflow",
       "title": "SiliconFlow",
       "description": "Chat with SiliconFlow , learn more : [SiliconFlow developers](https://siliconflow.cn/)",
@@ -2108,16 +2128,17 @@
           "type": "dropdown",
           "required": false,
           "title": "Model Name",
-          "default": "alibaba/Qwen2-7B-Instruct",
+          "default": "Qwen/Qwen2-7B-Instruct",
           "data": [
             {
-              "title": "alibaba/Qwen2-7B-Instruct",
-              "value": "alibaba/Qwen2-7B-Instruct",
+              "title": "Qwen/Qwen2-7B-Instruct",
+              "value": "Qwen/Qwen2-7B-Instruct",
               "context": 32000,
               "inputPrice": 0.00014,
               "outputPrice": 0.00028
             }
-          ]
+          ],
+          "dataProxy": "llm|silliconflow_models"
         },
         {
           "name": "temperature",
