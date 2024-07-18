@@ -183,150 +183,19 @@
           "type": "dropdown",
           "required": false,
           "title": "Model Name",
-          "default": "gpt-4o",
+          "default": "gpt-4o-mini",
           "data": [
             {
-              "title": "gpt-4o",
-              "value": "gpt-4o",
+              "title": "gpt-4o-mini",
+              "value": "gpt-4o-mini",
               "context": 128000,
-              "inputPrice": 0.005,
-              "outputPrice": 0.015,
+              "inputPrice": 0.000150,
+              "outputPrice": 0.000075,
               "toolUse": true,
               "visionEnable": true
-            },
-            {
-              "title": "gpt-4o-2024-05-13",
-              "value": "gpt-4o-2024-05-13",
-              "context": 128000,
-              "inputPrice": 0.005,
-              "outputPrice": 0.015,
-              "toolUse": true,
-              "visionEnable": true
-            },
-            {
-              "title": "gpt-3.5-turbo-0125",
-              "value": "gpt-3.5-turbo-0125",
-              "context": 16385,
-              "inputPrice": 0.0005,
-              "outputPrice": 0.0015,
-              "toolUse": true
-            },
-            {
-              "title": "gpt-4-turbo",
-              "value": "gpt-4-turbo",
-              "context": 128000,
-              "inputPrice": 0.01,
-              "outputPrice": 0.03,
-              "visionEnable": true,
-              "toolUse": true
-            },
-            {
-              "title": "gpt-4-turbo-2024-04-09",
-              "value": "gpt-4-turbo-2024-04-09",
-              "context": 128000,
-              "inputPrice": 0.01,
-              "outputPrice": 0.03,
-              "visionEnable": true,
-              "toolUse": true
-            },
-            {
-              "title": "gpt-3.5-turbo",
-              "value": "gpt-3.5-turbo",
-              "context": 4096,
-              "inputPrice": 0.0005,
-              "outputPrice": 0.0015,
-              "toolUse": true
-            },
-            {
-              "title": "gpt-3.5-turbo-1106",
-              "value": "gpt-3.5-turbo-1106",
-              "context": 16385,
-              "inputPrice": 0.0005,
-              "outputPrice": 0.0015,
-              "toolUse": true
-            },
-            {
-              "title": "gpt-3.5-turbo-0613",
-              "value": "gpt-3.5-turbo-0613",
-              "context": 4096,
-              "inputPrice": 0.0005,
-              "outputPrice": 0.0015,
-              "toolUse": true
-            },
-            {
-              "title": "gpt-3.5-turbo-16k",
-              "value": "gpt-3.5-turbo-16k",
-              "context": 16385,
-              "inputPrice": 0.0005,
-              "outputPrice": 0.0015,
-              "toolUse": true
-            },
-            {
-              "title": "gpt-3.5-turbo-16k-0613",
-              "value": "gpt-3.5-turbo-16k-0613",
-              "context": 16385,
-              "inputPrice": 0.0005,
-              "outputPrice": 0.0015,
-              "toolUse": true
-            },
-            {
-              "title": "gpt-4-turbo-preview",
-              "value": "gpt-4-turbo-preview",
-              "context": 128000,
-              "inputPrice": 0.01,
-              "outputPrice": 0.03,
-              "toolUse": true
-            },
-            {
-              "title": "gpt-4",
-              "value": "gpt-4",
-              "context": 8192,
-              "inputPrice": 0.03,
-              "outputPrice": 0.06,
-              "toolUse": true
-            },
-            {
-              "title": "gpt-4-0613",
-              "value": "gpt-4-0613",
-              "context": 8192,
-              "inputPrice": 0.03,
-              "outputPrice": 0.06,
-              "toolUse": true
-            },
-            {
-              "title": "gpt-4-32k",
-              "value": "gpt-4-32k",
-              "context": 32768,
-              "inputPrice": 0.06,
-              "outputPrice": 0.12,
-              "toolUse": true
-            },
-            {
-              "title": "gpt-4-32k-0613",
-              "value": "gpt-4-32k-0613",
-              "context": 32768,
-              "inputPrice": 0.06,
-              "outputPrice": 0.12,
-              "toolUse": true
-            },
-            {
-              "title": "gpt-4-1106-preview",
-              "value": "gpt-4-1106-preview",
-              "context": 128000,
-              "inputPrice": 0.01,
-              "outputPrice": 0.03,
-              "toolUse": true
-            },
-            {
-              "title": "gpt-4-vision-preview",
-              "value": "gpt-4-vision-preview",
-              "context": 128000,
-              "inputPrice": 0.01,
-              "outputPrice": 0.03,
-              "visionEnable": true,
-              "toolUse": true
             }
-          ]
+          ],
+          "dataProxy": "llm|openai_models"
         },
         {
           "name": "temperature",
@@ -1364,6 +1233,14 @@
       "mode": "no-view"
     },
     {
+      "name": "openai_models",
+      "title": "openai Models",
+      "description": "get openai model list",
+      "icon": "openai.png",
+      "showInCommandList": false,
+      "mode": "no-view"
+    },
+    {
       "name": "chat_together_ai",
       "title": "Together AI",
       "description": "Chat with together.ai, learn more : [together.ai](https://docs.together.ai/docs/quickstart), get chat models from [together models](https://docs.together.ai/docs/inference-models)",
@@ -1975,7 +1852,7 @@
           "type": "textfield",
           "required": false,
           "title": "OpenAI Api Base Url",
-          "default": "https://api.deepseek.com/v1",
+          "default": "https://api.deepseek.com",
           "placeholder": "OpenAI Api Base Url",
           "visibility": "hidden"
         },
