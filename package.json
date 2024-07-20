@@ -1,7 +1,7 @@
 {
   "$schema": "https://enconvo.com/schemas/extension.json",
   "name": "llm",
-  "version": "1.3.92",
+  "version": "1.3.93",
   "description": "Large Language Models (LLM) services providers",
   "title": "LLM Providers",
   "icon": "icon.png",
@@ -29,69 +29,14 @@
           "default": "enconvoai/assistant",
           "data": [
             {
-              "title": "EnconvoAI: Assistant 16k (20 points per message)",
+              "title": "EnconvoAI: Assistant 128k (10 points per message)",
               "value": "enconvoai/assistant",
-              "context": 16000,
-              "toolUse": true,
-              "visionEnable": true
-            },
-            {
-              "title": "OpenAI: GPT-3.5 Turbo 16k (20 points per message)",
-              "value": "openai/gpt-3.5-turbo",
-              "context": 16000,
-              "toolUse": true
-            },
-            {
-              "title": "OpenAI: gpt-4o 128k (300 points per message)",
-              "value": "openai/gpt-4o",
               "context": 128000,
-              "toolUse": true,
-              "visionEnable": true
-            },
-            {
-              "title": "OpenAI: GPT-4 Turbo 128k (300 points per message)",
-              "value": "openai/gpt-4-turbo",
-              "context": 128000,
-              "visionEnable": true,
-              "toolUse": true
-            },
-            {
-              "title": "Claude 3.5 Sonnet 200k(200 points per message)",
-              "value": "anthropic/claude-3-5-sonnet-20240620",
-              "context": 200000,
-              "inputPrice": 0.03,
-              "outputPrice": 0.15,
-              "toolUse": true,
-              "visionEnable": true
-            },
-            {
-              "title": "Claude 3 Opus 200k (2000 points per message)",
-              "value": "anthropic/claude-3-opus-20240229",
-              "context": 200000,
-              "inputPrice": 0.15,
-              "outputPrice": 0.75,
-              "toolUse": true,
-              "visionEnable": true
-            },
-            {
-              "title": "Claude 3 Sonnet 200k(200 points per message)",
-              "value": "anthropic/claude-3-sonnet-20240229",
-              "context": 200000,
-              "inputPrice": 0.03,
-              "outputPrice": 0.15,
-              "toolUse": true,
-              "visionEnable": true
-            },
-            {
-              "title": "Claude 3 Haiku 200k(30 points per message)",
-              "value": "anthropic/claude-3-haiku-20240307",
-              "inputPrice": 0.00025,
-              "outputPrice": 0.00125,
-              "context": 200000,
               "toolUse": true,
               "visionEnable": true
             }
-          ]
+          ],
+          "dataProxy": "llm|enconvo_models"
         },
         {
           "name": "temperature",
@@ -189,7 +134,7 @@
               "title": "gpt-4o-mini",
               "value": "gpt-4o-mini",
               "context": 128000,
-              "inputPrice": 0.000150,
+              "inputPrice": 0.00015,
               "outputPrice": 0.000075,
               "toolUse": true,
               "visionEnable": true
@@ -1229,6 +1174,14 @@
       "title": "groq Models",
       "description": "get groq model list",
       "icon": "groq.png",
+      "showInCommandList": false,
+      "mode": "no-view"
+    },
+    {
+      "name": "enconvo_models",
+      "title": "enconvo Models",
+      "description": "get enconvo model list",
+      "icon": "enconvo.png",
       "showInCommandList": false,
       "mode": "no-view"
     },
