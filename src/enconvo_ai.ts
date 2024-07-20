@@ -40,24 +40,9 @@ class EnconvoAIProvider extends LLMProviderBase {
         } else if (modelProvider === 'enconvoai') {
             // 如果带有 tools就用 openai
             // 其他的用anthropic
-            const toolUse = this.tools.length > 0
-            const visionEnabled = this.isVisionEnabled(messages)
-
-            if (toolUse && !visionEnabled) {
-                modelName.value = 'openai/gpt-3.5-turbo'
-                newLLMOptions.modelName = modelName
-                console.log("modelName", modelName)
-            } else {
-                if (visionEnabled) {
-                    this.clearTools()
-                }
-
-                let modelName = newLLMOptions.modelName
-                modelName.value = 'anthropic/claude-3-haiku-20240307'
-                // modelName.value = 'anthropic/claude-3-haiku-20240307'
-                newLLMOptions.modelName = modelName
-            }
-
+            modelName.value = 'openai/gpt-4o-mini'
+            newLLMOptions.modelName = modelName
+            console.log("modelName", modelName)
         }
 
 
