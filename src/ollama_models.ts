@@ -5,7 +5,8 @@ import fs from 'fs'
 
 async function fetch_model(options: any) {
 
-    const baseUrl = options.llm.baseUrl || "http://127.0.0.1:11434";
+    const baseUrl = options.baseUrl || "http://127.0.0.1:11434";
+    console.log('baseUrl', baseUrl,options)
 
     let models = []
     try {
@@ -29,22 +30,23 @@ export default async function main(req: Request) {
     const { options } = await req.json()
     const { text } = options
 
-    const modelCacheDir = environment.cachePath + `/models`
-    if (!fs.existsSync(modelCacheDir)) {
-        fs.mkdirSync(modelCacheDir, { recursive: true })
-    }
-    const modelCachePath = `${modelCacheDir}/${environment.commandName}.json`
+    // const modelCacheDir = environment.cachePath + `/models`
+    // if (!fs.existsSync(modelCacheDir)) {
+    //     fs.mkdirSync(modelCacheDir, { recursive: true })
+    // }
+    // const modelCachePath = `${modelCacheDir}/${environment.commandName}.json`
 
-    console.log('text', text, modelCacheDir)
+    // console.log('text', text, modelCacheDir)
 
-    fs.existsSync(modelCachePath) || fs.writeFileSync(modelCachePath, '[]')
-    const modelContent = fs.readFileSync(modelCachePath, 'utf8')
-    let models = JSON.parse(modelContent)
+    // fs.existsSync(modelCachePath) || fs.writeFileSync(modelCachePath, '[]')
+    // const modelContent = fs.readFileSync(modelCachePath, 'utf8')
+    // let models = JSON.parse(modelContent)
+    let models = []
 
     try {
         if (text === 'refresh' || models.length === 0) {
             models = await fetch_model(options)
-            fs.writeFileSync(modelCachePath, JSON.stringify(models))
+            // fs.writeFileSync(modelCachePath, JSON.stringify(models))
         }
     } catch (err) {
         console.log(err)

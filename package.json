@@ -450,12 +450,16 @@
       "mode": "no-view",
       "preferences": [
         {
-          "name": "llm",
-          "description": "The model used to generate responses",
-          "type": "extension",
+          "name": "baseUrl",
+          "description": "Ollama api base url",
+          "type": "textfield",
           "required": false,
-          "default": "default",
-          "title": "LLM Model"
+          "title": "Ollama Api Base Url",
+          "default": "http://127.0.0.1:11434",
+          "placeholder": "Ollama Api Base Url",
+          "defaultProxy": "llm|chat_ollama"
+          
+
         }
       ]
     },
@@ -518,7 +522,7 @@
     },
     {
       "name": "chat_ollama",
-      "title": "ChatOllama",
+      "title": "Ollama",
       "description": "Chat with Ollama, learn more : [ollama.ai](https://ollama.ai/)",
       "icon": "ollama.png",
       "mode": "llm",
