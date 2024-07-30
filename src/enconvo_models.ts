@@ -16,14 +16,6 @@ export default async function main(req: Request) {
         fs.mkdirSync(modelCacheDir, { recursive: true })
     }
     const modelCachePath = `${modelCacheDir}/${environment.commandName}.json`
-    // 如果文件超过一天就重新获取
-    const modelStat = fs.statSync(modelCachePath)
-    const now = new Date()
-    const diff = now.getTime() - modelStat.mtime.getTime()
-    console.log(diff / 1000)
-    if (diff > 1000 * 60 * 60 * 24) {
-        fs.unlinkSync(modelCachePath)
-    }
 
     fs.existsSync(modelCachePath) || fs.writeFileSync(modelCachePath, '[]')
 
