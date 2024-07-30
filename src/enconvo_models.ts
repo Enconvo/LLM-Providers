@@ -20,6 +20,7 @@ export default async function main(req: Request) {
     const modelStat = fs.statSync(modelCachePath)
     const now = new Date()
     const diff = now.getTime() - modelStat.mtime.getTime()
+    console.log(diff / 1000)
     if (diff > 1000 * 60 * 60 * 24) {
         fs.unlinkSync(modelCachePath)
     }
