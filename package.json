@@ -681,6 +681,42 @@
       ]
     },
     {
+      "name": "chat_easy_peasy",
+      "title": "EasyPeasy",
+      "description": "Chat with easy-peasy, learn more : [easy-peasy.ai](https://easy-peasy.ai/)",
+      "icon": "easy_peasy.png",
+      "mode": "llm",
+      "preferences": [
+        {
+          "name": "xApiKey",
+          "description": "x-api-key from https://easy-peasy.ai/settings/api",
+          "type": "password",
+          "required": true,
+          "title": "x-api-key",
+          "default": "",
+          "placeholder": "x-api-key"
+        },
+        {
+          "name": "maxHistory",
+          "description": "Max history. All messages if negative.",
+          "type": "number",
+          "required": false,
+          "title": "Max history",
+          "default": "-1",
+          "placeholder": "-1"
+        },
+        {
+          "name": "extra1",
+          "description": "Background Information (optional) (maxlength: 1000)",
+          "type": "textfield",
+          "required": false,
+          "title": "Background Information",
+          "default": "",
+          "placeholder": ""
+        }
+      ]
+    },
+    {
       "name": "chat_openrouter",
       "title": "OpenRouter",
       "description": "Chat with OpenRouter, learn more: [openrouter.ai](https://openrouter.ai/)",
