@@ -44,7 +44,7 @@ type EasyPeasyGeneratorResponseBody  = EasyPeasyGeneratorResponseItem[]
 /**
  * call EasyPeasy generate api
  */
-async function callEasyPeasyGeneratorApi(data: EasyPeasyGeneratorRequestBody, options: { headers: RequestInit['headers'] & {'x-api-key': string}, signal?: RequestInit['signal'] }): Promise<EasyPeasyGeneratorResponseBody> {
+async function callEasyPeasyGenerateApi(data: EasyPeasyGeneratorRequestBody, options: { headers: RequestInit['headers'] & {'x-api-key': string}, signal?: RequestInit['signal'] }): Promise<EasyPeasyGeneratorResponseBody> {
     const api = 'https://easy-peasy.ai/api/generate';
     const response = await fetch(api, {
         method: "POST",
@@ -147,8 +147,8 @@ export class EasyPeasyChatModel extends SimpleChatModel<EasyPeasyChatModelCallOp
             maxHistory: this.maxHistory,
         });
 
-        //
-        const result =  await callEasyPeasyGeneratorApi({
+        // invoke the "generate" api
+        const result =  await callEasyPeasyGenerateApi({
             preset,
             keywords,
             ...extraObject,
