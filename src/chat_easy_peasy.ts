@@ -41,6 +41,9 @@ interface EasyPeasyGeneratorResponseItem {
 
 type EasyPeasyGeneratorResponseBody  = EasyPeasyGeneratorResponseItem[]
 
+/**
+ * call EasyPeasy generate api
+ */
 async function callEasyPeasyGeneratorApi(data: EasyPeasyGeneratorRequestBody, options: { headers: RequestInit['headers'] & {'x-api-key': string}, signal?: RequestInit['signal'] }): Promise<EasyPeasyGeneratorResponseBody> {
     const api = 'https://easy-peasy.ai/api/generate';
     const response = await fetch(api, {
@@ -79,11 +82,11 @@ export interface EasyPeasyChatModelInput extends  BaseChatModelParams {
     maxHistory: number;
 }
 
-
-interface EasyPeasyChatModelCallOptions extends BaseChatModelCallOptions {
-}
-
-function flatToExtraArray(messages: string[], maxWordsPreExtra: number, extraCount: number) {
+/**
+ * fill the messages (join with '\n') into the extra fields
+ * ex: _flatToExtraArray(['123', '45', '6'], 2, 3) // return [ '3\n', '45', '\n6' ]
+ */
+function _flatToExtraArray(messages: string[], maxWordsPreExtra: number, extraCount: number) {
     const extraStringArray: string[] = [];
     const stringMessages = messages.join('\n');
     let extraAllStrings = stringMessages.substring(stringMessages.length - maxWordsPreExtra * extraCount);
@@ -95,6 +98,9 @@ function flatToExtraArray(messages: string[], maxWordsPreExtra: number, extraCou
         extraAllStrings = extraAllStrings.substring(maxWordsPreExtra);
     }
     return extraStringArray;
+}
+
+interface EasyPeasyChatModelCallOptions extends BaseChatModelCallOptions {
 }
 
 export class EasyPeasyChatModel extends SimpleChatModel<EasyPeasyChatModelCallOptions> {
@@ -117,11 +123,12 @@ export class EasyPeasyChatModel extends SimpleChatModel<EasyPeasyChatModelCallOp
       messages: BaseMessage[],
       options: this["ParsedCallOptions"],
     ): Promise<string> {
-        const result = await this._getTextResponse(messages, options);
+        const result = await this._callEasyPeasy(messages, options);
         return result[0].text;
     }
 
-    private async _getTextResponse(messages: BaseMessage[], options: this["ParsedCallOptions"]) {
+    private async _callEasyPeasy(messages: BaseMessage[], options: this["ParsedCallOptions"]) {
+        // check all message type, only support text
         if (!messages.length) {
             throw new Error(`No messages provided. runName: ${options.runName}`);
         }
@@ -131,6 +138,7 @@ export class EasyPeasyChatModel extends SimpleChatModel<EasyPeasyChatModelCallOp
             }
         }
 
+        // prepare payload for Easy Peasy generate api
         const preset = 'custom-generator';
         const xApiKey = this.xApiKey;
         const keywords = this._generateTextKeywords(messages);
@@ -150,6 +158,7 @@ export class EasyPeasyChatModel extends SimpleChatModel<EasyPeasyChatModelCallOp
                 "x-api-key": xApiKey
             }
         });
+        // for debug
         // result[0].text = result[0].text+ `===keywords: ${JSON.stringify(keywords)}===` + `===extraObject: ${JSON.stringify(extraObject)}===`
         return result;
     }
@@ -163,8 +172,13 @@ export class EasyPeasyChatModel extends SimpleChatModel<EasyPeasyChatModelCallOp
         return String(latsMessage.content).slice(0, 1000)
     }
 
+    /**
+     * generate extra object
+     *
+     * presetExtra1 will be treated as background information if provided.
+     */
     private _generateTextExtra(messages: BaseMessage[], presetExtra1: string | undefined, options: {maxWordsPreExtra: number, maxHistory: number}): Pick<EasyPeasyGeneratorRequestBody, 'extra1' | 'extra2' | 'extra3'> {
-        //
+        // init
         const {maxWordsPreExtra, maxHistory} = options;
         const extraObject: Pick<EasyPeasyGeneratorRequestBody, 'extra1' | 'extra2' | 'extra3'>= {
             extra1: presetExtra1 ? presetExtra1 : undefined,
@@ -173,10 +187,10 @@ export class EasyPeasyChatModel extends SimpleChatModel<EasyPeasyChatModelCallOp
         }
         const extraCount = presetExtra1 ? Object.keys(extraObject).length - 1 : Object.keys(extraObject).length;
 
-        // history to extra array
+        // history fill into an extra array
         const history = maxHistory < 0 ? messages : messages.slice(messages.length - maxHistory);
         const textHistoryMessages = history.map(message => `${message._getType()}: ${message.content}`);
-        const extraStringArray = flatToExtraArray(textHistoryMessages, maxWordsPreExtra, extraCount);
+        const extraStringArray = _flatToExtraArray(textHistoryMessages, maxWordsPreExtra, extraCount);
         if(presetExtra1) {
             extraObject.extra2 = extraStringArray[0];
             extraObject.extra3 = extraStringArray[1];
@@ -193,7 +207,7 @@ export class EasyPeasyChatModel extends SimpleChatModel<EasyPeasyChatModelCallOp
       options: this["ParsedCallOptions"],
       runManager?: CallbackManagerForLLMRun
     ): AsyncGenerator<ChatGenerationChunk> {
-        const result = await  this._getTextResponse(messages, options);
+        const result = await  this._callEasyPeasy(messages, options);
 
         // Pass `runManager?.getChild()` when invoking internal runnables to enable tracing
         // await subRunnable.invoke(params, runManager?.getChild());
