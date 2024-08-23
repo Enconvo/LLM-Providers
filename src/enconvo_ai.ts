@@ -87,7 +87,7 @@ class EnconvoAIProvider extends LLMProviderBase {
                 newLLMOptions.commandName = "chat_open_ai";
                 break;
             case "anthropic":
-                newLLMOptions.commandName = "chat_anthropic";
+                newLLMOptions.commandName = "chat_open_ai";
                 break;
             default:
                 newLLMOptions.commandName = "chat_open_ai";
