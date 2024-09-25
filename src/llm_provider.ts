@@ -78,10 +78,13 @@ export abstract class LLMProviderBase {
                         //@ts-ignore
                         this.lcChatModel.system_prompt = systemMsg.content
                     } else {
-                        if (systemMsg.content) {
+                        if (systemMsg.content && isSupportMultiUserMessage(llmOptions)) {
                             const firstMessage = new HumanMessage(systemMsg.content as string)
                             // add to first
                             messages = [firstMessage, ...messages]
+                        } else {
+                            //保留最后一条消息
+                            messages = [messages[messages.length - 1]]
                         }
                     }
                 }
@@ -108,12 +111,17 @@ export abstract class LLMProviderBase {
 export const isSupportSystemMessage = (llmOptions: any) => {
     const isPremAI = llmOptions.commandName === 'premai' || llmOptions.originCommandName === 'premai'
     const isCohere = llmOptions.commandName === "chat_cohere" || llmOptions.originCommandName === "chat_cohere"
+
     const isYi = llmOptions.commandName === "chat_yii" || llmOptions.originCommandName === "chat_yii"
     const isYiVisionModel = llmOptions?.modelName?.value === 'yi-vl-plus'
-    console.log(llmOptions, isYi, isYiVisionModel)
-    if (isPremAI || isCohere || (isYi && isYiVisionModel)) {
+
+    const isGroq = llmOptions.commandName === "chat_groq" || llmOptions.originCommandName === "chat_groq"
+    const isGroqVisionModel = llmOptions?.modelName?.value === 'llava-v1.5-7b-4096-preview'
+
+    if (isPremAI || isCohere || (isYi && isYiVisionModel) || (isGroq && isGroqVisionModel)) {
         return false
     }
+
     return true
 }
 
@@ -122,4 +130,15 @@ export const isSupportSystemPrompt = (llmOptions: any) => {
         return true
     }
     return false
+}
+
+export const isSupportMultiUserMessage = (llmOptions: any) => {
+    const isGroq = llmOptions.commandName === "chat_groq" || llmOptions.originCommandName === "chat_groq"
+    const isGroqVisionModel = llmOptions?.modelName?.value === 'llava-v1.5-7b-4096-preview'
+
+    if (isGroq && isGroqVisionModel) {
+        return false
+    }
+
+    return true
 }
