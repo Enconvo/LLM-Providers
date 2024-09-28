@@ -888,11 +888,15 @@
           "data": [
             {
               "title": "Gemini 1.5 Flash 002",
-              "value": "gemini-1.5-flash-002"
+              "value": "gemini-1.5-flash-002",
+              "context": 1048576,
+              "visionEnable": true
             },
             {
               "title": "Gemini 1.5 Pro 002",
-              "value": "gemini-1.5-pro-002"
+              "value": "gemini-1.5-pro-002",
+              "context": 2097152,
+              "visionEnable": true
             }
           ]
         },
