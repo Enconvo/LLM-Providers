@@ -52,6 +52,17 @@ class ChatOpenAIProvider extends LLMProviderBase {
             },
         }
 
+
+        if (
+            options.modelName === "openai/o1-mini"
+            || options.modelName === "openai/o1-preview"
+            || options.modelName === "o1-mini"
+            || options.modelName === "o1-preview"
+        ) {
+            options.streaming = false;
+        }
+
+
         return new ChatOpenAI({
             ...options,
             configuration: config

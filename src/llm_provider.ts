@@ -32,6 +32,7 @@ export abstract class LLMProviderBase {
     protected abstract _call({ messages }: { messages: BaseMessage[]; }): Promise<LLMResult>;
     protected abstract _initLCChatModel(options: LLMOptions): Promise<Runnable | undefined>
     async initLCChatModel(options: LLMOptions): Promise<Runnable | undefined> {
+        console.log("initLCChatModel", options)
         const runnable = await this._initLCChatModel(options)
         // try {
         // const chat = (runnable as BaseChatModel)
@@ -41,6 +42,7 @@ export abstract class LLMProviderBase {
         // } catch (error) {
 
         // }
+        this.lcChatModel = runnable
         return runnable
     }
 
@@ -53,7 +55,6 @@ export abstract class LLMProviderBase {
     }
 
     async call({ messages }: { messages: BaseMessage[] }): Promise<LLMResult> {
-        console.log("call", this.options.model || this.options.modelName)
         const llmOptions = this.options
 
 
@@ -61,31 +62,32 @@ export abstract class LLMProviderBase {
             this.lcChatModel = await this.initLCChatModel(JSON.parse(JSON.stringify(this.options)))
         }
 
-        if (this.lcChatModel) {
-            //@ts-ignore
-
-            if (!isSupportSystemMessage(llmOptions)) {
-                const systemMsg = messages.find((message) => {
-                    return message._getType() === 'system'
+        // console.log("call113--", this.options.model || this.options.modelName, this.lcChatModel)
+        //@ts-ignore
+        // console.log("call22--", this.options.model || this.options.modelName)
+        if (!isSupportSystemMessage(llmOptions)) {
+            const systemMsg = messages.find((message) => {
+                return message._getType() === 'system'
+            })
+            if (systemMsg) {
+                messages = messages.filter((message) => {
+                    return message._getType() !== 'system'
                 })
-                if (systemMsg) {
-                    messages = messages.filter((message) => {
-                        return message._getType() !== 'system'
-                    })
 
 
-                    if (isSupportSystemPrompt(llmOptions)) {
+                if (isSupportSystemPrompt(llmOptions)) {
+                    if (this.lcChatModel) {
                         //@ts-ignore
                         this.lcChatModel.system_prompt = systemMsg.content
+                    }
+                } else {
+                    if (systemMsg.content && isSupportMultiUserMessage(llmOptions)) {
+                        const firstMessage = new HumanMessage(systemMsg.content as string)
+                        // add to first
+                        messages = [firstMessage, ...messages]
                     } else {
-                        if (systemMsg.content && isSupportMultiUserMessage(llmOptions)) {
-                            const firstMessage = new HumanMessage(systemMsg.content as string)
-                            // add to first
-                            messages = [firstMessage, ...messages]
-                        } else {
-                            //保留最后一条消息
-                            messages = [messages[messages.length - 1]]
-                        }
+                        //保留最后一条消息
+                        messages = [messages[messages.length - 1]]
                     }
                 }
             }
@@ -107,18 +109,31 @@ export abstract class LLMProviderBase {
 }
 
 
+export const isOpenAIO1Model = (modelName: string) => {
+    const isOpenAIO1Model = modelName === "openai/o1-mini"
+        || modelName === "openai/o1-preview"
+        || modelName === "o1-mini"
+        || modelName === "o1-preview"
+    return isOpenAIO1Model
+}
 
 export const isSupportSystemMessage = (llmOptions: any) => {
+    console.log("llmOptions", llmOptions)
+
     const isPremAI = llmOptions.commandName === 'premai' || llmOptions.originCommandName === 'premai'
     const isCohere = llmOptions.commandName === "chat_cohere" || llmOptions.originCommandName === "chat_cohere"
 
+    const modelName: string = llmOptions?.modelName?.value || llmOptions?.model?.value || ''
+
     const isYi = llmOptions.commandName === "chat_yii" || llmOptions.originCommandName === "chat_yii"
-    const isYiVisionModel = llmOptions?.modelName?.value === 'yi-vl-plus'
+    const isYiVisionModel = modelName === 'yi-vl-plus'
 
     const isGroq = llmOptions.commandName === "chat_groq" || llmOptions.originCommandName === "chat_groq"
-    const isGroqVisionModel = llmOptions?.modelName?.value === 'llava-v1.5-7b-4096-preview'
+    const isGroqVisionModel = modelName === 'llava-v1.5-7b-4096-preview'
 
-    if (isPremAI || isCohere || (isYi && isYiVisionModel) || (isGroq && isGroqVisionModel)) {
+
+
+    if (isPremAI || isCohere || (isYi && isYiVisionModel) || (isGroq && isGroqVisionModel) || isOpenAIO1Model(modelName)) {
         return false
     }
 
