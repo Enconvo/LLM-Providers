@@ -1,7 +1,7 @@
 {
   "$schema": "https://enconvo.com/schemas/extension.json",
   "name": "llm",
-  "version": "1.3.106",
+  "version": "1.3.107",
   "description": "Large Language Models (LLM) services providers",
   "title": "LLM Providers",
   "icon": "icon.png",
@@ -25,7 +25,7 @@
           "description": "md:The model to generate the completion. Every call will consume points, and the specific consumption details are as follows：\n\n  **OpenAI:** \n\n | Model Name | Points |\n | --- | --- |\n | gpt-35-turbo | 50 |\n | gpt4 | 875 |\n\n\n | gpt4 | 875 |\n\n\n | gpt4-vision | 1250 |\n\n\n | Claude 3 Sonnet | 1250 |\n\n\n | Claude 3 Opus | 6000 |\n\n",
           "type": "dropdown",
           "required": false,
-          "title": "Model Name",
+          "title": "Model Name Anthropic",
           "default": "openai/gpt-4o-mini",
           "data": [
             {
@@ -75,7 +75,7 @@
           "required": false,
           "title": "OpenAI Api Key",
           "default": "default",
-          "placeholder": "OpenAI Api Key"
+          "placeholder": "sk-********"
         },
         {
           "name": "anthropicApiKey",
@@ -179,7 +179,8 @@
           "required": false,
           "title": "OpenAI Api Key",
           "default": "",
-          "placeholder": "OpenAI Api Key"
+          "defaultProxy": "KEY_OPENAI_APIKEY",
+          "placeholder": "sk-********"
         },
         {
           "name": "baseUrl",
@@ -187,6 +188,7 @@
           "type": "textfield",
           "required": false,
           "title": "OpenAI Api Base Url",
+          "defaultProxy": "KEY_OPENAI_BASEURL",
           "default": "https://api.openai.com/v1",
           "placeholder": "OpenAI Api Base Url"
         },
@@ -198,6 +200,200 @@
           "title": "Custom Headers",
           "default": "{}",
           "placeholder": "{}"
+        },
+        {
+          "name": "streaming",
+          "description": "Whether to stream output",
+          "type": "checkbox",
+          "required": false,
+          "title": "Streaming",
+          "default": true,
+          "label": "Streaming"
+        }
+      ]
+    },
+    {
+      "name": "chat_anthropic",
+      "title": "Anthropic Claude",
+      "description": "Chat with Anthropic Claude, learn more : [anthropic.com](https://www.anthropic.com/)",
+      "mode": "llm",
+      "icon": "anthropic.png",
+      "preferences": [
+        {
+          "name": "modelName",
+          "description": "md: The model to generate the completion. \n|               | Claude 3 Opus | Claude 3 Sonnet | Claude 3 Haiku |\n|---------------|--------------|----------------|---------------|\n| Context window| 200K*        | 200K*          | 200K*         |\n| Cost (Input / Output per MTok^)| $15.00/$75.00 | $3.00/$15.00   | $0.25/$1.25    | $8.00/$24.00  |",
+          "type": "dropdown",
+          "required": false,
+          "title": "Model Name",
+          "default": "claude-3-opus-20240229",
+          "data": [
+            {
+              "title": "Claude 3.5 Sonnet 200k",
+              "value": "claude-3-5-sonnet-20240620",
+              "context": 200000,
+              "inputPrice": 0.03,
+              "outputPrice": 0.15,
+              "toolUse": true,
+              "visionEnable": true
+            },
+            {
+              "title": "Claude 3 Opus 200k",
+              "value": "claude-3-opus-20240229",
+              "context": 200000,
+              "inputPrice": 0.15,
+              "outputPrice": 0.75,
+              "toolUse": true,
+              "visionEnable": true
+            },
+            {
+              "title": "Claude 3 Sonnet 200k",
+              "value": "claude-3-sonnet-20240229",
+              "context": 200000,
+              "inputPrice": 0.03,
+              "outputPrice": 0.15,
+              "toolUse": true,
+              "visionEnable": true
+            },
+            {
+              "title": "Claude 3 Haiku 200k",
+              "value": "claude-3-haiku-20240307",
+              "inputPrice": 0.00025,
+              "outputPrice": 0.00125,
+              "context": 200000,
+              "toolUse": true,
+              "visionEnable": true
+            }
+          ]
+        },
+        {
+          "name": "temperature",
+          "description": "What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Temperature",
+          "default": "1.0",
+          "data": [
+            {
+              "title": "none",
+              "value": "0.0"
+            },
+            {
+              "title": "low",
+              "value": "0.5"
+            },
+            {
+              "title": "medium",
+              "value": "1.0"
+            },
+            {
+              "title": "high",
+              "value": "1.5"
+            },
+            {
+              "title": "maximum",
+              "value": "2.0"
+            }
+          ]
+        },
+        {
+          "name": "anthropicApiKey",
+          "description": "Anthropic api key",
+          "type": "password",
+          "required": false,
+          "title": "Claude Api Key",
+          "default": "",
+          "defaultProxy": "KEY_CLAUDE_APIKEY",
+          "placeholder": "sk-ant-********"
+        },
+        {
+          "name": "anthropicApiUrl",
+          "description": "Anthropic api base url",
+          "type": "textfield",
+          "required": false,
+          "title": "Anthropic Api Base Url",
+          "defaultProxy": "KEY_CLAUDE_BASEURL",
+          "default": "https://api.anthropic.com",
+          "placeholder": "Anthropic Api Base Url"
+        },
+        {
+          "name": "streaming",
+          "description": "Whether to stream output",
+          "type": "checkbox",
+          "required": false,
+          "title": "Streaming",
+          "default": true,
+          "label": "Streaming"
+        }
+      ]
+    },
+    {
+      "name": "chat_google",
+      "title": "Google Gemini AI",
+      "description": "Chat with Google Gemini AI, learn more : [Google AI](https://ai.google.dev/)",
+      "icon": "google.jpg",
+      "mode": "llm",
+      "preferences": [
+        {
+          "name": "modelName",
+          "description": "The model to generate the completion.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Model Name",
+          "default": "gemini-1.5-flash-002",
+          "data": [
+            {
+              "title": "Gemini 1.5 Flash 002",
+              "value": "gemini-1.5-flash-002",
+              "context": 1048576,
+              "visionEnable": true
+            },
+            {
+              "title": "Gemini 1.5 Pro 002",
+              "value": "gemini-1.5-pro-002",
+              "context": 2097152,
+              "visionEnable": true
+            }
+          ]
+        },
+        {
+          "name": "apiKey",
+          "description": "Google AI api key",
+          "type": "password",
+          "required": false,
+          "title": "Google AI Api Key",
+          "default": "",
+          "defaultProxy": "KEY_GEMINI_APIKEY",
+          "placeholder": "AI********"
+        },
+        {
+          "name": "temperature",
+          "description": "What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Temperature",
+          "default": "1.0",
+          "data": [
+            {
+              "title": "none",
+              "value": "0.0"
+            },
+            {
+              "title": "low",
+              "value": "0.5"
+            },
+            {
+              "title": "medium",
+              "value": "1.0"
+            },
+            {
+              "title": "high",
+              "value": "1.5"
+            },
+            {
+              "title": "maximum",
+              "value": "2.0"
+            }
+          ]
         },
         {
           "name": "streaming",
@@ -330,259 +526,11 @@
       ]
     },
     {
-      "name": "chat_anthropic",
-      "title": "Anthropic Claude",
-      "description": "Chat with Anthropic Claude, learn more : [anthropic.com](https://www.anthropic.com/)",
+      "name": "chat_groq",
+      "title": "Groq AI",
+      "description": "Chat with Groq ai, learn more : [groq.com/](https://groq.com/)",
+      "icon": "groq.png",
       "mode": "llm",
-      "icon": "anthropic.png",
-      "preferences": [
-        {
-          "name": "modelName",
-          "description": "md: The model to generate the completion. \n|               | Claude 3 Opus | Claude 3 Sonnet | Claude 3 Haiku |\n|---------------|--------------|----------------|---------------|\n| Context window| 200K*        | 200K*          | 200K*         |\n| Cost (Input / Output per MTok^)| $15.00/$75.00 | $3.00/$15.00   | $0.25/$1.25    | $8.00/$24.00  |",
-          "type": "dropdown",
-          "required": false,
-          "title": "Model Name",
-          "default": "claude-3-opus-20240229",
-          "data": [
-            {
-              "title": "Claude 3.5 Sonnet 200k",
-              "value": "claude-3-5-sonnet-20240620",
-              "context": 200000,
-              "inputPrice": 0.03,
-              "outputPrice": 0.15,
-              "toolUse": true,
-              "visionEnable": true
-            },
-            {
-              "title": "Claude 3 Opus 200k",
-              "value": "claude-3-opus-20240229",
-              "context": 200000,
-              "inputPrice": 0.15,
-              "outputPrice": 0.75,
-              "toolUse": true,
-              "visionEnable": true
-            },
-            {
-              "title": "Claude 3 Sonnet 200k",
-              "value": "claude-3-sonnet-20240229",
-              "context": 200000,
-              "inputPrice": 0.03,
-              "outputPrice": 0.15,
-              "toolUse": true,
-              "visionEnable": true
-            },
-            {
-              "title": "Claude 3 Haiku 200k",
-              "value": "claude-3-haiku-20240307",
-              "inputPrice": 0.00025,
-              "outputPrice": 0.00125,
-              "context": 200000,
-              "toolUse": true,
-              "visionEnable": true
-            }
-          ]
-        },
-        {
-          "name": "temperature",
-          "description": "What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.",
-          "type": "dropdown",
-          "required": false,
-          "title": "Temperature",
-          "default": "1.0",
-          "data": [
-            {
-              "title": "none",
-              "value": "0.0"
-            },
-            {
-              "title": "low",
-              "value": "0.5"
-            },
-            {
-              "title": "medium",
-              "value": "1.0"
-            },
-            {
-              "title": "high",
-              "value": "1.5"
-            },
-            {
-              "title": "maximum",
-              "value": "2.0"
-            }
-          ]
-        },
-        {
-          "name": "anthropicApiKey",
-          "description": "Anthropic api key",
-          "type": "password",
-          "required": false,
-          "title": "Claude Api Key",
-          "default": "",
-          "placeholder": "Claude Api Key"
-        },
-        {
-          "name": "anthropicApiUrl",
-          "description": "Anthropic api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "Anthropic Api Base Url",
-          "default": "https://api.anthropic.com",
-          "placeholder": "Anthropic Api Base Url"
-        },
-        {
-          "name": "streaming",
-          "description": "Whether to stream output",
-          "type": "checkbox",
-          "required": false,
-          "title": "Streaming",
-          "default": true,
-          "label": "Streaming"
-        }
-      ]
-    },
-    {
-      "name": "ollama_models",
-      "title": "Ollama Models",
-      "description": "get ollama model list",
-      "icon": "ollama.png",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "baseUrl",
-          "description": "Ollama api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "Ollama Api Base Url",
-          "default": "http://127.0.0.1:11434",
-          "placeholder": "Ollama Api Base Url",
-          "defaultProxy": "llm|chat_ollama"
-        }
-      ]
-    },
-    {
-      "name": "chat_lm_studio",
-      "title": "LM Studio",
-      "description": "Chat with LM Studio, learn more : [lmstudio.ai](https://lmstudio.ai/)",
-      "icon": "lm_studio.png",
-      "mode": "llm",
-      "preferences": [
-        {
-          "name": "baseUrl",
-          "description": "LM Studio api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "LM Studio Api Base Url",
-          "default": "http://127.0.0.1:1234/v1",
-          "placeholder": "LM Studio Api Base Url"
-        },
-        {
-          "name": "temperature",
-          "description": "What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.",
-          "type": "dropdown",
-          "required": false,
-          "title": "Temperature",
-          "default": "1.0",
-          "data": [
-            {
-              "title": "none",
-              "value": "0.0"
-            },
-            {
-              "title": "low",
-              "value": "0.5"
-            },
-            {
-              "title": "medium",
-              "value": "1.0"
-            },
-            {
-              "title": "high",
-              "value": "1.5"
-            },
-            {
-              "title": "maximum",
-              "value": "2.0"
-            }
-          ]
-        },
-        {
-          "name": "streaming",
-          "description": "Whether to stream output",
-          "type": "checkbox",
-          "required": false,
-          "title": "Streaming",
-          "default": true,
-          "label": "Streaming"
-        }
-      ]
-    },
-    {
-      "name": "chat_ollama",
-      "title": "Ollama",
-      "description": "Chat with Ollama, learn more : [ollama.ai](https://ollama.ai/)",
-      "icon": "ollama.png",
-      "mode": "llm",
-      "preferences": [
-        {
-          "name": "model",
-          "description": "The model to generate the completion.",
-          "type": "dropdown",
-          "required": false,
-          "title": "Model Name",
-          "default": "llama2:latest",
-          "data": [],
-          "dataProxy": "llm|ollama_models"
-        },
-        {
-          "name": "temperature",
-          "description": "What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.",
-          "type": "dropdown",
-          "required": false,
-          "title": "Temperature",
-          "default": "1.0",
-          "data": [
-            {
-              "title": "none",
-              "value": "0.0"
-            },
-            {
-              "title": "low",
-              "value": "0.5"
-            },
-            {
-              "title": "medium",
-              "value": "1.0"
-            },
-            {
-              "title": "high",
-              "value": "1.5"
-            },
-            {
-              "title": "maximum",
-              "value": "2.0"
-            }
-          ]
-        },
-        {
-          "name": "baseUrl",
-          "description": "Ollama api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "Ollama Api Base Url",
-          "default": "http://127.0.0.1:11434",
-          "placeholder": "Ollama Api Base Url"
-        }
-      ]
-    },
-    {
-      "name": "chat_openrouter",
-      "title": "OpenRouter",
-      "description": "Chat with OpenRouter, learn more: [openrouter.ai](https://openrouter.ai/)",
-      "icon": "openrouter.png",
-      "mode": "llm",
-      "targetCommand": "llm/chat_open_ai",
       "preferences": [
         {
           "name": "modelName",
@@ -590,18 +538,9 @@
           "type": "dropdown",
           "required": false,
           "title": "Model Name",
-          "default": "openai/gpt-3.5-turbo",
-          "data": [
-            {
-              "title": "Openai Gpt-3.5-turbo",
-              "value": "openai/gpt-3.5-turbo",
-              "context": 16385,
-              "inputPrice": 0.0005,
-              "outputPrice": 0.0015,
-              "toolUse": true
-            }
-          ],
-          "dataProxy": "llm|openrouter_models"
+          "default": "gemma2-9b-it",
+          "dataProxy": "llm|groq_models",
+          "data": []
         },
         {
           "name": "temperature",
@@ -633,153 +572,24 @@
             }
           ]
         },
-        {
-          "name": "openAIApiKey",
-          "description": "OpenRouter api key",
-          "type": "password",
-          "required": false,
-          "title": "OpenRouter Api Key",
-          "default": "",
-          "placeholder": "OpenRouter Api Key"
-        },
-        {
-          "name": "baseUrl",
-          "description": "OpenRouter api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "OpenRouter Api Base Url",
-          "default": "https://openrouter.ai/api/v1",
-          "placeholder": "OpenRouter Api Base Url"
-        },
-        {
-          "name": "streaming",
-          "description": "Whether to stream output",
-          "type": "checkbox",
-          "required": false,
-          "title": "Streaming",
-          "default": true,
-          "label": "Streaming"
-        }
-      ]
-    },
-    {
-      "name": "openrouter_models",
-      "title": "openrouter Models",
-      "description": "get openrouter model list",
-      "icon": "openrouter.png",
-      "showInCommandList": false,
-      "mode": "no-view"
-    },
-    {
-      "name": "chat_perplexity",
-      "title": "Perplexity",
-      "description": "Chat with Perplexity, learn more: [perplexity.ai](https://www.perplexity.ai/settings/api)",
-      "icon": "perplexity.png",
-      "mode": "llm",
-      "targetCommand": "llm/chat_open_ai",
-      "preferences": [
-        {
-          "name": "modelName",
-          "description": "The model to generate the completion.",
-          "type": "dropdown",
-          "required": false,
-          "title": "Model Name",
-          "default": "pplx-7b-online",
-          "data": [],
-          "dataProxy": "llm|perplexity_models"
-        },
-        {
-          "name": "temperature",
-          "description": "What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.",
-          "type": "dropdown",
-          "required": false,
-          "title": "Temperature",
-          "default": "1.0",
-          "data": [
-            {
-              "title": "none",
-              "value": "0.0"
-            },
-            {
-              "title": "low",
-              "value": "0.5"
-            },
-            {
-              "title": "medium",
-              "value": "1.0"
-            },
-            {
-              "title": "high",
-              "value": "1.5"
-            },
-            {
-              "title": "maximum",
-              "value": "2.0"
-            }
-          ]
-        },
-        {
-          "name": "openAIApiKey",
-          "description": "Perplexity api key",
-          "type": "password",
-          "required": false,
-          "title": "Perplexity Api Key",
-          "default": "",
-          "placeholder": "Perplexity Api Key"
-        },
-        {
-          "name": "frequencyPenalty",
-          "description": "frequencyPenalty",
-          "type": "textfield",
-          "required": false,
-          "title": "frequencyPenalty",
-          "default": "1"
-        },
-        {
-          "name": "baseUrl",
-          "description": "Perplexity api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "Perplexity Api Base Url",
-          "default": "https://api.perplexity.ai",
-          "placeholder": "Perplexity Api Base Url"
-        },
-        {
-          "name": "streaming",
-          "description": "Whether to stream output",
-          "type": "checkbox",
-          "required": false,
-          "title": "Streaming",
-          "default": true,
-          "label": "Streaming"
-        }
-      ]
-    },
-    {
-      "name": "perplexity_models",
-      "title": "perplexity Models",
-      "description": "get perplexity model list",
-      "icon": "perplexity.png",
-      "showInCommandList": false,
-      "mode": "no-view"
-    },
-    {
-      "name": "premai_models",
-      "title": "premai Models",
-      "description": "get premai model list",
-      "icon": "premai.png",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
         {
           "name": "apiKey",
-          "description": "api key",
+          "description": "How to get api key? [🔑here](https://console.groq.com/keys)",
           "type": "password",
           "required": false,
-          "title": "Api Key",
+          "title": "API KEY",
           "default": "",
-          "defaultProxy": "llm|premai",
-          "placeholder": "Api Key"
+          "defaultProxy": "KEY_GROQ_APIKEY",
+          "placeholder": "gsk_********"
+        },
+        {
+          "name": "streaming",
+          "description": "Whether to stream output",
+          "type": "checkbox",
+          "required": false,
+          "title": "Streaming",
+          "default": true,
+          "label": "Streaming"
         }
       ]
     },
@@ -872,11 +682,12 @@
       ]
     },
     {
-      "name": "chat_google",
-      "title": "Google Gemini AI",
-      "description": "Chat with Google Gemini AI, learn more : [Google AI](https://ai.google.dev/)",
-      "icon": "google.jpg",
+      "name": "chat_perplexity",
+      "title": "Perplexity",
+      "description": "Chat with Perplexity, learn more: [perplexity.ai](https://www.perplexity.ai/settings/api)",
+      "icon": "perplexity.png",
       "mode": "llm",
+      "targetCommand": "llm/chat_open_ai",
       "preferences": [
         {
           "name": "modelName",
@@ -884,30 +695,9 @@
           "type": "dropdown",
           "required": false,
           "title": "Model Name",
-          "default": "gemini-1.5-flash-002",
-          "data": [
-            {
-              "title": "Gemini 1.5 Flash 002",
-              "value": "gemini-1.5-flash-002",
-              "context": 1048576,
-              "visionEnable": true
-            },
-            {
-              "title": "Gemini 1.5 Pro 002",
-              "value": "gemini-1.5-pro-002",
-              "context": 2097152,
-              "visionEnable": true
-            }
-          ]
-        },
-        {
-          "name": "apiKey",
-          "description": "Google AI api key",
-          "type": "password",
-          "required": false,
-          "title": "Google AI Api Key",
-          "default": "",
-          "placeholder": "Google AI Api Key"
+          "default": "pplx-7b-online",
+          "data": [],
+          "dataProxy": "llm|perplexity_models"
         },
         {
           "name": "temperature",
@@ -938,6 +728,486 @@
               "value": "2.0"
             }
           ]
+        },
+        {
+          "name": "openAIApiKey",
+          "description": "Perplexity api key",
+          "type": "password",
+          "required": false,
+          "title": "Perplexity Api Key",
+          "default": "",
+          "placeholder": "Perplexity Api Key"
+        },
+        {
+          "name": "frequencyPenalty",
+          "description": "frequencyPenalty",
+          "type": "textfield",
+          "required": false,
+          "title": "frequencyPenalty",
+          "default": "1"
+        },
+        {
+          "name": "baseUrl",
+          "description": "Perplexity api base url",
+          "type": "textfield",
+          "required": false,
+          "title": "Perplexity Api Base Url",
+          "default": "https://api.perplexity.ai",
+          "placeholder": "Perplexity Api Base Url"
+        },
+        {
+          "name": "streaming",
+          "description": "Whether to stream output",
+          "type": "checkbox",
+          "required": false,
+          "title": "Streaming",
+          "default": true,
+          "label": "Streaming"
+        }
+      ]
+    },
+    {
+      "name": "chat_cohere",
+      "title": "Cohere AI",
+      "description": "Chat using [Cohere](cohere.com), get [API KEY](https://dashboard.cohere.com/)",
+      "icon": "cohere.jpg",
+      "mode": "llm",
+      "preferences": [
+        {
+          "name": "model",
+          "description": "The model to generate the completion.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Model Name",
+          "default": "command-r-plus",
+          "dataProxy": "llm|cohere_models",
+          "data": [
+            {
+              "title": "Command-R-Plus (116k)",
+              "value": "command-r-plus",
+              "context": 116000
+            }
+          ]
+        },
+        {
+          "name": "apiKey",
+          "description": "api key",
+          "type": "password",
+          "required": false,
+          "title": "Api Key",
+          "default": "",
+          "placeholder": "Api Key"
+        },
+        {
+          "name": "temperature",
+          "description": "What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Temperature",
+          "default": "1.0",
+          "data": [
+            {
+              "title": "none",
+              "value": "0.0"
+            },
+            {
+              "title": "low",
+              "value": "0.5"
+            },
+            {
+              "title": "medium",
+              "value": "1.0"
+            },
+            {
+              "title": "high",
+              "value": "1.5"
+            },
+            {
+              "title": "maximum",
+              "value": "2.0"
+            }
+          ]
+        },
+        {
+          "name": "streaming",
+          "description": "Whether to stream output",
+          "type": "checkbox",
+          "required": false,
+          "title": "Streaming",
+          "default": true,
+          "label": "Streaming"
+        }
+      ]
+    },
+    {
+      "name": "deepseek",
+      "title": "Deep Seek",
+      "description": "Chat with DeepSeek , learn more : [DeepSeek developers](https://platform.deepseek.com/)",
+      "icon": "deepseek.png",
+      "mode": "llm",
+      "targetCommand": "llm/chat_open_ai",
+      "preferences": [
+        {
+          "name": "modelName",
+          "description": "The model to generate the completion.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Model Name",
+          "default": "deepseek-chat",
+          "data": [
+            {
+              "title": "Deepseek Chat",
+              "value": "deepseek-chat",
+              "context": 32000,
+              "inputPrice": 0.00014,
+              "outputPrice": 0.00028
+            },
+            {
+              "title": "Deepseek Coder",
+              "value": "deepseek-coder",
+              "context": 16000,
+              "inputPrice": 0.00014,
+              "outputPrice": 0.00028
+            }
+          ]
+        },
+        {
+          "name": "temperature",
+          "description": "What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Temperature",
+          "default": "1.0",
+          "data": [
+            {
+              "title": "none",
+              "value": "0.0"
+            },
+            {
+              "title": "low",
+              "value": "0.5"
+            },
+            {
+              "title": "medium",
+              "value": "1.0"
+            },
+            {
+              "title": "high",
+              "value": "1.5"
+            },
+            {
+              "title": "maximum",
+              "value": "2.0"
+            }
+          ]
+        },
+        {
+          "name": "openAIApiKey",
+          "description": "api key",
+          "type": "password",
+          "required": false,
+          "title": "Api Key",
+          "default": "",
+          "placeholder": "Api Key"
+        },
+        {
+          "name": "baseUrl",
+          "description": "OpenAI api base url",
+          "type": "textfield",
+          "required": false,
+          "title": "OpenAI Api Base Url",
+          "default": "https://api.deepseek.com",
+          "placeholder": "OpenAI Api Base Url",
+          "visibility": "hidden"
+        },
+        {
+          "name": "streaming",
+          "description": "Whether to stream output",
+          "type": "checkbox",
+          "required": false,
+          "title": "Streaming",
+          "default": true,
+          "label": "Streaming",
+          "visibility": "hidden"
+        }
+      ]
+    },
+    {
+      "name": "siliconflow",
+      "title": "SiliconFlow",
+      "description": "Chat with SiliconFlow , learn more : [SiliconFlow developers](https://siliconflow.cn/)",
+      "icon": "siliconflow.png",
+      "mode": "llm",
+      "targetCommand": "llm/chat_open_ai",
+      "preferences": [
+        {
+          "name": "modelName",
+          "description": "The model to generate the completion.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Model Name",
+          "default": "Qwen/Qwen2-7B-Instruct",
+          "data": [
+            {
+              "title": "Qwen/Qwen2-7B-Instruct",
+              "value": "Qwen/Qwen2-7B-Instruct",
+              "context": 32000,
+              "inputPrice": 0.00014,
+              "outputPrice": 0.00028
+            }
+          ],
+          "dataProxy": "llm|silliconflow_models"
+        },
+        {
+          "name": "temperature",
+          "description": "What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Temperature",
+          "default": "1.0",
+          "data": [
+            {
+              "title": "none",
+              "value": "0.0"
+            },
+            {
+              "title": "low",
+              "value": "0.5"
+            },
+            {
+              "title": "medium",
+              "value": "1.0"
+            },
+            {
+              "title": "high",
+              "value": "1.5"
+            },
+            {
+              "title": "maximum",
+              "value": "2.0"
+            }
+          ]
+        },
+        {
+          "name": "openAIApiKey",
+          "description": "api key",
+          "type": "password",
+          "required": false,
+          "title": "Api Key",
+          "default": "",
+          "placeholder": "Api Key"
+        },
+        {
+          "name": "baseUrl",
+          "description": "OpenAI api base url",
+          "type": "textfield",
+          "required": false,
+          "title": "OpenAI Api Base Url",
+          "default": "https://api.siliconflow.cn/v1",
+          "placeholder": "Api Base Url",
+          "visibility": "hidden"
+        },
+        {
+          "name": "streaming",
+          "description": "Whether to stream output",
+          "type": "checkbox",
+          "required": false,
+          "title": "Streaming",
+          "default": true,
+          "label": "Streaming",
+          "visibility": "hidden"
+        }
+      ]
+    },
+    {
+      "name": "chat_ollama",
+      "title": "Ollama",
+      "description": "Chat with Ollama, learn more : [ollama.ai](https://ollama.ai/)",
+      "icon": "ollama.png",
+      "mode": "llm",
+      "preferences": [
+        {
+          "name": "model",
+          "description": "The model to generate the completion.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Model Name",
+          "default": "llama2:latest",
+          "data": [],
+          "dataProxy": "llm|ollama_models"
+        },
+        {
+          "name": "temperature",
+          "description": "What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Temperature",
+          "default": "1.0",
+          "data": [
+            {
+              "title": "none",
+              "value": "0.0"
+            },
+            {
+              "title": "low",
+              "value": "0.5"
+            },
+            {
+              "title": "medium",
+              "value": "1.0"
+            },
+            {
+              "title": "high",
+              "value": "1.5"
+            },
+            {
+              "title": "maximum",
+              "value": "2.0"
+            }
+          ]
+        },
+        {
+          "name": "baseUrl",
+          "description": "Ollama api base url",
+          "type": "textfield",
+          "required": false,
+          "title": "Ollama Api Base Url",
+          "default": "http://127.0.0.1:11434",
+          "placeholder": "Ollama Api Base Url"
+        }
+      ]
+    },
+    {
+      "name": "chat_lm_studio",
+      "title": "LM Studio",
+      "description": "Chat with LM Studio, learn more : [lmstudio.ai](https://lmstudio.ai/)",
+      "icon": "lm_studio.png",
+      "mode": "llm",
+      "preferences": [
+        {
+          "name": "baseUrl",
+          "description": "LM Studio api base url",
+          "type": "textfield",
+          "required": false,
+          "title": "LM Studio Api Base Url",
+          "default": "http://127.0.0.1:1234/v1",
+          "placeholder": "LM Studio Api Base Url"
+        },
+        {
+          "name": "temperature",
+          "description": "What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Temperature",
+          "default": "1.0",
+          "data": [
+            {
+              "title": "none",
+              "value": "0.0"
+            },
+            {
+              "title": "low",
+              "value": "0.5"
+            },
+            {
+              "title": "medium",
+              "value": "1.0"
+            },
+            {
+              "title": "high",
+              "value": "1.5"
+            },
+            {
+              "title": "maximum",
+              "value": "2.0"
+            }
+          ]
+        },
+        {
+          "name": "streaming",
+          "description": "Whether to stream output",
+          "type": "checkbox",
+          "required": false,
+          "title": "Streaming",
+          "default": true,
+          "label": "Streaming"
+        }
+      ]
+    },
+    {
+      "name": "chat_openrouter",
+      "title": "OpenRouter",
+      "description": "Chat with OpenRouter, learn more: [openrouter.ai](https://openrouter.ai/)",
+      "icon": "openrouter.png",
+      "mode": "llm",
+      "targetCommand": "llm/chat_open_ai",
+      "preferences": [
+        {
+          "name": "modelName",
+          "description": "The model to generate the completion.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Model Name",
+          "default": "openai/gpt-3.5-turbo",
+          "data": [
+            {
+              "title": "Openai Gpt-3.5-turbo",
+              "value": "openai/gpt-3.5-turbo",
+              "context": 16385,
+              "inputPrice": 0.0005,
+              "outputPrice": 0.0015,
+              "toolUse": true
+            }
+          ],
+          "dataProxy": "llm|openrouter_models"
+        },
+        {
+          "name": "temperature",
+          "description": "What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Temperature",
+          "default": "1.0",
+          "data": [
+            {
+              "title": "none",
+              "value": "0.0"
+            },
+            {
+              "title": "low",
+              "value": "0.5"
+            },
+            {
+              "title": "medium",
+              "value": "1.0"
+            },
+            {
+              "title": "high",
+              "value": "1.5"
+            },
+            {
+              "title": "maximum",
+              "value": "2.0"
+            }
+          ]
+        },
+        {
+          "name": "openAIApiKey",
+          "description": "OpenRouter api key",
+          "type": "password",
+          "required": false,
+          "title": "OpenRouter Api Key",
+          "default": "",
+          "placeholder": "OpenRouter Api Key"
+        },
+        {
+          "name": "baseUrl",
+          "description": "OpenRouter api base url",
+          "type": "textfield",
+          "required": false,
+          "title": "OpenRouter Api Base Url",
+          "default": "https://openrouter.ai/api/v1",
+          "placeholder": "OpenRouter Api Base Url"
         },
         {
           "name": "streaming",
@@ -1164,38 +1434,6 @@
       ]
     },
     {
-      "name": "cloudflare_models",
-      "title": "cloudflare Models",
-      "description": "get cloudflare model list",
-      "icon": "cloudflare.png",
-      "showInCommandList": false,
-      "mode": "no-view"
-    },
-    {
-      "name": "groq_models",
-      "title": "groq Models",
-      "description": "get groq model list",
-      "icon": "groq.png",
-      "showInCommandList": false,
-      "mode": "no-view"
-    },
-    {
-      "name": "enconvo_models",
-      "title": "enconvo Models",
-      "description": "get enconvo model list",
-      "icon": "enconvo.png",
-      "showInCommandList": false,
-      "mode": "no-view"
-    },
-    {
-      "name": "openai_models",
-      "title": "openai Models",
-      "description": "get openai model list",
-      "icon": "openai.png",
-      "showInCommandList": false,
-      "mode": "no-view"
-    },
-    {
       "name": "chat_together_ai",
       "title": "Together AI",
       "description": "Chat with together.ai, learn more : [together.ai](https://docs.together.ai/docs/quickstart), get chat models from [together models](https://docs.together.ai/docs/inference-models)",
@@ -1360,73 +1598,6 @@
       ]
     },
     {
-      "name": "chat_groq",
-      "title": "Groq AI",
-      "description": "Chat with Groq ai, learn more : [groq.com/](https://groq.com/)",
-      "icon": "groq.png",
-      "mode": "llm",
-      "preferences": [
-        {
-          "name": "modelName",
-          "description": "The model to generate the completion.",
-          "type": "dropdown",
-          "required": false,
-          "title": "Model Name",
-          "default": "gemma2-9b-it",
-          "dataProxy": "llm|groq_models",
-          "data": []
-        },
-        {
-          "name": "temperature",
-          "description": "What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.",
-          "type": "dropdown",
-          "required": false,
-          "title": "Temperature",
-          "default": "1.0",
-          "data": [
-            {
-              "title": "none",
-              "value": "0.0"
-            },
-            {
-              "title": "low",
-              "value": "0.5"
-            },
-            {
-              "title": "medium",
-              "value": "1.0"
-            },
-            {
-              "title": "high",
-              "value": "1.5"
-            },
-            {
-              "title": "maximum",
-              "value": "2.0"
-            }
-          ]
-        },
-        {
-          "name": "apiKey",
-          "description": "Groq_API_KEY",
-          "type": "password",
-          "required": false,
-          "title": "Groq_API_KEY",
-          "default": "",
-          "placeholder": "Groq Api Key"
-        },
-        {
-          "name": "streaming",
-          "description": "Whether to stream output",
-          "type": "checkbox",
-          "required": false,
-          "title": "Streaming",
-          "default": true,
-          "label": "Streaming"
-        }
-      ]
-    },
-    {
       "name": "premai",
       "title": "Prem AI",
       "description": "Chat using [PremAI](https://www.premai.io/) which provide LLM service",
@@ -1502,6 +1673,94 @@
       ]
     },
     {
+      "name": "ollama_models",
+      "title": "Ollama Models",
+      "description": "get ollama model list",
+      "icon": "ollama.png",
+      "showInCommandList": false,
+      "mode": "no-view",
+      "preferences": [
+        {
+          "name": "baseUrl",
+          "description": "Ollama api base url",
+          "type": "textfield",
+          "required": false,
+          "title": "Ollama Api Base Url",
+          "default": "http://127.0.0.1:11434",
+          "placeholder": "Ollama Api Base Url",
+          "defaultProxy": "llm|chat_ollama"
+        }
+      ]
+    },
+    {
+      "name": "openrouter_models",
+      "title": "openrouter Models",
+      "description": "get openrouter model list",
+      "icon": "openrouter.png",
+      "showInCommandList": false,
+      "mode": "no-view"
+    },
+    {
+      "name": "perplexity_models",
+      "title": "perplexity Models",
+      "description": "get perplexity model list",
+      "icon": "perplexity.png",
+      "showInCommandList": false,
+      "mode": "no-view"
+    },
+    {
+      "name": "premai_models",
+      "title": "premai Models",
+      "description": "get premai model list",
+      "icon": "premai.png",
+      "showInCommandList": false,
+      "mode": "no-view",
+      "preferences": [
+        {
+          "name": "apiKey",
+          "description": "api key",
+          "type": "password",
+          "required": false,
+          "title": "Api Key",
+          "default": "",
+          "defaultProxy": "llm|premai",
+          "placeholder": "Api Key"
+        }
+      ]
+    },
+    {
+      "name": "groq_models",
+      "title": "groq Models",
+      "description": "get groq model list",
+      "icon": "groq.png",
+      "showInCommandList": false,
+      "mode": "no-view"
+    },
+    {
+      "name": "enconvo_models",
+      "title": "enconvo Models",
+      "description": "get enconvo model list",
+      "icon": "enconvo.png",
+      "showInCommandList": false,
+      "mode": "no-view"
+    },
+    {
+      "name": "openai_models",
+      "title": "openai Models",
+      "description": "get openai model list",
+      "icon": "openai.png",
+      "showInCommandList": false,
+      "mode": "no-view"
+    },
+    {
+      "name": "cloudflare_models",
+      "title": "cloudflare Models",
+      "description": "get cloudflare model list",
+      "icon": "cloudflare.png",
+      "showInCommandList": false,
+      "mode": "no-view"
+    },
+    {
       "name": "cohere_models",
       "title": "cohere Models",
       "description": "get cohere model list",
@@ -1518,79 +1777,6 @@
           "default": "",
           "defaultProxy": "llm|chat_cohere",
           "placeholder": "Api Key"
-        }
-      ]
-    },
-    {
-      "name": "chat_cohere",
-      "title": "Cohere AI",
-      "description": "Chat using [Cohere](cohere.com), get [API KEY](https://dashboard.cohere.com/)",
-      "icon": "cohere.jpg",
-      "mode": "llm",
-      "preferences": [
-        {
-          "name": "model",
-          "description": "The model to generate the completion.",
-          "type": "dropdown",
-          "required": false,
-          "title": "Model Name",
-          "default": "command-r-plus",
-          "dataProxy": "llm|cohere_models",
-          "data": [
-            {
-              "title": "Command-R-Plus (116k)",
-              "value": "command-r-plus",
-              "context": 116000
-            }
-          ]
-        },
-        {
-          "name": "apiKey",
-          "description": "api key",
-          "type": "password",
-          "required": false,
-          "title": "Api Key",
-          "default": "",
-          "placeholder": "Api Key"
-        },
-        {
-          "name": "temperature",
-          "description": "What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.",
-          "type": "dropdown",
-          "required": false,
-          "title": "Temperature",
-          "default": "1.0",
-          "data": [
-            {
-              "title": "none",
-              "value": "0.0"
-            },
-            {
-              "title": "low",
-              "value": "0.5"
-            },
-            {
-              "title": "medium",
-              "value": "1.0"
-            },
-            {
-              "title": "high",
-              "value": "1.5"
-            },
-            {
-              "title": "maximum",
-              "value": "2.0"
-            }
-          ]
-        },
-        {
-          "name": "streaming",
-          "description": "Whether to stream output",
-          "type": "checkbox",
-          "required": false,
-          "title": "Streaming",
-          "default": true,
-          "label": "Streaming"
         }
       ]
     },
@@ -1731,99 +1917,6 @@
       ]
     },
     {
-      "name": "deepseek",
-      "title": "Deep Seek",
-      "description": "Chat with DeepSeek , learn more : [DeepSeek developers](https://platform.deepseek.com/)",
-      "icon": "deepseek.png",
-      "mode": "llm",
-      "targetCommand": "llm/chat_open_ai",
-      "preferences": [
-        {
-          "name": "modelName",
-          "description": "The model to generate the completion.",
-          "type": "dropdown",
-          "required": false,
-          "title": "Model Name",
-          "default": "deepseek-chat",
-          "data": [
-            {
-              "title": "Deepseek Chat",
-              "value": "deepseek-chat",
-              "context": 32000,
-              "inputPrice": 0.00014,
-              "outputPrice": 0.00028
-            },
-            {
-              "title": "Deepseek Coder",
-              "value": "deepseek-coder",
-              "context": 16000,
-              "inputPrice": 0.00014,
-              "outputPrice": 0.00028
-            }
-          ]
-        },
-        {
-          "name": "temperature",
-          "description": "What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.",
-          "type": "dropdown",
-          "required": false,
-          "title": "Temperature",
-          "default": "1.0",
-          "data": [
-            {
-              "title": "none",
-              "value": "0.0"
-            },
-            {
-              "title": "low",
-              "value": "0.5"
-            },
-            {
-              "title": "medium",
-              "value": "1.0"
-            },
-            {
-              "title": "high",
-              "value": "1.5"
-            },
-            {
-              "title": "maximum",
-              "value": "2.0"
-            }
-          ]
-        },
-        {
-          "name": "openAIApiKey",
-          "description": "api key",
-          "type": "password",
-          "required": false,
-          "title": "Api Key",
-          "default": "",
-          "placeholder": "Api Key"
-        },
-        {
-          "name": "baseUrl",
-          "description": "OpenAI api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "OpenAI Api Base Url",
-          "default": "https://api.deepseek.com",
-          "placeholder": "OpenAI Api Base Url",
-          "visibility": "hidden"
-        },
-        {
-          "name": "streaming",
-          "description": "Whether to stream output",
-          "type": "checkbox",
-          "required": false,
-          "title": "Streaming",
-          "default": true,
-          "label": "Streaming",
-          "visibility": "hidden"
-        }
-      ]
-    },
-    {
       "name": "chat_tongyiqianwen",
       "title": "Alibaba Tongyi",
       "description": "Chat with Alibaba Tongyi , learn more : [Alibaba Tongyi developers](https://help.aliyun.com/zh/dashscope/developer-reference/activate-dashscope-and-create-an-api-key)",
@@ -1943,93 +2036,6 @@
           "default": "",
           "placeholder": "Api Key",
           "defaultProxy": "llm|siliconflow"
-        }
-      ]
-    },
-    {
-      "name": "siliconflow",
-      "title": "SiliconFlow",
-      "description": "Chat with SiliconFlow , learn more : [SiliconFlow developers](https://siliconflow.cn/)",
-      "icon": "siliconflow.png",
-      "mode": "llm",
-      "targetCommand": "llm/chat_open_ai",
-      "preferences": [
-        {
-          "name": "modelName",
-          "description": "The model to generate the completion.",
-          "type": "dropdown",
-          "required": false,
-          "title": "Model Name",
-          "default": "Qwen/Qwen2-7B-Instruct",
-          "data": [
-            {
-              "title": "Qwen/Qwen2-7B-Instruct",
-              "value": "Qwen/Qwen2-7B-Instruct",
-              "context": 32000,
-              "inputPrice": 0.00014,
-              "outputPrice": 0.00028
-            }
-          ],
-          "dataProxy": "llm|silliconflow_models"
-        },
-        {
-          "name": "temperature",
-          "description": "What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.",
-          "type": "dropdown",
-          "required": false,
-          "title": "Temperature",
-          "default": "1.0",
-          "data": [
-            {
-              "title": "none",
-              "value": "0.0"
-            },
-            {
-              "title": "low",
-              "value": "0.5"
-            },
-            {
-              "title": "medium",
-              "value": "1.0"
-            },
-            {
-              "title": "high",
-              "value": "1.5"
-            },
-            {
-              "title": "maximum",
-              "value": "2.0"
-            }
-          ]
-        },
-        {
-          "name": "openAIApiKey",
-          "description": "api key",
-          "type": "password",
-          "required": false,
-          "title": "Api Key",
-          "default": "",
-          "placeholder": "Api Key"
-        },
-        {
-          "name": "baseUrl",
-          "description": "OpenAI api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "OpenAI Api Base Url",
-          "default": "https://api.siliconflow.cn/v1",
-          "placeholder": "Api Base Url",
-          "visibility": "hidden"
-        },
-        {
-          "name": "streaming",
-          "description": "Whether to stream output",
-          "type": "checkbox",
-          "required": false,
-          "title": "Streaming",
-          "default": true,
-          "label": "Streaming",
-          "visibility": "hidden"
         }
       ]
     }
