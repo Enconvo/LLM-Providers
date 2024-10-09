@@ -1328,7 +1328,7 @@
           "type": "textfield",
           "required": false,
           "title": "Model Name",
-          "default": "accounts/fireworks/models/mixtral-8x7b-instruct"
+          "default": "accounts/fireworks/models/llama-v3p2-3b-instruct"
         },
         {
           "name": "temperature",
@@ -1362,12 +1362,13 @@
         },
         {
           "name": "openAIApiKey",
-          "description": "OpenAI api key",
+          "description": "How to get api key? [🔑here](https://fireworks.ai/account/api-keys)",
           "type": "password",
           "required": false,
-          "title": "OpenAI Api Key",
+          "title": "API Key",
           "default": "",
-          "placeholder": "OpenAI Api Key"
+          "defaultProxy": "KEY_FIREWORKS_APIKEY",
+          "placeholder": "API Key"
         },
         {
           "name": "baseUrl",
@@ -1376,7 +1377,8 @@
           "required": false,
           "title": "OpenAI Api Base Url",
           "default": "https://api.fireworks.ai/inference/v1",
-          "placeholder": "OpenAI Api Base Url"
+          "placeholder": "OpenAI Api Base Url",
+          "visibility": "hidden"
         },
         {
           "name": "streaming",
@@ -1414,16 +1416,18 @@
           "required": false,
           "title": "Cloudflare AccountID",
           "default": "",
+          "defaultProxy": "KEY_CLOUDFLARE_ACCOUNTID",
           "placeholder": "Cloudflare AccountID"
         },
         {
           "name": "cloudflareApiToken",
-          "description": "Cloudflare api Token",
+          "description": "Cloudflare API Token",
           "type": "password",
           "required": false,
-          "title": "Cloudflare Api Token",
+          "title": "Cloudflare API Token",
           "default": "",
-          "placeholder": "Cloudflare Api Token"
+          "defaultProxy": "KEY_CLOUDFLARE_APIKEY",
+          "placeholder": "Cloudflare API Token"
         },
         {
           "name": "streaming",
@@ -1451,7 +1455,7 @@
           "type": "textfield",
           "required": false,
           "title": "Model Name",
-          "default": "mistralai/Mixtral-8x7B-Instruct-v0.1"
+          "default": "meta-llama/Llama-3.2-3B-Instruct-Turbo"
         },
         {
           "name": "temperature",
@@ -1485,11 +1489,12 @@
         },
         {
           "name": "openAIApiKey",
-          "description": "TOGETHER_API_KEY",
+          "description": "How to get api key? [🔑here](https://docs.together.ai/docs/quickstart)",
           "type": "password",
           "required": false,
-          "title": "TOGETHER_API_KEY",
+          "title": "API Key",
           "default": "",
+          "defaultProxy": "KEY_TOGETHER_APIKEY",
           "placeholder": "Together Api Key"
         },
         {
@@ -1499,7 +1504,8 @@
           "required": false,
           "title": "OpenAI Api Base Url",
           "default": "https://api.together.xyz/v1",
-          "placeholder": "OpenAI Api Base Url"
+          "placeholder": "OpenAI Api Base Url",
+          "visibility": "hidden"
         },
         {
           "name": "streaming",
@@ -2053,22 +2059,22 @@
     "@langchain/anthropic": "^0.1.21",
     "@langchain/cloudflare": "^0.0.4",
     "@langchain/cohere": "^0.0.6",
-    "@langchain/community": "^0.0.44",
-    "@langchain/core": "^0.3.3",
+    "@langchain/community": "^0.3.4",
+    "@langchain/core": "^0.3.8",
     "@langchain/google-genai": "^0.1.0",
-    "@langchain/google-vertexai": "^0.0.5",
+    "@langchain/google-vertexai": "^0.1.0",
     "@langchain/groq": "^0.0.1",
     "@langchain/mistralai": "^0.0.5",
-    "@langchain/openai": "^0.3.2",
-    "@premai/prem-sdk": "^0.3.69",
-    "langchain": "^0.1.37"
+    "@langchain/openai": "^0.3.5",
+    "@premai/prem-sdk": "^0.3.70",
+    "langchain": "^0.3.2"
   },
   "devDependencies": {
-    "@types/node": "^18.19.51",
+    "@types/node": "^18.19.55",
     "eslint": "^8.57.1",
     "prettier": "^2.8.8",
     "tsup": "^7.2.0",
-    "typescript": "^5.6.2"
+    "typescript": "^5.6.3"
   },
   "scripts": {
     "lint": "eslint src",

@@ -21,7 +21,7 @@ class ChatOpenAIProvider extends LLMProviderBase {
 
             options.maxTokens = modelOptions.maxTokens || 4096;
 
-            const modelName = modelOptions.value
+            const modelName = modelOptions.value || modelOptions;
 
             if (options.originCommandName === 'azure_openai') {
                 options.azureOpenAIApiDeploymentName = modelName;
@@ -62,6 +62,7 @@ class ChatOpenAIProvider extends LLMProviderBase {
             options.streaming = false;
         }
 
+        delete options.streaming;
 
         return new ChatOpenAI({
             ...options,
