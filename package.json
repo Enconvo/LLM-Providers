@@ -1583,8 +1583,9 @@
           "description": "MOONSHOT_API_KEY",
           "type": "password",
           "required": false,
-          "title": "MOONSHOT_API_KEY",
+          "title": "API Key",
           "default": "",
+          "defaultProxy": "KEY_MOONSHOT_APIKEY",
           "placeholder": "MoonShot Api Key"
         },
         {
@@ -1594,83 +1595,8 @@
           "required": false,
           "title": "MoonShot Api Base Url",
           "default": "https://api.moonshot.cn/v1",
-          "placeholder": "MoonShot Api Base Url"
-        },
-        {
-          "name": "streaming",
-          "description": "Whether to stream output",
-          "type": "checkbox",
-          "required": false,
-          "title": "Streaming",
-          "default": true,
-          "label": "Streaming",
+          "placeholder": "MoonShot Api Base Url",
           "visibility": "hidden"
-        }
-      ]
-    },
-    {
-      "name": "premai",
-      "title": "Prem AI",
-      "description": "Chat using [PremAI](https://www.premai.io/) which provide LLM service",
-      "icon": "premai.png",
-      "mode": "llm",
-      "preferences": [
-        {
-          "name": "model",
-          "description": "The model to generate the completion.",
-          "type": "dropdown",
-          "required": false,
-          "title": "Model Name",
-          "default": "gpt-3.5-turbo",
-          "dataProxy": "llm|premai_models"
-        },
-        {
-          "name": "apiKey",
-          "description": "api key",
-          "type": "password",
-          "required": false,
-          "title": "Api Key",
-          "default": "",
-          "placeholder": "Api Key"
-        },
-        {
-          "name": "project_id",
-          "description": "project_id",
-          "type": "number",
-          "required": false,
-          "title": "Project ID",
-          "default": "",
-          "placeholder": "Project ID"
-        },
-        {
-          "name": "temperature",
-          "description": "What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.",
-          "type": "dropdown",
-          "required": false,
-          "title": "Temperature",
-          "default": "1.0",
-          "data": [
-            {
-              "title": "none",
-              "value": "0.0"
-            },
-            {
-              "title": "low",
-              "value": "0.5"
-            },
-            {
-              "title": "medium",
-              "value": "1.0"
-            },
-            {
-              "title": "high",
-              "value": "1.5"
-            },
-            {
-              "title": "maximum",
-              "value": "2.0"
-            }
-          ]
         },
         {
           "name": "streaming",
@@ -1902,9 +1828,10 @@
           "description": "api key",
           "type": "password",
           "required": false,
-          "title": "Api Key",
+          "title": "API Key",
           "default": "",
-          "placeholder": "Api Key"
+          "defaultProxy": "KEY_YI_APIKEY",
+          "placeholder": "API Key"
         },
         {
           "name": "baseUrl",
@@ -1929,11 +1856,12 @@
       ]
     },
     {
-      "name": "chat_tongyiqianwen",
-      "title": "Alibaba Tongyi",
-      "description": "Chat with Alibaba Tongyi , learn more : [Alibaba Tongyi developers](https://help.aliyun.com/zh/dashscope/developer-reference/activate-dashscope-and-create-an-api-key)",
-      "icon": "tongyiqianwen.png",
+      "name": "chat_dashscope",
+      "title": "DashScope",
+      "description": "Chat with 阿里云百炼 , learn more : [阿里云百炼](https://bailian.console.aliyun.com/#/home)",
+      "icon": "dashscope.png",
       "mode": "llm",
+      "targetCommand": "llm/chat_open_ai",
       "preferences": [
         {
           "name": "modelName",
@@ -1941,42 +1869,44 @@
           "type": "dropdown",
           "required": false,
           "title": "Model Name",
-          "default": "qwen-max",
+          "default": "qwen-max-latest",
           "data": [
             {
-              "title": "qwen-max",
-              "value": "qwen-max",
+              "title": "Qwen-Max-Latest",
+              "value": "qwen-max-latest",
               "context": 32000
             },
             {
-              "title": "qwen-plus",
-              "value": "qwen-plus",
-              "context": 10000000
-            },
-            {
-              "title": "qwen-turbo",
-              "value": "qwen-turbo",
-              "context": 10000000
-            },
-            {
-              "title": "qwen-long",
-              "value": "qwen-long",
-              "context": 10000000
-            },
-            {
-              "title": "moonshot-v1-128k",
-              "value": "moonshot-v1-128k",
+              "title": "Qwen-Plus-Latest",
+              "value": "qwen-plus-latest",
               "context": 128000
             },
             {
-              "title": "moonshot-v1-32k",
-              "value": "moonshot-v1-32k",
-              "context": 32000
+              "title": "Qwen-Turbo-Latest",
+              "value": "qwen-turbo-latest",
+              "context": 128000
             },
             {
-              "title": "moonshot-v1-8k",
-              "value": "moonshot-v1-8k",
-              "context": 8000
+              "title": "Qwen-VL-Max-Latest",
+              "value": "qwen-vl-max-latest",
+              "context": 8000,
+              "visionEnable": true
+            },
+            {
+              "title": "Qwen-VL-Max-Plus",
+              "value": "qwen-vl-max-plus",
+              "context": 8000,
+              "visionEnable": true
+            },
+            {
+              "title": "Qwen2.5-72B",
+              "value": "qwen2.5-72b-instruct",
+              "context": 128000
+            },
+            {
+              "title": "Qwen2.5-32B",
+              "value": "qwen2.5-32b-instruct",
+              "context": 128000
             }
           ]
         },
@@ -2011,13 +1941,24 @@
           ]
         },
         {
-          "name": "alibabaApiKey",
-          "description": "api key",
+          "name": "openAIApiKey",
+          "description": "How to get api key? [🔑here](https://bailian.console.aliyun.com/#/home)",
           "type": "password",
           "required": false,
-          "title": "Api Key",
+          "title": "API Key",
           "default": "",
-          "placeholder": "Api Key"
+          "defaultProxy": "KEY_DASHSCOPE_APIKEY",
+          "placeholder": "sk-********"
+        },
+        {
+          "name": "baseUrl",
+          "description": "OpenAI api base url",
+          "type": "textfield",
+          "required": false,
+          "title": "OpenAI Api Base Url",
+          "default": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+          "placeholder": "OpenAI Api Base Url",
+          "visibility": "hidden"
         },
         {
           "name": "streaming",

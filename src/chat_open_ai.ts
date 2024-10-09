@@ -51,8 +51,6 @@ class ChatOpenAIProvider extends LLMProviderBase {
                 "commandKey": `${env['commandKey']}`
             },
         }
-
-
         if (
             options.modelName === "openai/o1-mini"
             || options.modelName === "openai/o1-preview"
@@ -65,6 +63,7 @@ class ChatOpenAIProvider extends LLMProviderBase {
         delete options.streaming;
 
         return new ChatOpenAI({
+
             ...options,
             configuration: config
         },
