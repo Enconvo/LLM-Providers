@@ -421,6 +421,7 @@
           "required": false,
           "title": "Azure OpenAI Api Deployment Name",
           "default": "gpt-4o",
+          "dataProxy": "llm|openai_models",
           "data": [
             {
               "title": "gpt-4o",
@@ -430,32 +431,6 @@
               "outputPrice": 0.015,
               "toolUse": true,
               "visionEnable": true
-            },
-            {
-              "title": "gpt-4-turbo",
-              "value": "gpt-4-turbo",
-              "context": 128000,
-              "inputPrice": 0.01,
-              "outputPrice": 0.03,
-              "visionEnable": true,
-              "toolUse": true
-            },
-            {
-              "title": "gpt-35-turbo",
-              "value": "gpt-35-turbo",
-              "context": 16000,
-              "inputPrice": 0.0005,
-              "outputPrice": 0.0015,
-              "toolUse": true
-            },
-            {
-              "title": "gpt-4",
-              "value": "gpt-4",
-              "context": 128000,
-              "inputPrice": 0.01,
-              "outputPrice": 0.03,
-              "visionEnable": true,
-              "toolUse": true
             }
           ]
         },
@@ -464,24 +439,26 @@
           "description": "Azure OpenAI api instance name",
           "type": "textfield",
           "required": false,
-          "title": "Azure OpenAI Api Instance Name",
-          "default": ""
+          "title": "Instance Name",
+          "default": "",
+          "defaultProxy": "KEY_AZURE_OPENAI_INSTANCE_NAME"
         },
         {
           "name": "azureOpenAIApiVersion",
-          "description": "Azure OpenAI api version",
           "type": "textfield",
           "required": false,
-          "title": "Azure OpenAI Api Version",
+          "title": "API Version",
+          "defaultProxy": "KEY_AZURE_OPENAI_API_VERSION",
           "default": "2024-02-15-preview"
         },
         {
           "name": "azureOpenAIApiKey",
-          "description": "Azure OpenAI api key",
+          "description": "How to get api key? [🔑here](https://azure.microsoft.com/en-us/products/ai-services/openai-service)",
           "type": "password",
           "required": false,
-          "title": "Azure OpenAI Api Key",
+          "title": "API Key",
           "default": "",
+          "defaultProxy": "KEY_AZURE_OPENAI_APIKEY",
           "placeholder": "Azure OpenAI Api Key"
         },
         {
@@ -606,38 +583,47 @@
           "type": "dropdown",
           "required": false,
           "title": "Model Name",
-          "default": "mistral-tiny",
+          "default": "mistral-small-latest",
           "data": [
             {
               "title": "Mistral Small",
               "value": "mistral-small-latest",
-              "context": 16385,
-              "inputPrice": 0.002,
-              "outputPrice": 0.006
-            },
-            {
-              "title": "Mistral Medium",
-              "value": "mistral-medium-latest",
-              "context": 16385,
-              "inputPrice": 0.0027,
-              "outputPrice": 0.0081
+              "context": 32000,
+              "inputPrice": 0.0002,
+              "outputPrice": 0.0006
             },
             {
               "title": "Mistral Large",
               "value": "mistral-large-latest",
-              "context": 16385,
-              "inputPrice": 0.008,
-              "outputPrice": 0.024
+              "context": 128000,
+              "inputPrice": 0.002,
+              "outputPrice": 0.006
+            },
+            {
+              "title": "Codestral",
+              "value": "codestral-latest",
+              "context": 32000,
+              "inputPrice": 0.0002,
+              "outputPrice": 0.0006
+            },
+            {
+              "title": "Pixtral",
+              "value": "pixtral-12b-2409",
+              "context": 128000,
+              "visionEnable": true,
+              "inputPrice": 0.00015,
+              "outputPrice": 0.00015
             }
           ]
         },
         {
           "name": "apiKey",
-          "description": "Mistral AI api key",
+          "description": "How to get api key? [🔑here](https://console.mistral.ai/api-keys/)",
           "type": "password",
           "required": false,
-          "title": "Mistral AI Api Key",
+          "title": "API Key",
           "default": "",
+          "defaultProxy": "KEY_MISTRAL_APIKEY",
           "placeholder": "Mistral AI Api Key"
         },
         {
