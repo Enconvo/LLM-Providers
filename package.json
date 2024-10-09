@@ -777,12 +777,13 @@
         },
         {
           "name": "apiKey",
-          "description": "api key",
+          "description": "How to get api key? [🔑here](https://dashboard.cohere.com/api-keys)",
           "type": "password",
           "required": false,
-          "title": "Api Key",
+          "title": "API Key",
           "default": "",
-          "placeholder": "Api Key"
+          "defaultProxy": "KEY_COHERE_APIKEY",
+          "placeholder": "API Key"
         },
         {
           "name": "temperature",
@@ -1756,13 +1757,13 @@
       "preferences": [
         {
           "name": "apiKey",
-          "description": "api key",
+          "description": "How to get api key? [🔑here](https://dashboard.cohere.com/api-keys)",
           "type": "password",
           "required": false,
-          "title": "Api Key",
+          "title": "API Key",
           "default": "",
-          "defaultProxy": "llm|chat_cohere",
-          "placeholder": "Api Key"
+          "defaultProxy": "KEY_COHERE_APIKEY",
+          "placeholder": "API Key"
         }
       ]
     },
