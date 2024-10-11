@@ -18,8 +18,11 @@ export class LLMProvider extends LLMProviderBase {
         const modelOptions = options.model
         const modelName = modelOptions.value
         options.model = modelName;
+        console.log("options", options)
+        options.baseUrl = options.baseUrl || "http://127.0.0.1:11434"; 
 
         const model = new ChatOllama({
+            
             ...options
         });
 

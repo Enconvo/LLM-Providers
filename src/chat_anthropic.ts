@@ -18,6 +18,8 @@ export class AnthropicOpenAIProvider extends LLMProviderBase {
         const modelName = modelOptions.value
         options.modelName = modelName;
         options.streaming = true;
+        options.anthropicApiUrl = options.anthropicApiUrl || "https://api.anthropic.com";
+
 
         let config: any = {
             defaultHeaders: {
@@ -25,7 +27,7 @@ export class AnthropicOpenAIProvider extends LLMProviderBase {
                 "accessToken": `${env['accessToken']}`,
                 "client_id": `${env['client_id']}`,
                 "commandKey": `${env['commandKey']}`
-            }
+            },
         }
 
         return new ChatAnthropic({

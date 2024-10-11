@@ -42,7 +42,7 @@ class ChatOpenAIProvider extends LLMProviderBase {
         }
 
         let config: any = {
-            baseURL: options.baseUrl,
+            baseURL: options.baseUrl || "https://api.openai.com/v1",
             defaultHeaders: {
                 ...options.headers,
                 ...customHeaders,
