@@ -58,6 +58,8 @@ class ChatOpenAIProvider extends LLMProviderBase {
             || options.modelName === "o1-preview"
         ) {
             options.streaming = false;
+            options.max_completion_tokens = options.maxTokens;
+            delete options.maxTokens;
         }
 
         delete options.streaming;
