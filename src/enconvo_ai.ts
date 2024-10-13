@@ -21,28 +21,11 @@ class EnconvoAIProvider extends LLMProviderBase {
         this.resetTools()
 
         newLLMOptions = this.options
-        let modelName = newLLMOptions.modelName
 
         if (modelProvider === 'anthropic') {
             delete newLLMOptions.frequency_penalty
             delete newLLMOptions.presence_penalty
 
-        } else if (modelProvider === 'openai') {
-
-            // const visionEnabled = this.isVisionEnabled(messages)
-            // const isGPT4 = modelName.value === 'openai/gpt-4-turbo'
-            // if (isGPT4 && visionEnabled) {
-            //     modelName.value = 'anthropic/claude-3-haiku-20240307'
-            //     newLLMOptions.modelName = modelName
-            //     this.clearTools()
-            // }
-
-        } else if (modelProvider === 'enconvoai') {
-            // 如果带有 tools就用 openai
-            // 其他的用anthropic
-            modelName.value = 'openai/gpt-4o-mini'
-            newLLMOptions.modelName = modelName
-            console.log("modelName", modelName)
         }
 
 
@@ -87,6 +70,9 @@ class EnconvoAIProvider extends LLMProviderBase {
                 newLLMOptions.commandName = "chat_open_ai";
                 break;
             case "anthropic":
+                newLLMOptions.commandName = "chat_anthropic";
+                break;
+            case "google":
                 newLLMOptions.commandName = "chat_open_ai";
                 break;
             default:
