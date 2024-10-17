@@ -19,7 +19,11 @@ class ChatOpenAIProvider extends LLMProviderBase {
 
         if (modelOptions) {
 
-            options.maxTokens = modelOptions.maxTokens || 4096;
+            if (options.originCommandName !== 'chat_sambanova') {
+                options.maxTokens = modelOptions.maxTokens || 4096;
+            } else {
+                delete options.maxTokens;
+            }
 
             const modelName = modelOptions.value || modelOptions;
 
