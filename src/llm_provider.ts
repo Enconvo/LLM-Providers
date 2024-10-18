@@ -129,8 +129,7 @@ export const isSupportSystemMessage = (llmOptions: any) => {
     const isYiVisionModel = modelName === 'yi-vl-plus'
 
     const isGroq = llmOptions.commandName === "chat_groq" || llmOptions.originCommandName === "chat_groq"
-    const isGroqVisionModel = modelName === 'llava-v1.5-7b-4096-preview'
-
+    const isGroqVisionModel = modelName === 'llava-v1.5-7b-4096-preview' || modelName === 'llama-3.2-11b-vision-preview'
 
 
     if (isPremAI || isCohere || (isYi && isYiVisionModel) || (isGroq && isGroqVisionModel) || isOpenAIO1Model(modelName)) {
