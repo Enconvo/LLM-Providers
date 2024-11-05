@@ -248,6 +248,15 @@
               "visionEnable": true
             },
             {
+              "title": "Claude 3.5 Haiku New 200k",
+              "value": "claude-3-5-haiku-20241022",
+              "context": 200000,
+              "inputPrice": 0.003,
+              "outputPrice": 0.15,
+              "toolUse": true,
+              "visionEnable": true
+            },
+            {
               "title": "Claude 3.5 Sonnet 20240620 200k",
               "value": "claude-3-5-sonnet-20240620",
               "context": 200000,
@@ -609,6 +618,93 @@
           "default": "https://api.groq.com/openai/v1",
           "placeholder": "Groq Api Base Url",
           "visibility": "hidden"
+        },
+        {
+          "name": "streaming",
+          "description": "Whether to stream output",
+          "type": "checkbox",
+          "required": false,
+          "title": "Streaming",
+          "default": true,
+          "label": "Streaming",
+          "visibility": "hidden"
+        }
+      ]
+    },
+    {
+      "name": "chat_x_ai",
+      "title": "X.AI-GROK",
+      "description": "Chat with Grok AI, learn more : [x.ai](https://x.ai/)",
+      "icon": "x.png",
+      "mode": "llm",
+      "targetCommand": "llm/chat_open_ai",
+      "preferences": [
+        {
+          "name": "modelName",
+          "description": "The model to generate the completion.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Model Name",
+          "default": "grok-beta",
+          "data": [
+            {
+              "title": "Grok-Beta",
+              "value": "grok-beta",
+              "context": 128000,
+              "inputPrice": 0.0005,
+              "outputPrice": 0.015
+            }
+          ]
+        },
+        {
+          "name": "openAIApiKey",
+          "description": "How to get api key? [🔑here](https://docs.x.ai/docs/quickstart#creating-an-api-key)",
+          "type": "password",
+          "required": false,
+          "title": "API Key",
+          "default": "",
+          "defaultProxy": "KEY_XAI_APIKEY",
+          "placeholder": "xai-********"
+        },
+        {
+          "name": "baseUrl",
+          "description": "X.AI api base url",
+          "type": "textfield",
+          "required": false,
+          "title": "X.AI Api Base Url",
+          "default": "https://api.x.ai/v1",
+          "placeholder": "X.AI Api Base Url",
+          "visibility": "hidden"
+        },
+        {
+          "name": "temperature",
+          "description": "What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Temperature",
+          "default": "1.0",
+          "data": [
+            {
+              "title": "none",
+              "value": "0.0"
+            },
+            {
+              "title": "low",
+              "value": "0.5"
+            },
+            {
+              "title": "medium",
+              "value": "1.0"
+            },
+            {
+              "title": "high",
+              "value": "1.5"
+            },
+            {
+              "title": "maximum",
+              "value": "2.0"
+            }
+          ]
         },
         {
           "name": "streaming",
