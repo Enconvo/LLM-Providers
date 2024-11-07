@@ -1469,7 +1469,7 @@
           "type": "textfield",
           "required": false,
           "title": "Model Name",
-          "default": "accounts/fireworks/models/llama-v3p2-3b-instruct"
+          "default": "accounts/fireworks/models/mixtral-8x22b-instruct"
         },
         {
           "name": "temperature",
@@ -1834,6 +1834,25 @@
           "type": "textfield",
           "required": false,
           "default": "https://api-v.enconvo.com/together/v1/models"
+        }
+      ]
+    }, 
+      {
+      "name": "fireworks_models",
+      "targetCommand": "llm/fetch_models",
+      "title": "fireworks Models",
+      "description": "get fireworks model list",
+      "icon": "fireworks.png",
+      "showInCommandList": false,
+      "mode": "no-view",
+      "preferences": [
+        {
+          "title": "Url",
+          "name": "url",
+          "description": "fireworks api url",
+          "type": "textfield",
+          "required": false,
+          "default": "http://localhost:3000/fireworks/v1/models"
         }
       ]
     },

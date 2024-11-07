@@ -82,9 +82,16 @@ async function getModelsCache({ input_text, url, api_key, type }: { input_text: 
         const modelContent = fs.readFileSync(modelCachePath, 'utf8')
         const models = JSON.parse(modelContent)
         // Async cache update without blocking
-        updateModelsCache(modelCachePath, url, api_key, type).catch(err =>
-            console.error('Background cache update failed:', err)
-        )
+        const stats = fs.statSync(modelCachePath);
+        console.log("stats", stats.mtimeMs)
+        const thirtyMinutesAgo = Date.now() - 30 * 60 * 1000;
+        const shouldUpdate = stats.mtimeMs < thirtyMinutesAgo;
+
+        if (shouldUpdate) {
+            updateModelsCache(modelCachePath, url, api_key, type).catch(err =>
+                console.error('Background cache update failed:', err)
+            );
+        }
         return models
     } catch (error) {
         console.error('Error reading cache:', error)
