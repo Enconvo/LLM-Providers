@@ -51,6 +51,7 @@ async function fetchModels(url: string, api_key: string, type: string): Promise<
  * @param api_key - API authentication key
  * @returns Promise<ModelOutput[]> - Array of cached model data
  */
+
 async function updateModelsCache(modelCachePath: string, url: string, api_key: string, type: string): Promise<ModelOutput[]> {
     try {
         const models = await fetchModels(url, api_key, type)
