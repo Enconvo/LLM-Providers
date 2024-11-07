@@ -224,6 +224,24 @@
       ]
     },
     {
+      "name": "anthropic_models",
+      "targetCommand": "llm/fetch_models",
+      "title": "Anthropic Models",
+      "description": "get anthropic model list",
+      "icon": "anthropic.png",
+      "showInCommandList": false,
+      "mode": "no-view",
+      "preferences": [
+        {
+          "name": "url",
+          "type": "textfield",
+          "required": true,
+          "title": "Anthropic models Api Url",
+          "default": "https://file.enconvo.com/modles/anthropic.json"
+        }
+      ]
+    },
+    {
       "name": "chat_anthropic",
       "title": "Anthropic Claude",
       "description": "Chat with Anthropic Claude, learn more : [anthropic.com](https://www.anthropic.com/)",
@@ -232,67 +250,13 @@
       "preferences": [
         {
           "name": "modelName",
-          "description": "md: The model to generate the completion. \n|               | Claude 3 Opus | Claude 3 Sonnet | Claude 3 Haiku |\n|---------------|--------------|----------------|---------------|\n| Context window| 200K*        | 200K*          | 200K*         |\n| Cost (Input / Output per MTok^)| $15.00/$75.00 | $3.00/$15.00   | $0.25/$1.25    | $8.00/$24.00  |",
+          "description": "md: The model to generate the completion.",
           "type": "dropdown",
           "required": false,
           "title": "Model Name",
-          "default": "claude-3-opus-20240229",
-          "data": [
-            {
-              "title": "Claude 3.5 Sonnet New 200k",
-              "value": "claude-3-5-sonnet-latest",
-              "context": 200000,
-              "inputPrice": 0.03,
-              "outputPrice": 0.15,
-              "toolUse": true,
-              "visionEnable": true
-            },
-            {
-              "title": "Claude 3.5 Haiku New 200k",
-              "value": "claude-3-5-haiku-20241022",
-              "context": 200000,
-              "inputPrice": 0.003,
-              "outputPrice": 0.15,
-              "toolUse": true,
-              "visionEnable": true
-            },
-            {
-              "title": "Claude 3.5 Sonnet 20240620 200k",
-              "value": "claude-3-5-sonnet-20240620",
-              "context": 200000,
-              "inputPrice": 0.03,
-              "outputPrice": 0.15,
-              "toolUse": true,
-              "visionEnable": true
-            },
-            {
-              "title": "Claude 3 Opus 200k",
-              "value": "claude-3-opus-20240229",
-              "context": 200000,
-              "inputPrice": 0.15,
-              "outputPrice": 0.75,
-              "toolUse": true,
-              "visionEnable": true
-            },
-            {
-              "title": "Claude 3 Sonnet 200k",
-              "value": "claude-3-sonnet-20240229",
-              "context": 200000,
-              "inputPrice": 0.03,
-              "outputPrice": 0.15,
-              "toolUse": true,
-              "visionEnable": true
-            },
-            {
-              "title": "Claude 3 Haiku 200k",
-              "value": "claude-3-haiku-20240307",
-              "inputPrice": 0.00025,
-              "outputPrice": 0.00125,
-              "context": 200000,
-              "toolUse": true,
-              "visionEnable": true
-            }
-          ]
+          "default": "claude-3-5-sonnet-latest",
+          "data": [],
+          "dataProxy": "llm|anthropic_models"
         },
         {
           "name": "temperature",
@@ -342,7 +306,7 @@
           "title": "Anthropic Api Base Url",
           "defaultProxy": "KEY_CLAUDE_BASEURL",
           "default": "https://api.anthropic.com",
-          "placeholder": "Anthropic Api Base Url"
+          "placeholder": "https://api.anthropic.com"
         },
         {
           "name": "streaming",
@@ -1836,8 +1800,8 @@
           "default": "https://api-v.enconvo.com/together/v1/models"
         }
       ]
-    }, 
-      {
+    },
+    {
       "name": "fireworks_models",
       "targetCommand": "llm/fetch_models",
       "title": "fireworks Models",
