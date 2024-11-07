@@ -1820,8 +1820,27 @@
     },
     {
       "name": "together_models",
+      "targetCommand": "llm/fetch_models",
       "title": "together Models",
       "description": "get together model list",
+      "icon": "together.png",
+      "showInCommandList": false,
+      "mode": "no-view",
+      "preferences": [
+        {
+          "title": "Url",
+          "name": "url",
+          "description": "together api url",
+          "type": "textfield",
+          "required": false,
+          "default": "https://api-v.enconvo.com/together/v1/models"
+        }
+      ]
+    },
+    {
+      "name": "fetch_models",
+      "title": "fetch Models",
+      "description": "get models list",
       "icon": "together.png",
       "showInCommandList": false,
       "mode": "no-view"
