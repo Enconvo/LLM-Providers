@@ -1740,19 +1740,39 @@
     },
     {
       "name": "openrouter_models",
+      "targetCommand": "llm/fetch_models",
       "title": "openrouter Models",
       "description": "get openrouter model list",
       "icon": "openrouter.png",
       "showInCommandList": false,
-      "mode": "no-view"
+      "mode": "no-view",
+      "preferences": [
+        {
+          "name": "url",
+          "description": "openrouter api url",
+          "type": "textfield",
+          "required": false,
+          "default": "https://api-v.enconvo.com/openrouter/v1/models"
+        }
+      ]
     },
     {
       "name": "perplexity_models",
+      "targetCommand": "llm/fetch_models",
       "title": "perplexity Models",
       "description": "get perplexity model list",
       "icon": "perplexity.png",
       "showInCommandList": false,
-      "mode": "no-view"
+      "mode": "no-view",
+      "preferences": [
+        {
+          "name": "url",
+          "description": "perplexity api url",
+          "type": "textfield",
+          "required": false,
+          "default": "https://file.enconvo.com/modles/perplexity.json"
+        }
+      ]
     },
     {
       "name": "premai_models",
@@ -1776,11 +1796,21 @@
     },
     {
       "name": "groq_models",
+      "targetCommand": "llm/fetch_models",
       "title": "groq Models",
       "description": "get groq model list",
       "icon": "groq.png",
       "showInCommandList": false,
-      "mode": "no-view"
+      "mode": "no-view",
+      "preferences": [
+        {
+          "name": "url",
+          "description": "groq api url",
+          "type": "textfield",
+          "required": false,
+          "default": "https://file.enconvo.com/modles/groq.json"
+        }
+      ]
     },
     {
       "name": "together_models",
@@ -1839,36 +1869,54 @@
     {
       "name": "openai_models",
       "title": "openai Models",
+      "targetCommand": "llm/fetch_models",
       "description": "get openai model list",
       "icon": "openai.png",
       "showInCommandList": false,
-      "mode": "no-view"
+      "mode": "no-view",
+      "preferences": [
+        {
+          "name": "url",
+          "description": "openai api url",
+          "type": "textfield",
+          "required": false,
+          "default": "https://file.enconvo.com/modles/openai.json"
+        }
+      ]
     },
     {
       "name": "cloudflare_models",
       "title": "cloudflare Models",
+      "targetCommand": "llm/fetch_models",
       "description": "get cloudflare model list",
       "icon": "cloudflare.png",
       "showInCommandList": false,
-      "mode": "no-view"
+      "mode": "no-view",
+      "preferences": [
+        {
+          "name": "url",
+          "description": "cloudflare api url",
+          "type": "textfield",
+          "required": false,
+          "default": "https://file.enconvo.com/modles/cloudflare.json"
+        }
+      ]
     },
     {
       "name": "cohere_models",
       "title": "cohere Models",
+      "targetCommand": "llm/fetch_models",
       "description": "get cohere model list",
       "icon": "cohere.jpg",
       "showInCommandList": false,
       "mode": "no-view",
       "preferences": [
         {
-          "name": "apiKey",
-          "description": "How to get api key? [🔑here](https://dashboard.cohere.com/api-keys)",
-          "type": "password",
+          "name": "url",
+          "description": "cohere api url",
+          "type": "textfield",
           "required": false,
-          "title": "API Key",
-          "default": "",
-          "defaultProxy": "KEY_COHERE_APIKEY",
-          "placeholder": "API Key"
+          "default": "https://api-v.enconvo.com/cohere/v1/models"
         }
       ]
     },
@@ -2324,20 +2372,18 @@
     {
       "name": "silliconflow_models",
       "title": "silliconflow_models",
+      "targetCommand": "llm/fetch_models",
       "description": "get silliconflow model list",
       "icon": "openrouter.png",
       "showInCommandList": false,
       "mode": "no-view",
       "preferences": [
         {
-          "name": "openAIApiKey",
-          "description": "api key",
-          "type": "password",
+          "name": "url",
+          "description": "silliconflow api url",
+          "type": "textfield",
           "required": false,
-          "title": "Api Key",
-          "default": "",
-          "placeholder": "Api Key",
-          "defaultProxy": "llm|siliconflow"
+          "default": "https://api-v.enconvo.com/siliconflow/v1/models"
         }
       ]
     }

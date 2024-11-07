@@ -1,5 +1,3 @@
-import { environment } from "@enconvo/api";
-import fs from 'fs'
 
 
 
@@ -16,7 +14,7 @@ async function fetch_model(options: any) {
             return {
                 "title": item.name,
                 "value": item.name,
-                "visionEnable": item.name.includes('llava'),
+                "visionEnable": item.name.includes('llava') || item.name.includes('vision')
             }
         })
     } catch (err) {
@@ -28,26 +26,11 @@ async function fetch_model(options: any) {
 
 export default async function main(req: Request) {
     const { options } = await req.json()
-    const { text } = options
 
-    // const modelCacheDir = environment.cachePath + `/models`
-    // if (!fs.existsSync(modelCacheDir)) {
-    //     fs.mkdirSync(modelCacheDir, { recursive: true })
-    // }
-    // const modelCachePath = `${modelCacheDir}/${environment.commandName}.json`
-
-    // console.log('text', text, modelCacheDir)
-
-    // fs.existsSync(modelCachePath) || fs.writeFileSync(modelCachePath, '[]')
-    // const modelContent = fs.readFileSync(modelCachePath, 'utf8')
-    // let models = JSON.parse(modelContent)
     let models = []
 
     try {
-        if (text === 'refresh' || models.length === 0) {
-            models = await fetch_model(options)
-            // fs.writeFileSync(modelCachePath, JSON.stringify(models))
-        }
+        models = await fetch_model(options)
     } catch (err) {
         console.log(err)
     }
