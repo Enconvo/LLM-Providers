@@ -22,7 +22,7 @@
       "preferences": [
         {
           "name": "modelName",
-          "description": "md:The model to generate the completion. Every call will consume points, and the specific consumption details are as follows：\n\n  **OpenAI:** \n\n | Model Name | Points |\n | --- | --- |\n | gpt-35-turbo | 50 |\n | gpt4 | 875 |\n\n\n | gpt4 | 875 |\n\n\n | gpt4-vision | 1250 |\n\n\n | Claude 3 Sonnet | 1250 |\n\n\n | Claude 3 Opus | 6000 |\n\n",
+          "description": "The model to generate the completion. Every call will consume points",
           "type": "dropdown",
           "required": false,
           "title": "Model Name Anthropic",
@@ -242,7 +242,7 @@
           "description": "Anthropic models Api Url",
           "required": true,
           "title": "Anthropic models Api Url",
-          "default": "https://file.enconvo.com/modles/anthropic.json",
+          "default": "https://file.enconvo.com/modles/anthropic.json"
         }
       ]
     },
@@ -1792,7 +1792,7 @@
       "preferences": [
         {
           "name": "apiKey",
-          "description": "api key",
+          "description": "APIKey for premai",
           "type": "password",
           "required": false,
           "title": "Api Key",
