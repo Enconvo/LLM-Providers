@@ -1,14 +1,14 @@
 {
   "$schema": "https://enconvo.com/schemas/extension.json",
   "name": "llm",
-  "version": "1.3.114",
+  "version": "1.3.115",
   "description": "Large Language Models (LLM) services providers",
   "title": "LLM Providers",
   "icon": "icon.png",
   "author": "ysnows",
   "license": "MIT",
   "categories": [
-    "Large Language Model"
+    "Provider"
   ],
   "group": "llm",
   "type": "module",
@@ -18,7 +18,7 @@
       "title": "Enconvo Cloud Plan",
       "description": "Chat using EnconvoAI which provide LLM service, , learn more : [docs](https://docs.enconvo.com/docs/providers/llm)",
       "icon": "enconvo.png",
-      "mode": "llm",
+      "mode": "provider",
       "preferences": [
         {
           "name": "modelName",
@@ -71,16 +71,17 @@
         {
           "name": "openAIApiKey",
           "description": "OpenAI api key",
-          "type": "hidden",
+          "type": "password",
           "required": false,
           "title": "OpenAI Api Key",
           "default": "default",
-          "placeholder": "sk-********"
+          "placeholder": "sk-********",
+          "visibility": "hidden"
         },
         {
           "name": "anthropicApiKey",
           "description": "OpenAI api key",
-          "type": "hidden",
+          "type": "password",
           "required": false,
           "title": "OpenAI Api Key",
           "default": "default",
@@ -89,29 +90,32 @@
         {
           "name": "apiKey",
           "description": "google api key",
-          "type": "hidden",
+          "type": "password",
           "required": false,
           "title": "google Api Key",
           "default": "default",
-          "placeholder": "google Api Key"
+          "placeholder": "google Api Key",
+          "visibility": "hidden"
         },
         {
           "name": "baseUrl",
           "description": "OpenAI api key",
-          "type": "hidden",
+          "type": "password",
           "required": false,
           "title": "OpenAI Api Key",
           "default": "https://api.enconvo.com/v1/",
-          "placeholder": "OpenAI Api Key"
+          "placeholder": "OpenAI Api Key",
+          "visibility": "hidden"
         },
         {
           "name": "anthropicApiUrl",
           "description": "OpenAI api key",
-          "type": "hidden",
+          "type": "password",
           "required": false,
           "title": "OpenAI Api Key",
           "default": "https://api.enconvo.com/",
-          "placeholder": "OpenAI Api Key"
+          "placeholder": "OpenAI Api Key",
+          "visibility": "hidden"
         },
         {
           "name": "streaming",
@@ -130,7 +134,7 @@
       "title": "OpenAI",
       "description": "Chat with OpenAI , learn more : [openai developers](https://platform.openai.com/docs/overview)",
       "icon": "openai.png",
-      "mode": "llm",
+      "mode": "provider",
       "preferences": [
         {
           "name": "modelName",
@@ -235,9 +239,10 @@
         {
           "name": "url",
           "type": "textfield",
+          "description": "Anthropic models Api Url",
           "required": true,
           "title": "Anthropic models Api Url",
-          "default": "https://file.enconvo.com/modles/anthropic.json"
+          "default": "https://file.enconvo.com/modles/anthropic.json",
         }
       ]
     },
@@ -245,7 +250,7 @@
       "name": "chat_anthropic",
       "title": "Anthropic Claude",
       "description": "Chat with Anthropic Claude, learn more : [anthropic.com](https://www.anthropic.com/)",
-      "mode": "llm",
+      "mode": "provider",
       "icon": "anthropic.png",
       "preferences": [
         {
@@ -325,7 +330,7 @@
       "title": "Google Gemini AI",
       "description": "Chat with Google Gemini AI, learn more : [Google AI](https://ai.google.dev/)",
       "icon": "google.jpg",
-      "mode": "llm",
+      "mode": "provider",
       "preferences": [
         {
           "name": "modelName",
@@ -412,7 +417,7 @@
       "title": "Azure OpenAI",
       "description": "Azure OpenAI , learn more : [azure openai](https://learn.microsoft.com/en-us/azure/ai-services/openai/overview)",
       "icon": "azure.png",
-      "mode": "llm",
+      "mode": "provider",
       "targetCommand": "llm/chat_open_ai",
       "preferences": [
         {
@@ -446,6 +451,7 @@
         },
         {
           "name": "azureOpenAIApiVersion",
+          "description": "Azure OpenAI api version",
           "type": "textfield",
           "required": false,
           "title": "API Version",
@@ -509,7 +515,7 @@
       "title": "Groq AI",
       "description": "Chat with Groq ai, learn more : [groq.com/](https://groq.com/)",
       "icon": "groq.png",
-      "mode": "llm",
+      "mode": "provider",
       "targetCommand": "llm/chat_open_ai",
       "preferences": [
         {
@@ -600,7 +606,7 @@
       "title": "X.AI-GROK",
       "description": "Chat with Grok AI, learn more : [x.ai](https://x.ai/)",
       "icon": "x.png",
-      "mode": "llm",
+      "mode": "provider",
       "targetCommand": "llm/chat_open_ai",
       "preferences": [
         {
@@ -687,7 +693,7 @@
       "title": "Mistral AI",
       "description": "Chat with Mistral AI, learn more : [mistral.ai](https://mistral.ai/)",
       "icon": "mistral.jpg",
-      "mode": "llm",
+      "mode": "provider",
       "preferences": [
         {
           "name": "modelName",
@@ -785,7 +791,7 @@
       "title": "Ollama",
       "description": "Chat with Ollama, learn more : [ollama.ai](https://ollama.ai/)",
       "icon": "ollama.png",
-      "mode": "llm",
+      "mode": "provider",
       "preferences": [
         {
           "name": "model",
@@ -844,7 +850,7 @@
       "title": "Cohere AI",
       "description": "Chat using [Cohere](cohere.com), get [API KEY](https://dashboard.cohere.com/)",
       "icon": "cohere.jpg",
-      "mode": "llm",
+      "mode": "provider",
       "preferences": [
         {
           "name": "model",
@@ -919,7 +925,7 @@
       "title": "Perplexity",
       "description": "Chat with Perplexity, learn more: [perplexity.ai](https://www.perplexity.ai/settings/api)",
       "icon": "perplexity.png",
-      "mode": "llm",
+      "mode": "provider",
       "targetCommand": "llm/chat_open_ai",
       "preferences": [
         {
@@ -1008,7 +1014,7 @@
       "title": "Deep Seek",
       "description": "Chat with DeepSeek , learn more : [DeepSeek developers](https://platform.deepseek.com/)",
       "icon": "deepseek.png",
-      "mode": "llm",
+      "mode": "provider",
       "targetCommand": "llm/chat_open_ai",
       "preferences": [
         {
@@ -1102,7 +1108,7 @@
       "title": "SiliconFlow",
       "description": "Chat with SiliconFlow , learn more : [SiliconFlow developers](https://siliconflow.cn/)",
       "icon": "siliconflow.png",
-      "mode": "llm",
+      "mode": "provider",
       "targetCommand": "llm/chat_open_ai",
       "preferences": [
         {
@@ -1190,7 +1196,7 @@
       "title": "LM Studio",
       "description": "Chat with LM Studio, learn more : [lmstudio.ai](https://lmstudio.ai/)",
       "icon": "lm_studio.png",
-      "mode": "llm",
+      "mode": "provider",
       "preferences": [
         {
           "name": "baseUrl",
@@ -1249,7 +1255,7 @@
       "title": "OpenRouter",
       "description": "Chat with OpenRouter, learn more: [openrouter.ai](https://openrouter.ai/)",
       "icon": "openrouter.png",
-      "mode": "llm",
+      "mode": "provider",
       "targetCommand": "llm/chat_open_ai",
       "preferences": [
         {
@@ -1338,7 +1344,7 @@
       "title": "Google Vertex AI",
       "description": "Chat with Google Vertex AI, learn more : [Google Vertex](https://cloud.google.com/vertex-ai/docs),  [How to Authenticate](https://cloud.google.com/docs/authentication/client-libraries), Powered by [Langchain JS](https://js.langchain.com/docs/integrations/chat/google_vertex_ai)",
       "icon": "vertex.png",
-      "mode": "llm",
+      "mode": "provider",
       "preferences": [
         {
           "name": "modelName",
@@ -1425,7 +1431,7 @@
       "title": "Fireworks",
       "description": "Chat with Fireworks, learn more : [fireworks.ai](https://fireworks.ai), get all models from [fireworks models](https://fireworks.ai/models/fireworks/mixtral-8x7b-instruct)",
       "icon": "fireworks.jpg",
-      "mode": "llm",
+      "mode": "provider",
       "preferences": [
         {
           "name": "modelName",
@@ -1503,7 +1509,7 @@
       "title": "Cloudflare Workers AI",
       "description": "Chat with Cloudflare Workers AI, learn more : [workers-ai](https://developers.cloudflare.com/workers-ai/)",
       "icon": "cloudflare.png",
-      "mode": "llm",
+      "mode": "provider",
       "preferences": [
         {
           "name": "modelName",
@@ -1552,7 +1558,7 @@
       "title": "Together AI",
       "description": "Chat with together.ai, learn more : [together.ai](https://docs.together.ai/docs/quickstart), get chat models from [together models](https://docs.together.ai/docs/inference-models)",
       "icon": "together.png",
-      "mode": "llm",
+      "mode": "provider",
       "targetCommand": "llm/chat_open_ai",
       "preferences": [
         {
@@ -1632,7 +1638,7 @@
       "title": "MoonShot AI",
       "description": "Chat with moonshot ai, learn more : [moonshot.cn](https://www.moonshot.cn/)",
       "icon": "moonshot.png",
-      "mode": "llm",
+      "mode": "provider",
       "targetCommand": "llm/chat_open_ai",
       "preferences": [
         {
@@ -1768,6 +1774,7 @@
       "preferences": [
         {
           "name": "url",
+          "title": "Url",
           "description": "perplexity api url",
           "type": "textfield",
           "required": false,
@@ -1909,7 +1916,7 @@
           "description": "cloudflare api url",
           "type": "textfield",
           "required": false,
-          "default": "https://file.enconvo.com/modles/cloudflare.json"
+          "default": "https://api-v.enconvo.com/cloudflare/v1/models"
         }
       ]
     },
@@ -1936,7 +1943,7 @@
       "title": "Yi",
       "description": "Chat with Yi , learn more : [Yi developers](https://platform.lingyiwanwu.com/)",
       "icon": "yi.png",
-      "mode": "llm",
+      "mode": "provider",
       "targetCommand": "llm/chat_open_ai",
       "preferences": [
         {
@@ -2073,7 +2080,7 @@
       "title": "DashScope",
       "description": "Chat with 阿里云百炼 , learn more : [阿里云百炼](https://bailian.console.aliyun.com/#/home)",
       "icon": "dashscope.png",
-      "mode": "llm",
+      "mode": "provider",
       "targetCommand": "llm/chat_open_ai",
       "preferences": [
         {
@@ -2190,7 +2197,7 @@
       "title": "Sambanova AI",
       "description": "Chat with sambanova.ai, learn more : [sambanova.ai](https://cloud.sambanova.ai/pricing)",
       "icon": "sambanova.png",
-      "mode": "llm",
+      "mode": "provider",
       "targetCommand": "llm/chat_open_ai",
       "preferences": [
         {
@@ -2295,7 +2302,7 @@
       "title": "Cerebras AI",
       "description": "Chat with cerebras.ai, learn more : [cerebras.ai](https://cerebras.ai/)",
       "icon": "cerebras.png",
-      "mode": "llm",
+      "mode": "provider",
       "targetCommand": "llm/chat_open_ai",
       "preferences": [
         {
