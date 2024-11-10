@@ -229,7 +229,7 @@
     },
     {
       "name": "anthropic_models",
-      "targetCommand": "llm/fetch_models",
+      "targetCommand": "llm|fetch_models",
       "title": "Anthropic Models",
       "description": "get anthropic model list",
       "icon": "anthropic.png",
@@ -418,7 +418,7 @@
       "description": "Azure OpenAI , learn more : [azure openai](https://learn.microsoft.com/en-us/azure/ai-services/openai/overview)",
       "icon": "azure.png",
       "mode": "provider",
-      "targetCommand": "llm/chat_open_ai",
+      "targetCommand": "llm|chat_open_ai",
       "preferences": [
         {
           "name": "modelName",
@@ -516,7 +516,7 @@
       "description": "Chat with Groq ai, learn more : [groq.com/](https://groq.com/)",
       "icon": "groq.png",
       "mode": "provider",
-      "targetCommand": "llm/chat_open_ai",
+      "targetCommand": "llm|chat_open_ai",
       "preferences": [
         {
           "name": "modelName",
@@ -607,7 +607,7 @@
       "description": "Chat with Grok AI, learn more : [x.ai](https://x.ai/)",
       "icon": "x.png",
       "mode": "provider",
-      "targetCommand": "llm/chat_open_ai",
+      "targetCommand": "llm|chat_open_ai",
       "preferences": [
         {
           "name": "modelName",
@@ -926,7 +926,7 @@
       "description": "Chat with Perplexity, learn more: [perplexity.ai](https://www.perplexity.ai/settings/api)",
       "icon": "perplexity.png",
       "mode": "provider",
-      "targetCommand": "llm/chat_open_ai",
+      "targetCommand": "llm|chat_open_ai",
       "preferences": [
         {
           "name": "modelName",
@@ -1015,7 +1015,7 @@
       "description": "Chat with DeepSeek , learn more : [DeepSeek developers](https://platform.deepseek.com/)",
       "icon": "deepseek.png",
       "mode": "provider",
-      "targetCommand": "llm/chat_open_ai",
+      "targetCommand": "llm|chat_open_ai",
       "preferences": [
         {
           "name": "modelName",
@@ -1109,7 +1109,7 @@
       "description": "Chat with SiliconFlow , learn more : [SiliconFlow developers](https://siliconflow.cn/)",
       "icon": "siliconflow.png",
       "mode": "provider",
-      "targetCommand": "llm/chat_open_ai",
+      "targetCommand": "llm|chat_open_ai",
       "preferences": [
         {
           "name": "modelName",
@@ -1256,7 +1256,7 @@
       "description": "Chat with OpenRouter, learn more: [openrouter.ai](https://openrouter.ai/)",
       "icon": "openrouter.png",
       "mode": "provider",
-      "targetCommand": "llm/chat_open_ai",
+      "targetCommand": "llm|chat_open_ai",
       "preferences": [
         {
           "name": "modelName",
@@ -1559,7 +1559,7 @@
       "description": "Chat with together.ai, learn more : [together.ai](https://docs.together.ai/docs/quickstart), get chat models from [together models](https://docs.together.ai/docs/inference-models)",
       "icon": "together.png",
       "mode": "provider",
-      "targetCommand": "llm/chat_open_ai",
+      "targetCommand": "llm|chat_open_ai",
       "preferences": [
         {
           "name": "modelName",
@@ -1639,7 +1639,7 @@
       "description": "Chat with moonshot ai, learn more : [moonshot.cn](https://www.moonshot.cn/)",
       "icon": "moonshot.png",
       "mode": "provider",
-      "targetCommand": "llm/chat_open_ai",
+      "targetCommand": "llm|chat_open_ai",
       "preferences": [
         {
           "name": "modelName",
@@ -1747,7 +1747,7 @@
     },
     {
       "name": "openrouter_models",
-      "targetCommand": "llm/fetch_models",
+      "targetCommand": "llm|fetch_models",
       "title": "openrouter Models",
       "description": "get openrouter model list",
       "icon": "openrouter.png",
@@ -1765,7 +1765,7 @@
     },
     {
       "name": "perplexity_models",
-      "targetCommand": "llm/fetch_models",
+      "targetCommand": "llm|fetch_models",
       "title": "perplexity Models",
       "description": "get perplexity model list",
       "icon": "perplexity.png",
@@ -1804,7 +1804,7 @@
     },
     {
       "name": "groq_models",
-      "targetCommand": "llm/fetch_models",
+      "targetCommand": "llm|fetch_models",
       "title": "groq Models",
       "description": "get groq model list",
       "icon": "groq.png",
@@ -1822,7 +1822,7 @@
     },
     {
       "name": "together_models",
-      "targetCommand": "llm/fetch_models",
+      "targetCommand": "llm|fetch_models",
       "title": "together Models",
       "description": "get together model list",
       "icon": "together.png",
@@ -1841,7 +1841,7 @@
     },
     {
       "name": "fireworks_models",
-      "targetCommand": "llm/fetch_models",
+      "targetCommand": "llm|fetch_models",
       "title": "fireworks Models",
       "description": "get fireworks model list",
       "icon": "fireworks.png",
@@ -1868,7 +1868,7 @@
     },
     {
       "name": "enconvo_models",
-      "targetCommand": "llm/fetch_models",
+      "targetCommand": "llm|fetch_models",
       "title": "enconvo Models",
       "description": "get enconvo model list",
       "icon": "enconvo.png",
@@ -1887,7 +1887,7 @@
     {
       "name": "openai_models",
       "title": "openai Models",
-      "targetCommand": "llm/fetch_models",
+      "targetCommand": "llm|fetch_models",
       "description": "get openai model list",
       "icon": "openai.png",
       "showInCommandList": false,
@@ -1905,7 +1905,7 @@
     {
       "name": "cloudflare_models",
       "title": "cloudflare Models",
-      "targetCommand": "llm/fetch_models",
+      "targetCommand": "llm|fetch_models",
       "description": "get cloudflare model list",
       "icon": "cloudflare.png",
       "showInCommandList": false,
@@ -1923,7 +1923,7 @@
     {
       "name": "cohere_models",
       "title": "cohere Models",
-      "targetCommand": "llm/fetch_models",
+      "targetCommand": "llm|fetch_models",
       "description": "get cohere model list",
       "icon": "cohere.jpg",
       "showInCommandList": false,
@@ -1944,7 +1944,7 @@
       "description": "Chat with Yi , learn more : [Yi developers](https://platform.lingyiwanwu.com/)",
       "icon": "yi.png",
       "mode": "provider",
-      "targetCommand": "llm/chat_open_ai",
+      "targetCommand": "llm|chat_open_ai",
       "preferences": [
         {
           "name": "modelName",
@@ -2081,7 +2081,7 @@
       "description": "Chat with 阿里云百炼 , learn more : [阿里云百炼](https://bailian.console.aliyun.com/#/home)",
       "icon": "dashscope.png",
       "mode": "provider",
-      "targetCommand": "llm/chat_open_ai",
+      "targetCommand": "llm|chat_open_ai",
       "preferences": [
         {
           "name": "modelName",
@@ -2198,7 +2198,7 @@
       "description": "Chat with sambanova.ai, learn more : [sambanova.ai](https://cloud.sambanova.ai/pricing)",
       "icon": "sambanova.png",
       "mode": "provider",
-      "targetCommand": "llm/chat_open_ai",
+      "targetCommand": "llm|chat_open_ai",
       "preferences": [
         {
           "name": "modelName",
@@ -2303,7 +2303,7 @@
       "description": "Chat with cerebras.ai, learn more : [cerebras.ai](https://cerebras.ai/)",
       "icon": "cerebras.png",
       "mode": "provider",
-      "targetCommand": "llm/chat_open_ai",
+      "targetCommand": "llm|chat_open_ai",
       "preferences": [
         {
           "name": "modelName",
@@ -2390,7 +2390,7 @@
     {
       "name": "silliconflow_models",
       "title": "silliconflow_models",
-      "targetCommand": "llm/fetch_models",
+      "targetCommand": "llm|fetch_models",
       "description": "get silliconflow model list",
       "icon": "openrouter.png",
       "showInCommandList": false,
