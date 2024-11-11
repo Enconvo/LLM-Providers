@@ -25,17 +25,8 @@
           "description": "The model to generate the completion. Every call will consume points",
           "type": "dropdown",
           "required": false,
-          "title": "Model Name Anthropic",
+          "title": "Model Name",
           "default": "openai/gpt-4o-mini",
-          "data": [
-            {
-              "title": "OpenAI: gpt-4o-mini 128k (10 points per message)",
-              "value": "openai/gpt-4o-mini",
-              "context": 128000,
-              "toolUse": true,
-              "visionEnable": true
-            }
-          ],
           "dataProxy": "llm|enconvo_models"
         },
         {
@@ -85,7 +76,8 @@
           "required": false,
           "title": "OpenAI Api Key",
           "default": "default",
-          "placeholder": "OpenAI Api Key"
+          "placeholder": "OpenAI Api Key",
+          "visibility": "hidden"
         },
         {
           "name": "apiKey",
@@ -143,17 +135,6 @@
           "required": false,
           "title": "Model Name",
           "default": "gpt-4o-mini",
-          "data": [
-            {
-              "title": "gpt-4o-mini",
-              "value": "gpt-4o-mini",
-              "context": 128000,
-              "inputPrice": 0.00015,
-              "outputPrice": 0.000075,
-              "toolUse": true,
-              "visionEnable": true
-            }
-          ],
           "dataProxy": "llm|openai_models"
         },
         {
@@ -260,7 +241,6 @@
           "required": false,
           "title": "Model Name",
           "default": "claude-3-5-sonnet-latest",
-          "data": [],
           "dataProxy": "llm|anthropic_models"
         },
         {
@@ -800,7 +780,7 @@
           "required": false,
           "title": "Model Name",
           "default": "llama2:latest",
-          "data": [],
+          
           "dataProxy": "llm|ollama_models"
         },
         {
@@ -935,7 +915,7 @@
           "required": false,
           "title": "Model Name",
           "default": "llama-3.1-sonar-small-128k-online",
-          "data": [],
+          
           "dataProxy": "llm|perplexity_models"
         },
         {
@@ -1518,7 +1498,7 @@
           "required": false,
           "title": "Model Name",
           "default": "@cf/meta/llama-2-7b-chat-int8",
-          "data": [],
+          
           "dataProxy": "llm|cloudflare_models"
         },
         {
@@ -1568,7 +1548,7 @@
           "required": false,
           "title": "Model Name",
           "default": "meta-llama/Llama-3.2-3B-Instruct-Turbo",
-          "data": [],
+          
           "dataProxy": "llm|together_models"
         },
         {
