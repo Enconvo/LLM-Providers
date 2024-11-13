@@ -31,7 +31,7 @@ class EnconvoAIProvider extends LLMProviderBase {
 
         await this.initLCChatModel(JSON.parse(JSON.stringify(newLLMOptions)))
 
-        console.log("bindings", this.bindings)
+        // console.log("bindings", this.bindings)
         this.lcChatModel = this.lcChatModel?.bind(this.bindings)
 
         if (this.tools.length > 0) {
@@ -62,21 +62,19 @@ class EnconvoAIProvider extends LLMProviderBase {
         const newLLMArr = (newLLMOptions.modelName.value || newLLMOptions.modelName).split("/")
         const modelProvider = newLLMArr[0]
 
+        const anthropicApiUrl = "https://api.enconvo.com/"
+        const openAIBaseUrl = "https://api.enconvo.com/v1/"
+        // const anthropicApiUrl = "http://127.0.0.1:8181/"
+        // const openAIBaseUrl = "http://127.0.0.1:8181/v1/"
+
         switch (modelProvider) {
-            case "openai":
-                newLLMOptions.commandName = "chat_open_ai";
-                break;
-            case "enconvoai":
-                newLLMOptions.commandName = "chat_open_ai";
-                break;
             case "anthropic":
                 newLLMOptions.commandName = "chat_anthropic";
-                break;
-            case "google":
-                newLLMOptions.commandName = "chat_open_ai";
+                newLLMOptions.anthropicApiUrl = anthropicApiUrl
                 break;
             default:
                 newLLMOptions.commandName = "chat_open_ai";
+                newLLMOptions.baseUrl = openAIBaseUrl
                 break;
         }
         newLLMOptions.extensionName = "llm";

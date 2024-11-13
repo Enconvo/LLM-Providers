@@ -35,7 +35,7 @@ async function fetchModels(url: string, api_key: string, type: string): Promise<
         }
 
         const data = await resp.json()
-        console.log("Total models fetched:", data.length)
+        // console.log("Total models fetched:", data.length)
         return data
 
     } catch (error) {
@@ -84,7 +84,7 @@ async function getModelsCache({ input_text, url, api_key, type }: { input_text: 
         const models = JSON.parse(modelContent)
         // Async cache update without blocking
         const stats = fs.statSync(modelCachePath);
-        console.log("stats", stats.mtimeMs)
+        // console.log("stats", stats.mtimeMs)
         const thirtyMinutesAgo = Date.now() - 30 * 60 * 1000;
         const shouldUpdate = stats.mtimeMs < thirtyMinutesAgo;
 
@@ -119,7 +119,7 @@ function getModelCachePath(): string {
  */
 export default async function main(req: Request): Promise<string> {
     const { options } = await req.json()
-    console.log("options", options)
+    // console.log("options", options)
     const models = await getModelsCache(options)
     return JSON.stringify(models)
 }

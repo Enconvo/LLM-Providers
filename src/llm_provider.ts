@@ -32,7 +32,6 @@ export abstract class LLMProviderBase {
     protected abstract _call({ messages }: { messages: BaseMessage[]; }): Promise<LLMResult>;
     protected abstract _initLCChatModel(options: LLMOptions): Promise<Runnable | undefined>
     async initLCChatModel(options: LLMOptions): Promise<Runnable | undefined> {
-        console.log("initLCChatModel", options)
         const runnable = await this._initLCChatModel(options)
         // try {
         // const chat = (runnable as BaseChatModel)
@@ -95,13 +94,13 @@ export abstract class LLMProviderBase {
             for (let key in this.bindings) {
                 const value = this.bindings[key]
                 // 如果是数组
-                console.log("key", key, value)
+                // console.log("key", key, value)
                 if (Array.isArray(value) && value.length <= 0) {
                     delete this.bindings[key]
                 }
             }
 
-            console.log("bindings", this.bindings)
+            // console.log("bindings", this.bindings)
             this.lcChatModel = this.lcChatModel?.bind(this.bindings)
         }
         return await this._call({ messages })
@@ -118,7 +117,7 @@ export const isOpenAIO1Model = (modelName: string) => {
 }
 
 export const isSupportSystemMessage = (llmOptions: any) => {
-    console.log("llmOptions", llmOptions)
+    // console.log("llmOptions", llmOptions)
 
     const isPremAI = llmOptions.commandName === 'premai' || llmOptions.originCommandName === 'premai'
     const isCohere = llmOptions.commandName === "chat_cohere" || llmOptions.originCommandName === "chat_cohere"

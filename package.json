@@ -90,26 +90,6 @@
           "visibility": "hidden"
         },
         {
-          "name": "baseUrl",
-          "description": "OpenAI api key",
-          "type": "password",
-          "required": false,
-          "title": "OpenAI Api Key",
-          "default": "https://api.enconvo.com/v1/",
-          "placeholder": "OpenAI Api Key",
-          "visibility": "hidden"
-        },
-        {
-          "name": "anthropicApiUrl",
-          "description": "OpenAI api key",
-          "type": "password",
-          "required": false,
-          "title": "OpenAI Api Key",
-          "default": "https://api.enconvo.com/",
-          "placeholder": "OpenAI Api Key",
-          "visibility": "hidden"
-        },
-        {
           "name": "streaming",
           "description": "Whether to stream output",
           "type": "checkbox",
@@ -407,18 +387,7 @@
           "required": false,
           "title": "Azure OpenAI Api Deployment Name",
           "default": "gpt-4o",
-          "dataProxy": "llm|openai_models",
-          "data": [
-            {
-              "title": "gpt-4o",
-              "value": "gpt-4o",
-              "context": 128000,
-              "inputPrice": 0.005,
-              "outputPrice": 0.015,
-              "toolUse": true,
-              "visionEnable": true
-            }
-          ]
+          "dataProxy": "llm|openai_models"
         },
         {
           "name": "azureOpenAIApiInstanceName",
@@ -505,8 +474,7 @@
           "required": false,
           "title": "Model Name",
           "default": "gemma2-9b-it",
-          "dataProxy": "llm|groq_models",
-          "data": []
+          "dataProxy": "llm|groq_models"
         },
         {
           "name": "temperature",

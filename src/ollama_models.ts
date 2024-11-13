@@ -4,7 +4,7 @@
 async function fetch_model(options: any) {
 
     const baseUrl = options.baseUrl || "http://127.0.0.1:11434";
-    console.log('baseUrl', baseUrl,options)
+    // console.log('baseUrl', baseUrl,options)
 
     let models = []
     try {

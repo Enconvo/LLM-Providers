@@ -29,7 +29,7 @@ export class LLMProvider extends LLMProviderBase {
         if (baseUrl) {
             const url = new URL(baseUrl)
             options.baseUrl = url.protocol + '//' + url.host
-            console.log('options', options)
+            // console.log('options', options)
         }
 
         // streaming to boolean
