@@ -76,9 +76,9 @@ class ChatOpenAIProvider extends LLMProviderBase {
         }
 
         delete options.streaming;
+        options.frequencyPenalty = 0.00000001
 
         return new ChatOpenAI({
-
             ...options,
             configuration: config
         },

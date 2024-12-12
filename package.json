@@ -1824,7 +1824,7 @@
           "required": false,
           "title": "OpenAI Api Key",
           "default": "",
-          "defaultProxy": "KEY_OPENAI_APIKEY",
+          "defaultProxy": "llm|chat_open_ai",
           "placeholder": "sk-********"
         },
         {
@@ -1833,7 +1833,7 @@
           "type": "textfield",
           "required": false,
           "title": "OpenAI Api Base Url",
-          "defaultProxy": "KEY_OPENAI_BASEURL",
+          "defaultProxy": "llm|chat_open_ai",
           "default": "https://api.openai.com/v1",
           "placeholder": "OpenAI Api Base Url"
         }

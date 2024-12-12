@@ -30,17 +30,11 @@ export abstract class LLMProviderBase {
     }
 
     protected abstract _call({ messages }: { messages: BaseMessage[]; }): Promise<LLMResult>;
+
     protected abstract _initLCChatModel(options: LLMOptions): Promise<Runnable | undefined>
+
     async initLCChatModel(options: LLMOptions): Promise<Runnable | undefined> {
         const runnable = await this._initLCChatModel(options)
-        // try {
-        // const chat = (runnable as BaseChatModel)
-        // console.log("chat_cache")
-        // const cache = await LocalFileCache.create(path.join(environment.cachePath, "chat"));
-        // chat.cache = cache
-        // } catch (error) {
-
-        // }
         this.lcChatModel = runnable
         return runnable
     }
