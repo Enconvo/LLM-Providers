@@ -1,5 +1,92 @@
 
 
+const embeddingModels = [
+    {
+        title: 'nomic-embed-text',
+        value: 'nomic-embed-text',
+        context: 8192,
+        dimension: 768
+    },
+    {
+        title: 'mxbai-embed-large',
+        value: 'mxbai-embed-large',
+        context: 512,
+        dimension: 1024
+    },
+    {
+        title: 'snowflake-arctic-embed', // Default 335M parameter model
+        value: 'snowflake-arctic-embed',
+        context: 512,
+        dimension: 1024
+    },
+    {
+        title: 'snowflake-arctic-embed:335m', // Default 335M parameter model
+        value: 'snowflake-arctic-embed:335m',
+        context: 512,
+        dimension: 1024
+    },
+    {
+        title: 'snowflake-arctic-embed:137m', // 137M parameter model
+        value: 'snowflake-arctic-embed:137m',
+        context: 8192,
+        dimension: 768
+    },
+    {
+        title: 'snowflake-arctic-embed:110m', // 110M parameter model
+        value: 'snowflake-arctic-embed:110m',
+        context: 512,
+        dimension: 768
+    },
+    {
+        title: 'snowflake-arctic-embed:33m', // 33M parameter model
+        value: 'snowflake-arctic-embed:33m',
+        context: 512,
+        dimension: 384
+    },
+    {
+        title: 'snowflake-arctic-embed:22m', // 22M parameter model
+        value: 'snowflake-arctic-embed:22m',
+        context: 512,
+        dimension: 384
+    },
+    {
+        title: 'all-minilm', // Embedding model trained on large sentence datasets
+        value: 'all-minilm',
+        context: 256,
+        dimension: 384
+    },
+    {
+        title: 'embedding:22m', // 22M parameter embedding model
+        value: 'embedding:22m',
+        context: 256,
+        dimension: 384
+    },
+    {
+        title: 'embedding:33m', // 33M parameter embedding model
+        value: 'embedding:33m',
+        context: 256,
+        dimension: 384
+    },
+    {
+        title: 'bge-m3', // 33M parameter embedding model
+        value: 'bge-m3',
+        context: 8192,
+        dimension: 1024
+    },
+    {
+        title: 'bge-large', // 33M parameter embedding model
+        value: 'bge-large',
+        context: 512,
+        dimension: 1024
+    },
+    {
+        title: 'paraphrase-multilingual', // 33M parameter embedding model
+        value: 'paraphrase-multilingual',
+        context: 128,
+        dimension: 768
+    },
+
+]
 
 async function fetch_model(options: any) {
 
@@ -10,13 +97,17 @@ async function fetch_model(options: any) {
     try {
         const resp = await fetch(`${baseUrl}/api/tags`)
         const json = await resp.json()
-        models = json.models.map((item: any) => {
-            return {
-                "title": item.name,
-                "value": item.name,
-                "visionEnable": item.name.includes('llava') || item.name.includes('vision')
-            }
-        })
+        // Filter out embedding models and map remaining models
+        models = json.models
+            .filter((item: any) => !embeddingModels.some(em => item.name.includes(em.value)))
+            .map((item: any) => {
+                return {
+                    "title": item.name,
+                    "value": item.name,
+                    // Add vision flag for vision-capable models
+                    "visionEnable": item.name.includes('llava') || item.name.includes('vision')
+                }
+            })
     } catch (err) {
         console.log(err)
     }
