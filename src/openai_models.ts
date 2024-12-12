@@ -1,5 +1,6 @@
 import { environment } from "@enconvo/api"
 import fs from 'fs'
+import { openai_models_data } from './utils/openai_models_data.ts'
 
 
 // ModelOutput interface representing the processed model data structure
@@ -7,7 +8,7 @@ interface ModelOutput {
     title: string           // Display name of the model
     value: string          // Model ID
     context: number        // Maximum context length
-    inputPrice: number     // Price per token for input
+    0: number     // Price per token for input
     outputPrice: number    // Price per token for output
     toolUse: boolean       // Whether model supports tool use
     visionEnable: boolean  // Whether model supports vision/image processing
@@ -22,8 +23,6 @@ interface ModelOutput {
 async function fetchModels(url: string, api_key: string, type: string): Promise<ModelOutput[]> {
     console.log("fetchModels", url, api_key, type)
     try {
-        url = url.endsWith('/') ? url : `${url}/`
-        url = `${url}models`
         const resp = await fetch(url, {
             headers: {
                 'Authorization': `Bearer ${api_key}`
@@ -35,8 +34,43 @@ async function fetchModels(url: string, api_key: string, type: string): Promise<
         }
 
         const data = await resp.json()
-        // console.log("Total models fetched:", data.length)
-        return data
+        const result = data.data.map((item: any) => {
+            if (item.value) {
+                return item
+            }
+
+
+            const model = openai_models_data.find((model: any) => model.value === (item.value || item.id))
+
+            const context = model?.context || 8000
+            const toolUse = model?.toolUse || false
+            const visionEnable = model?.visionEnable || false
+            return {
+                title: model?.title || item.id,
+                value: model?.value || item.id,
+                context: context,
+                inputPrice: model?.inputPrice || 0,
+                outputPrice: model?.outputPrice || 0,
+                toolUse: toolUse,
+                visionEnable: visionEnable
+            }
+        }).filter((item: any) => {
+            if (item.value.includes('embedding')
+                || item.value.includes('dall')
+                || item.value.includes('whisper')
+                || item.value.includes('babbage')
+                || item.value.includes('davinci')
+                || item.value.includes('audio')
+                || item.value.includes('realtime')
+                || item.value.includes('omni-moderation')
+                || item.value.includes('tts')) {
+                return false
+            }
+            return true
+        })
+
+        console.log("Total models fetched:", result)
+        return result
 
     } catch (error) {
         console.error('Error fetching models:', error)
@@ -55,9 +89,9 @@ async function fetchModels(url: string, api_key: string, type: string): Promise<
 async function updateModelsCache(modelCachePath: string, url: string, api_key: string, type: string): Promise<ModelOutput[]> {
     try {
         const models = await fetchModels(url, api_key, type)
-        if (models.length > 0) {
-            fs.writeFileSync(modelCachePath, JSON.stringify(models, null, 2))
-        }
+        // if (models.length > 0) {
+        //     fs.writeFileSync(modelCachePath, JSON.stringify(models, null, 2))
+        // }
         return models
     } catch (err) {
         console.error('Error updating models cache:', err)
@@ -72,6 +106,7 @@ async function updateModelsCache(modelCachePath: string, url: string, api_key: s
  */
 async function getModelsCache({ input_text, url, api_key, type }: { input_text: string, url: string, api_key: string, type: string }): Promise<ModelOutput[]> {
     const modelCachePath = getModelCachePath()
+    console.log("modelCachePath", modelCachePath)
 
     // Force refresh or create new cache if it doesn't exist
     if (!fs.existsSync(modelCachePath) || input_text === 'refresh') {
@@ -87,6 +122,7 @@ async function getModelsCache({ input_text, url, api_key, type }: { input_text: 
         // console.log("stats", stats.mtimeMs)
         const thirtyMinutesAgo = Date.now() - 30 * 60 * 1000;
         const shouldUpdate = stats.mtimeMs < thirtyMinutesAgo;
+        console.log("shouldUpdate", shouldUpdate)
 
         if (shouldUpdate) {
             updateModelsCache(modelCachePath, url, api_key, type).catch(err =>
@@ -105,7 +141,7 @@ async function getModelsCache({ input_text, url, api_key, type }: { input_text: 
  * @returns string - Full path to cache file
  */
 function getModelCachePath(): string {
-    const modelCacheDir = `${environment.cachePath}/models`
+    const modelCacheDir = `${environment.cachePath}models`
     if (!fs.existsSync(modelCacheDir)) {
         fs.mkdirSync(modelCacheDir, { recursive: true })
     }
@@ -119,7 +155,20 @@ function getModelCachePath(): string {
  */
 export default async function main(req: Request): Promise<string> {
     const { options } = await req.json()
-    // console.log("options", options)
+    console.log("chat_open_ai_models", options)
+    options.api_key = options.openAIApiKey
+
+
+    let url
+    // if (options.baseUrl.includes('openai.com')) {
+    //     url = `https://file.enconvo.com/modles/openai_official.json`
+    // } else {
+    url = options.baseUrl.endsWith('/') ? options.baseUrl : `${options.baseUrl}/`
+    url = `${url}models`
+    // }
+
+    options.url = url
+
     const models = await getModelsCache(options)
     return JSON.stringify(models)
 }

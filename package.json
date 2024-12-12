@@ -292,6 +292,12 @@
           "default": "gemini-1.5-flash-002",
           "data": [
             {
+              "title": "Gemini 2.0 Flash Exp",
+              "value": "gemini-2.0-flash-exp",
+              "context": 1048576,
+              "visionEnable": true
+            },
+            {
               "title": "Gemini 1.5 Flash-8B",
               "value": "gemini-1.5-flash-8b",
               "context": 1048576,
@@ -378,7 +384,7 @@
           "required": false,
           "title": "Azure OpenAI Api Deployment Name",
           "default": "gpt-4o",
-          "dataProxy": "llm|openai_models"
+          "dataProxy": "llm|azureai_models"
         },
         {
           "name": "azureOpenAIApiInstanceName",
@@ -1806,9 +1812,39 @@
     {
       "name": "openai_models",
       "title": "openai Models",
-      "targetCommand": "llm|fetch_models",
       "description": "get openai model list",
       "icon": "openai.png",
+      "showInCommandList": false,
+      "mode": "no-view",
+      "preferences": [
+        {
+          "name": "openAIApiKey",
+          "description": "OpenAI api key",
+          "type": "password",
+          "required": false,
+          "title": "OpenAI Api Key",
+          "default": "",
+          "defaultProxy": "KEY_OPENAI_APIKEY",
+          "placeholder": "sk-********"
+        },
+        {
+          "name": "baseUrl",
+          "description": "OpenAI api base url",
+          "type": "textfield",
+          "required": false,
+          "title": "OpenAI Api Base Url",
+          "defaultProxy": "KEY_OPENAI_BASEURL",
+          "default": "https://api.openai.com/v1",
+          "placeholder": "OpenAI Api Base Url"
+        }
+      ]
+    },
+    {
+      "name": "azureai_models",
+      "title": "azureai Models",
+      "targetCommand": "llm|fetch_models",
+      "description": "get azureai model list",
+      "icon": "azureai.png",
       "showInCommandList": false,
       "mode": "no-view",
       "preferences": [
@@ -2307,7 +2343,6 @@
         }
       ]
     },
-
     {
       "name": "chat_arli",
       "title": "Arli AI",
@@ -2377,7 +2412,6 @@
         }
       ]
     },
-
     {
       "name": "silliconflow_models",
       "title": "silliconflow_models",
