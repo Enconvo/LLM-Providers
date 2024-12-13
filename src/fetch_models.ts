@@ -118,7 +118,7 @@ function getModelCachePath(): string {
  * @returns Promise<string> - JSON string of model data
  */
 export default async function main(req: Request): Promise<string> {
-    const { options } = await req.json()
+    const  options  = await req.json()
     // console.log("options", options)
     const models = await getModelsCache(options)
     return JSON.stringify(models)

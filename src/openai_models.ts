@@ -155,7 +155,7 @@ function getModelCachePath(): string {
  * @returns Promise<string> - JSON string of model data
  */
 export default async function main(req: Request): Promise<string> {
-    const { options } = await req.json()
+    const  options  = await req.json()
     options.api_key = options.openAIApiKey
 
 

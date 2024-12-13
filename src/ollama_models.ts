@@ -116,7 +116,7 @@ async function fetch_model(options: any) {
 }
 
 export default async function main(req: Request) {
-    const { options } = await req.json()
+    const  options  = await req.json()
 
     let models = []
 

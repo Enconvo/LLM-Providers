@@ -30,7 +30,7 @@ function capitalizeFirstLetter(str: string) {
 }
 
 export default async function main(req: Request) {
-    const { options } = await req.json()
+    const  options  = await req.json()
     const { text, apiKey } = options
 
     const modelCacheDir = environment.cachePath + `/models`
