@@ -1,4 +1,4 @@
-import { LLMOptions, LLMProvider } from './llm_provider.ts';
+import { LLMProvider } from './llm_provider.ts';
 import { env } from 'process';
 import { BaseChatMessage, BaseChatMessageChunk, Stream, UserMessage } from '@enconvo/api';
 import { convertMessagesToOpenAIMessages, streamFromOpenAI } from './utils/message_convert.ts';
@@ -13,7 +13,7 @@ export default function main(options: any) {
 
 class ChatOpenAIProvider extends LLMProvider {
     client: OpenAI
-    constructor(options: LLMOptions) {
+    constructor(options: LLMProvider.LLMOptions) {
         super(options)
         this.client = this._initLangchainChatModel(this.options)
     }
@@ -82,7 +82,7 @@ class ChatOpenAIProvider extends LLMProvider {
     }
 
 
-    private _initLangchainChatModel(options: LLMOptions): OpenAI {
+    private _initLangchainChatModel(options: LLMProvider.LLMOptions): OpenAI {
         // change options.temperature to number
         options.temperature = Number(options.temperature.value);
         options.frequencyPenalty = Number(options.frequencyPenalty || "0.0");

@@ -1,14 +1,11 @@
-import { BaseChatMessage, BaseChatMessageChunk, UserMessage, Stream } from "@enconvo/api";
+import { BaseChatMessage, BaseChatMessageChunk, UserMessage, Stream, res, AssistantMessage, AudioPlayer } from "@enconvo/api";
+import { workerData } from "worker_threads";
 
-
-export type LLMOptions = {
-    [key: string]: any;
-};
 
 export abstract class LLMProvider {
-    protected options: LLMOptions;
+    protected options: LLMProvider.LLMOptions;
 
-    constructor(options: LLMOptions) {
+    constructor(options: LLMProvider.LLMOptions) {
         this.options = options
     }
 
@@ -17,75 +14,104 @@ export abstract class LLMProvider {
     protected abstract _stream(content: { messages: BaseChatMessage[] }): Promise<Stream<BaseChatMessageChunk>>;
 
 
-    async stream(content: string | BaseChatMessage[] | { content: string; messages: BaseChatMessage[]; }): Promise<Stream<BaseChatMessageChunk>> {
-        let messages: BaseChatMessage[];
-        if (typeof content === 'string') {
-            messages = [new UserMessage(content)];
-        } else if (Array.isArray(content)) {
-            messages = content;
-        } else {
-            messages = content.messages;
-            if (content.content) {
-                messages.push(new UserMessage(content.content));
-            }
-        }
-        return this._stream({ messages });
+
+    // Overload signatures
+    stream(params: LLMProvider.NoHandleParams): Promise<Stream<BaseChatMessageChunk>>;
+    stream(params: LLMProvider.AutoHandleParams): Promise<BaseChatMessage>;
+
+
+
+    // Implementation
+    async stream(params: LLMProvider.NoHandleParams | LLMProvider.AutoHandleParams): Promise<Stream<BaseChatMessageChunk> | BaseChatMessage> {
+        // if ('autoHandle' in params && params.autoHandle === true) {
+        //     const stream = await this._stream({ messages: params.messages });
+
+        //     let result = "";
+
+        //     for await (const chunk of stream) {
+        //         const token = chunk.content as string;
+        //         const action = result.length <= 0 ? res.WriteAction.OverwriteLastMessageLastTextContent : res.WriteAction.AppendToLastMessageLastTextContent;
+
+        //         if (token) {
+        //             //@ts-ignore
+        //             if (additionalContent && additionalContent.length > 0) {
+
+        //                 const message = new AssistantMessage([
+        //                     {
+        //                         type: 'text',
+        //                         text: token
+        //                     },
+        //                     ...additionalContent
+        //                 ])
+
+        //                 await res.write({
+        //                     content: message,
+        //                     action
+        //                 })
+        //             } else {
+
+        //                 await res.write({
+        //                     content: token,
+        //                     action
+        //                 })
+        //             }
+
+        //             result += token;
+        //             if (options.auto_audio_play) {
+        //                 AudioPlayer.playStreamText({
+        //                     text: result,
+        //                     ttsOptions: options.tts_providers
+        //                 })
+        //             }
+        //         }
+        //     }
+
+        //     console.log('result', result)
+
+        //     if (options.auto_audio_play) {
+        //         AudioPlayer.playStreamText({
+        //             text: result,
+        //             streamEnd: true,
+        //             ttsOptions: options.tts_providers
+        //         })
+        //     }
+        //     return result
+
+        // }
+
+        return this._stream({ messages: params.messages });
     }
 
 
-    async call(content: string | BaseChatMessage[] | { content: string; messages: BaseChatMessage[]; }): Promise<BaseChatMessage> {
-        let messages: BaseChatMessage[];
-        if (typeof content === 'string') {
-            messages = [new UserMessage(content)];
-        } else if (Array.isArray(content)) {
-            messages = content;
-        } else {
-            messages = content.messages;
-            if (content.content) {
-                messages.push(new UserMessage(content.content));
-            }
+    // Call method overload signatures
+    call(params: LLMProvider.NoHandleParams): Promise<BaseChatMessage>;
+    call(params: LLMProvider.AutoHandleParams): Promise<BaseChatMessage>;
+
+    // Call method implementation
+    async call(params: LLMProvider.NoHandleParams | LLMProvider.AutoHandleParams): Promise<BaseChatMessage> {
+        if ('autoHandle' in params && params.autoHandle === true) {
+            const result = await this._call({ messages: params.messages });
+            return result;
         }
+        return this._call({ messages: params.messages });
+    }
+}
 
-        // if (!isSupportSystemMessage(llmOptions)) {
-        //     const systemMsg = messages.find((message) => {
-        //         return message._getType() === 'system'
-        //     })
-        //     if (systemMsg) {
-        //         messages = messages.filter((message) => {
-        //             return message._getType() !== 'system'
-        //         })
+export namespace LLMProvider {
 
+    export type LLMOptions = {
+        [key: string]: any;
+    };
 
-        //         if (isSupportSystemPrompt(llmOptions)) {
-        //             if (this.lcChatModel) {
-        //                 //@ts-ignore
-        //                 this.lcChatModel.system_prompt = systemMsg.content
-        //             }
-        //         } else {
-        //             if (systemMsg.content && isSupportMultiUserMessage(llmOptions)) {
-        //                 const firstMessage = new UserMessage(systemMsg.content as string)
-        //                 // add to first
-        //                 messages = [firstMessage, ...messages]
-        //             } else {
-        //                 //保留最后一条消息
-        //                 messages = [messages[messages.length - 1]]
-        //             }
-        //         }
-        //     }
+    export interface Params {
+        messages: BaseChatMessage[];
+    }
+    export interface AutoHandleParams extends Params {
+        autoHandle: true
+    }
 
-        //     for (let key in this.bindings) {
-        //         const value = this.bindings[key]
-        //         // 如果是数组
-        //         // console.log("key", key, value)
-        //         if (Array.isArray(value) && value.length <= 0) {
-        //             delete this.bindings[key]
-        //         }
-        //     }
-
-        //     // console.log("bindings", this.bindings)
-        //     this.lcChatModel = this.lcChatModel?.bind(this.bindings)
-        // }
-        return await this._call({ messages })
+    export interface NoHandleParams extends Params {
+        autoHandle?: false | null
     }
 }
 
