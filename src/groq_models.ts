@@ -1,6 +1,5 @@
 import { environment } from "@enconvo/api"
 import fs from 'fs'
-import { openai_models_data } from './utils/openai_models_data.ts'
 
 
 // ModelOutput interface representing the processed model data structure
@@ -34,39 +33,19 @@ async function fetchModels(url: string, api_key: string, type: string): Promise<
         }
 
         const data = await resp.json()
-        const result = data.data.map((item: any) => {
-            if (item.value) {
-                return item
-            }
-
-
-            const model = openai_models_data.find((model: any) => model.value === (item.value || item.id))
-
-            const context = model?.context || 8000
-            const toolUse = model?.toolUse || false
-            const visionEnable = model?.visionEnable || false
+        const result = data.data.filter((item: any) => !item.id.includes('whisper')).map((item: any) => {
+            const context = item.context_window || 8000
+            const visionEnable = item.id.includes('vision')
+            const toolUse = item.id.includes('tool-use')
             return {
-                title: model?.title || item.id,
-                value: model?.value || item.id,
+                title: item.title || item.id,
+                value: item.value || item.id,
                 context: context,
-                inputPrice: model?.inputPrice || 0,
-                outputPrice: model?.outputPrice || 0,
+                inputPrice: item.inputPrice || 0,
+                outputPrice: item.outputPrice || 0,
                 toolUse: toolUse,
                 visionEnable: visionEnable
             }
-        }).filter((item: any) => {
-            if (item.value.includes('embedding')
-                || item.value.includes('dall')
-                || item.value.includes('whisper')
-                || item.value.includes('babbage')
-                || item.value.includes('davinci')
-                || item.value.includes('audio')
-                || item.value.includes('realtime')
-                || item.value.includes('omni-moderation')
-                || item.value.includes('tts')) {
-                return false
-            }
-            return true
         })
 
         console.log("Total models fetched:", result)
@@ -92,7 +71,6 @@ async function updateModelsCache(modelCachePath: string, url: string, api_key: s
         if (models.length > 0) {
             fs.writeFileSync(modelCachePath, JSON.stringify(models, null, 2))
         }
-
         return models
     } catch (err) {
         console.error('Error updating models cache:', err)

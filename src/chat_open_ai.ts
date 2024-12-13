@@ -73,10 +73,13 @@ class ChatOpenAIProvider extends LLMProviderBase {
         ) {
             options.max_completion_tokens = options.maxTokens;
             delete options.maxTokens;
+            delete options.streaming;
         }
 
-        delete options.streaming;
-        options.frequencyPenalty = 0.00000001
+
+        if (options.baseUrl === 'http://127.0.0.1:5001') {
+            options.frequencyPenalty = 0.0001
+        }
 
         return new ChatOpenAI({
             ...options,
