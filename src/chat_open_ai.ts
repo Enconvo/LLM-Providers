@@ -3,6 +3,8 @@ import { env } from 'process';
 import { BaseChatMessage, BaseChatMessageChunk, Stream, UserMessage } from '@enconvo/api';
 import { convertMessagesToOpenAIMessages, streamFromOpenAI } from './utils/message_convert.ts';
 import OpenAI from 'openai';
+import { wrapOpenAI } from "langsmith/wrappers";
+
 
 
 export default function main(options: any) {
@@ -15,7 +17,7 @@ class ChatOpenAIProvider extends LLMProvider {
     client: OpenAI
     constructor(options: LLMProvider.LLMOptions) {
         super(options)
-        this.client = this._initLangchainChatModel(this.options)
+        this.client = this._createOpenaiClient(this.options)
     }
 
     protected async _stream(content: { messages: BaseChatMessage[]; }): Promise<Stream<BaseChatMessageChunk>> {
@@ -82,7 +84,7 @@ class ChatOpenAIProvider extends LLMProvider {
     }
 
 
-    private _initLangchainChatModel(options: LLMProvider.LLMOptions): OpenAI {
+    private _createOpenaiClient(options: LLMProvider.LLMOptions): OpenAI {
         // change options.temperature to number
         options.temperature = Number(options.temperature.value);
         options.frequencyPenalty = Number(options.frequencyPenalty || "0.0");
@@ -138,7 +140,7 @@ class ChatOpenAIProvider extends LLMProvider {
         });
 
 
-        return client
+        return wrapOpenAI(client)
     }
 }
 

@@ -2476,6 +2476,7 @@
     "@langchain/openai": "^0.3.2",
     "@premai/prem-sdk": "^0.3.69",
     "langchain": "^0.1.37",
+    "langsmith": "^0.2.13",
     "openai": "^4.76.2"
   },
   "devDependencies": {

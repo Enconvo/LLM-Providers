@@ -50,6 +50,9 @@ importers:
       langchain:
         specifier: ^0.1.37
         version: 0.1.37(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/credential-provider-node@3.667.0(@aws-sdk/client-sso-oidc@3.667.0(@aws-sdk/client-sts@3.667.0))(@aws-sdk/client-sts@3.667.0))(@cloudflare/ai@1.2.2)(@premai/prem-sdk@0.3.70)(@smithy/util-utf8@2.3.0)(axios@1.7.7)(cohere-ai@7.14.0(@aws-sdk/client-sso-oidc@3.667.0(@aws-sdk/client-sts@3.667.0)))(fast-xml-parser@4.5.0)(google-auth-library@8.9.0)(ignore@5.3.2)(jsonwebtoken@9.0.2)(openai@4.76.2(zod@3.23.8))
+      langsmith:
+        specifier: ^0.2.13
+        version: 0.2.13(openai@4.76.2(zod@3.23.8))
       openai:
         specifier: ^4.76.2
         version: 4.76.2(zod@3.23.8)
@@ -2209,6 +2212,14 @@ packages:
 
   langsmith@0.1.62:
     resolution: {integrity: sha512-tnwj+d+qffMGC/01HYmaQoaTWeuPaXZJtNKc+kKxa6nGfOQpj2phJ8j96vhixKcYY+X5ZztC1FdpLud++arq5g==}
+    peerDependencies:
+      openai: '*'
+    peerDependenciesMeta:
+      openai:
+        optional: true
+
+  langsmith@0.2.13:
+    resolution: {integrity: sha512-16EOM5nhU6GlMCKGm5sgBIAKOKzS2d30qcDZmF21kSLZJiUhUNTROwvYdqgZLrGfIIzmSMJHCKA7RFd5qf50uw==}
     peerDependencies:
       openai: '*'
     peerDependenciesMeta:
@@ -4818,6 +4829,17 @@ snapshots:
   langchainhub@0.0.11: {}
 
   langsmith@0.1.62(openai@4.76.2(zod@3.23.8)):
+    dependencies:
+      '@types/uuid': 10.0.0
+      commander: 10.0.1
+      p-queue: 6.6.2
+      p-retry: 4.6.2
+      semver: 7.6.3
+      uuid: 10.0.0
+    optionalDependencies:
+      openai: 4.76.2(zod@3.23.8)
+
+  langsmith@0.2.13(openai@4.76.2(zod@3.23.8)):
     dependencies:
       '@types/uuid': 10.0.0
       commander: 10.0.1
