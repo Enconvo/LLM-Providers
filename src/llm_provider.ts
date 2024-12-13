@@ -1,102 +1,90 @@
-import { BaseMessage, BaseMessageChunk, HumanMessage, SystemMessage } from "langchain/schema";
-import { IterableReadableStream } from "@langchain/core/utils/stream";
-import { Runnable } from "@langchain/core/runnables";
-import { StructuredToolInterface } from "@langchain/core/tools";
+import { BaseChatMessage, BaseChatMessageChunk, UserMessage, Stream } from "@enconvo/api";
 
-export interface LLMResult {
-    stream: IterableReadableStream<BaseMessageChunk> | undefined
-}
 
 export type LLMOptions = {
     [key: string]: any;
 };
 
-type Bindings = { tools?: StructuredToolInterface[], [key: string]: any }
-
-export abstract class LLMProviderBase {
+export abstract class LLMProvider {
     protected options: LLMOptions;
-    protected tools: StructuredToolInterface[] = [];
-    protected bindings: Bindings = {}
-    protected autoInit?: boolean = true;
-    protected lcChatModel?: Runnable
 
-    getLCModel() {
-        return this.lcChatModel
+    constructor(options: LLMOptions) {
+        this.options = options
     }
 
-    constructor(fields: { options: LLMOptions, autoInit?: boolean }) {
-        this.options = fields.options
-        this.autoInit = fields.autoInit === undefined ? true : fields.autoInit
+    protected abstract _call(content: { messages: BaseChatMessage[] }): Promise<BaseChatMessage>;
+
+    protected abstract _stream(content: { messages: BaseChatMessage[] }): Promise<Stream<BaseChatMessageChunk>>;
+
+
+    async stream(content: string | BaseChatMessage[] | { content: string; messages: BaseChatMessage[]; }): Promise<Stream<BaseChatMessageChunk>> {
+        let messages: BaseChatMessage[];
+        if (typeof content === 'string') {
+            messages = [new UserMessage(content)];
+        } else if (Array.isArray(content)) {
+            messages = content;
+        } else {
+            messages = content.messages;
+            if (content.content) {
+                messages.push(new UserMessage(content.content));
+            }
+        }
+        return this._stream({ messages });
     }
 
-    protected abstract _call({ messages }: { messages: BaseMessage[]; }): Promise<LLMResult>;
 
-    protected abstract _initLCChatModel(options: LLMOptions): Promise<Runnable | undefined>
-
-    async initLCChatModel(options: LLMOptions): Promise<Runnable | undefined> {
-        const runnable = await this._initLCChatModel(options)
-        this.lcChatModel = runnable
-        return runnable
-    }
-
-    bind(bindings: Bindings): LLMProviderBase {
-        this.bindings = bindings
-
-        this.tools = bindings.tools || []
-
-        return this
-    }
-
-    async call({ messages }: { messages: BaseMessage[] }): Promise<LLMResult> {
-        const llmOptions = this.options
-
-
-        if (this.autoInit && !this.lcChatModel) {
-            this.lcChatModel = await this.initLCChatModel(JSON.parse(JSON.stringify(this.options)))
+    async call(content: string | BaseChatMessage[] | { content: string; messages: BaseChatMessage[]; }): Promise<BaseChatMessage> {
+        let messages: BaseChatMessage[];
+        if (typeof content === 'string') {
+            messages = [new UserMessage(content)];
+        } else if (Array.isArray(content)) {
+            messages = content;
+        } else {
+            messages = content.messages;
+            if (content.content) {
+                messages.push(new UserMessage(content.content));
+            }
         }
 
-        // console.log("call113--", this.options.model || this.options.modelName, this.lcChatModel)
-        //@ts-ignore
-        // console.log("call22--", this.options.model || this.options.modelName)
-        if (!isSupportSystemMessage(llmOptions)) {
-            const systemMsg = messages.find((message) => {
-                return message._getType() === 'system'
-            })
-            if (systemMsg) {
-                messages = messages.filter((message) => {
-                    return message._getType() !== 'system'
-                })
+        // if (!isSupportSystemMessage(llmOptions)) {
+        //     const systemMsg = messages.find((message) => {
+        //         return message._getType() === 'system'
+        //     })
+        //     if (systemMsg) {
+        //         messages = messages.filter((message) => {
+        //             return message._getType() !== 'system'
+        //         })
 
 
-                if (isSupportSystemPrompt(llmOptions)) {
-                    if (this.lcChatModel) {
-                        //@ts-ignore
-                        this.lcChatModel.system_prompt = systemMsg.content
-                    }
-                } else {
-                    if (systemMsg.content && isSupportMultiUserMessage(llmOptions)) {
-                        const firstMessage = new HumanMessage(systemMsg.content as string)
-                        // add to first
-                        messages = [firstMessage, ...messages]
-                    } else {
-                        //保留最后一条消息
-                        messages = [messages[messages.length - 1]]
-                    }
-                }
-            }
+        //         if (isSupportSystemPrompt(llmOptions)) {
+        //             if (this.lcChatModel) {
+        //                 //@ts-ignore
+        //                 this.lcChatModel.system_prompt = systemMsg.content
+        //             }
+        //         } else {
+        //             if (systemMsg.content && isSupportMultiUserMessage(llmOptions)) {
+        //                 const firstMessage = new UserMessage(systemMsg.content as string)
+        //                 // add to first
+        //                 messages = [firstMessage, ...messages]
+        //             } else {
+        //                 //保留最后一条消息
+        //                 messages = [messages[messages.length - 1]]
+        //             }
+        //         }
+        //     }
 
-            for (let key in this.bindings) {
-                const value = this.bindings[key]
-                // 如果是数组
-                // console.log("key", key, value)
-                if (Array.isArray(value) && value.length <= 0) {
-                    delete this.bindings[key]
-                }
-            }
+        //     for (let key in this.bindings) {
+        //         const value = this.bindings[key]
+        //         // 如果是数组
+        //         // console.log("key", key, value)
+        //         if (Array.isArray(value) && value.length <= 0) {
+        //             delete this.bindings[key]
+        //         }
+        //     }
 
-            // console.log("bindings", this.bindings)
-            this.lcChatModel = this.lcChatModel?.bind(this.bindings)
-        }
+        //     // console.log("bindings", this.bindings)
+        //     this.lcChatModel = this.lcChatModel?.bind(this.bindings)
+        // }
         return await this._call({ messages })
     }
 }

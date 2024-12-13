@@ -1,6 +1,6 @@
 import { ChatPrem } from "@langchain/community/chat_models/premai";
 import { BaseMessage } from "langchain/schema";
-import { LLMProviderBase, LLMOptions, LLMResult } from "./llm_provider.ts";
+import { LLMProvider, LLMOptions, LLMResult } from "./llm_provider.ts";
 import { Runnable } from "@langchain/core/runnables";
 
 
@@ -8,7 +8,7 @@ export default function main(options: any) {
     return new PremAIProvider({ options })
 }
 
-class PremAIProvider extends LLMProviderBase {
+class PremAIProvider extends LLMProvider {
     protected async _call({ messages }: { messages: BaseMessage[]; }): Promise<LLMResult> {
 
         const stream = await this.lcChatModel?.stream(messages)

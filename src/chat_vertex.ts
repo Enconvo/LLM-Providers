@@ -5,7 +5,7 @@ import { ChatVertexAI } from "@langchain/google-vertexai";
 import { ChatGroq } from "@langchain/groq";
 import { Runnable } from "langchain/runnables";
 import { BaseMessage } from "langchain/schema";
-import { LLMProviderBase, LLMOptions, LLMResult } from "./llm_provider.ts";
+import { LLMProvider, LLMOptions, LLMResult } from "./llm_provider.ts";
 
 
 
@@ -13,7 +13,7 @@ export default function main(options: any) {
     return new LLMProvider({ options })
 }
 
-export class LLMProvider extends LLMProviderBase {
+export class LLMProvider extends LLMProvider {
     protected async _initLCChatModel(options: LLMOptions): Promise<Runnable | undefined> {
         options.temperature = Number(options.temperature.value);
 

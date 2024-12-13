@@ -1,6 +1,6 @@
 import { ChatAnthropic } from "@langchain/anthropic";
 import { BaseMessage } from "langchain/schema";
-import { LLMProviderBase, LLMOptions, LLMResult } from "./llm_provider.ts";
+import { LLMProvider, LLMOptions, LLMResult } from "./llm_provider.ts";
 import { Runnable } from "@langchain/core/runnables";
 import { env } from "process";
 
@@ -8,7 +8,7 @@ export default function main(options: any) {
     return new AnthropicOpenAIProvider({ options })
 }
 
-export class AnthropicOpenAIProvider extends LLMProviderBase {
+export class AnthropicOpenAIProvider extends LLMProvider {
     protected async _initLCChatModel(options: LLMOptions): Promise<Runnable | undefined> {
 
         options.temperature = Number(options.temperature.value);

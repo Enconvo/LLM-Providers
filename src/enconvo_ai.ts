@@ -1,4 +1,4 @@
-import { LLMOptions, LLMProviderBase, LLMResult } from "./llm_provider.ts";
+import { LLMOptions, LLMProvider, LLMResult } from "./llm_provider.ts";
 import { BaseMessage } from "@langchain/core/messages";
 import { Runnable } from "@langchain/core/runnables";
 import { ServiceProvider } from "./provider.ts";
@@ -10,7 +10,7 @@ export default function main(options: any) {
     return new EnconvoAIProvider({ options, autoInit: false })
 }
 
-class EnconvoAIProvider extends LLMProviderBase {
+class EnconvoAIProvider extends LLMProvider {
 
     originalTools: StructuredToolInterface[] = []
     protected async _call({ messages }: { messages: BaseMessage[]; }): Promise<LLMResult> {
@@ -79,7 +79,7 @@ class EnconvoAIProvider extends LLMProviderBase {
         }
         newLLMOptions.extensionName = "llm";
 
-        const llmProvider: LLMProviderBase = ServiceProvider.load(newLLMOptions)
+        const llmProvider: LLMProvider = ServiceProvider.load(newLLMOptions)
         this.lcChatModel = await llmProvider.initLCChatModel(newLLMOptions)
         return this.lcChatModel
     }

@@ -1,41 +1,91 @@
-import { ChatOpenAI } from '@langchain/openai'
-import { LLMOptions, LLMProviderBase, LLMResult } from './llm_provider.ts';
-import { BaseMessage } from 'langchain/schema';
+import { LLMOptions, LLMProvider } from './llm_provider.ts';
 import { env } from 'process';
-import { Runnable } from '@langchain/core/runnables';
+import { BaseChatMessage, BaseChatMessageChunk, Stream, UserMessage } from '@enconvo/api';
+import { convertMessagesToOpenAIMessages, streamFromOpenAI } from './utils/message_convert.ts';
+import OpenAI from 'openai';
+
 
 export default function main(options: any) {
-    return new ChatOpenAIProvider({ options })
+    return new ChatOpenAIProvider(options)
 }
 
-class ChatOpenAIProvider extends LLMProviderBase {
-    protected async _initLCChatModel(options: LLMOptions): Promise<Runnable | undefined> {
 
-        // change options.temperature to number
-        options.temperature = Number(options.temperature.value);
-        options.frequencyPenalty = Number(options.frequencyPenalty || "0.0");
 
-        const modelOptions = options.modelName
+class ChatOpenAIProvider extends LLMProvider {
+    client: OpenAI
+    constructor(options: LLMOptions) {
+        super(options)
+        this.client = this._initLangchainChatModel(this.options)
+    }
+
+    protected async _stream(content: { messages: BaseChatMessage[]; }): Promise<Stream<BaseChatMessageChunk>> {
+        const modelOptions = this.options.modelName
 
         if (modelOptions) {
 
-            if (options.originCommandName !== 'chat_sambanova') {
-                options.maxTokens = modelOptions.maxTokens || 4096;
+            if (this.options.originCommandName !== 'chat_sambanova') {
+                this.options.maxTokens = modelOptions.maxTokens || 4096;
             } else {
-                delete options.maxTokens;
+                delete this.options.maxTokens;
             }
 
             const modelName = modelOptions.value || modelOptions;
 
-            if (options.originCommandName === 'azure_openai') {
-                options.azureOpenAIApiDeploymentName = modelName;
-                delete options.modelName;
+            if (this.options.originCommandName === 'azure_openai') {
+                this.options.azureOpenAIApiDeploymentName = modelName;
+                delete this.options.modelName;
             } else {
-                options.modelName = modelName;
+                this.options.modelName = modelName;
             }
         }
 
+        const chatCompletion = await this.client.chat.completions.create({
+            messages: convertMessagesToOpenAIMessages(content.messages),
+            model: this.options.modelName,
+            stream: true
+        });
 
+        return streamFromOpenAI(chatCompletion, chatCompletion.controller)
+    }
+
+
+    protected async _call(content: { messages: BaseChatMessage[]; }): Promise<BaseChatMessage> {
+
+        const modelOptions = this.options.modelName
+
+        if (modelOptions) {
+
+            if (this.options.originCommandName !== 'chat_sambanova') {
+                this.options.maxTokens = modelOptions.maxTokens || 4096;
+            } else {
+                delete this.options.maxTokens;
+            }
+
+            const modelName = modelOptions.value || modelOptions;
+
+            if (this.options.originCommandName === 'azure_openai') {
+                this.options.azureOpenAIApiDeploymentName = modelName;
+                delete this.options.modelName;
+            } else {
+                this.options.modelName = modelName;
+            }
+        }
+
+        const chatCompletion = await this.client.chat.completions.create({
+            messages: convertMessagesToOpenAIMessages(content.messages),
+            model: this.options.modelName
+        });
+
+        const result = chatCompletion.choices[0]
+
+        return new UserMessage(result?.message?.content || '')
+    }
+
+
+    private _initLangchainChatModel(options: LLMOptions): OpenAI {
+        // change options.temperature to number
+        options.temperature = Number(options.temperature.value);
+        options.frequencyPenalty = Number(options.frequencyPenalty || "0.0");
 
         // streaming to boolean
         let customHeaders = {}
@@ -81,22 +131,21 @@ class ChatOpenAIProvider extends LLMProviderBase {
             options.frequencyPenalty = 0.0001
         }
 
-        return new ChatOpenAI({
-            ...options,
-            configuration: config
-        },
-        );
 
+        const client = new OpenAI({
+            apiKey: options.openAIApiKey, // This is the default and can be omitted
+            baseURL: options.baseUrl || "https://api.openai.com/v1",
+        });
+
+
+        return client
     }
-    protected async _call({ messages }: { messages: BaseMessage[]; }): Promise<LLMResult> {
-
-        const stream = await this.lcChatModel?.stream(messages)
-
-        return {
-            stream
-        }
-
-    }
-
 }
+
+
+
+
+
+
+
 
