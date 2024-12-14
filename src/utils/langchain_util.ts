@@ -1,10 +1,10 @@
 import { BaseChatMessage, BaseChatMessageChunk, FileUtil, Stream } from "@enconvo/api"
-import OpenAI from "openai"
+import { AIMessageChunk, BaseMessageLike } from "@langchain/core/messages"
+
+export namespace LangchainUtil {
 
 
-
-export namespace OpenAIUtil {
-    export const convertMessageToOpenAIMessage = (message: BaseChatMessage): OpenAI.Chat.ChatCompletionMessageParam => {
+    export const convertMessageToLangchainMessage = (message: BaseChatMessage): BaseMessageLike => {
 
         if (typeof message.content === "string") {
             //@ts-ignore
@@ -13,6 +13,7 @@ export namespace OpenAIUtil {
                 content: message.content
             }
         } else {
+
             const content = message.content.filter((item) => item.type === "text" || item.type === "image_url").map((item) => {
                 if (item.type === "image_url") {
                     const url = item.image_url.url
@@ -32,21 +33,17 @@ export namespace OpenAIUtil {
 
             return {
                 role: message.role,
-                //@ts-ignore
                 content: content
             }
         }
-
-
     }
 
-    export const convertMessagesToOpenAIMessages = (messages: BaseChatMessage[]): OpenAI.Chat.ChatCompletionMessageParam[] => {
-        return messages.map((message) => convertMessageToOpenAIMessage(message))
+    export const convertMessagesToLangchainMessages = (messages: BaseChatMessage[]): BaseMessageLike[] => {
+        return messages.map((message) => convertMessageToLangchainMessage(message))
     }
 
 
-
-    export function streamFromOpenAI(response: AsyncIterable<OpenAI.Chat.ChatCompletionChunk>, controller: AbortController): Stream<BaseChatMessageChunk> {
+    export function streamFromLangchain(response: AsyncIterable<AIMessageChunk>, controller: AbortController): Stream<BaseChatMessageChunk> {
         let consumed = false;
 
         async function* iterator(): AsyncIterator<BaseChatMessageChunk, any, undefined> {
@@ -58,18 +55,14 @@ export namespace OpenAIUtil {
             try {
                 for await (const chunk of response) {
                     if (done) continue;
+                    if (typeof chunk.content === "string") {
+                        const newChunk = new BaseChatMessageChunk({
+                            content: chunk.content,
+                            id: chunk.id
+                        })
 
-                    if (chunk.choices[0].finish_reason) {
-                        done = true;
-                        continue
+                        yield newChunk
                     }
-
-                    const newChunk = new BaseChatMessageChunk({
-                        content: chunk.choices[0].delta.content || '',
-                        id: chunk.id
-                    })
-
-                    yield newChunk
                 }
                 done = true;
             } catch (e) {
@@ -82,4 +75,6 @@ export namespace OpenAIUtil {
 
         return new Stream(iterator, controller);
     }
+
+
 }

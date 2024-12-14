@@ -1,4 +1,4 @@
-import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, LLMProvider, Stream } from "@enconvo/api";
+import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, LLMProvider, res, Stream } from "@enconvo/api";
 import Anthropic from '@anthropic-ai/sdk';
 import { convertMessagesToAnthropicMessages, streamFromAnthropic } from "./utils/anthropic_util.ts";
 import ollama from 'ollama'
@@ -23,19 +23,17 @@ export class OllamaProvider extends LLMProvider {
     }
 
     protected async _call(content: { messages: BaseChatMessage[]; }): Promise<BaseChatMessage> {
+        const newMessages = OllamaUtil.convertMessagesToOllamaMessages(content.messages)
 
-        const msg = await this.anthropic.messages.create(this.initParams(content.messages));
+        const params = this.initParams()
 
-        if (msg.content[0]?.type === "text") {
-            return new AssistantMessage(msg.content[0].text)
-        }
+        const response = await ollama.chat({ ...params, messages: newMessages })
 
-        return new AssistantMessage(msg.content[0].type)
+        return new AssistantMessage(response.message.content)
     }
 
     protected async _stream(content: { messages: BaseChatMessage[]; }): Promise<Stream<BaseChatMessageChunk>> {
         const newMessages = OllamaUtil.convertMessagesToOllamaMessages(content.messages)
-        console.log("newMessages", newMessages)
 
         const params = this.initParams()
 
