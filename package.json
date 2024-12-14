@@ -290,7 +290,7 @@
           "type": "dropdown",
           "required": false,
           "title": "Model Name",
-          "default": "gemini-1.5-flash-002",
+          "default": "gemini-2.0-flash-exp",
           "data": [
             {
               "title": "Gemini 2.0 Flash Exp",
@@ -2465,7 +2465,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.1",
     "@enconvo/api": "link:/Users/ysnows/Documents/Project/enconvo.nodejs/enconvo_api",
-    "@google/generative-ai": "^0.5.0",
+    "@google/generative-ai": "^0.21.0",
     "@langchain/anthropic": "^0.1.21",
     "@langchain/cloudflare": "^0.0.4",
     "@langchain/cohere": "^0.0.6",

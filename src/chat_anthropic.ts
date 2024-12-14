@@ -1,12 +1,13 @@
 import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, LLMProvider, Stream } from "@enconvo/api";
 import Anthropic from '@anthropic-ai/sdk';
-import { convertMessagesToAnthropicMessages, convertMessageToAnthropicMessage, streamFromAnthropic } from "./utils/anthropic_util.ts";
+import { convertMessagesToAnthropicMessages, streamFromAnthropic } from "./utils/anthropic_util.ts";
+
 
 export default function main(options: any) {
-    return new AnthropicOpenAIProvider(options)
+    return new AnthropicProvider(options)
 }
 
-export class AnthropicOpenAIProvider extends LLMProvider {
+export class AnthropicProvider extends LLMProvider {
     anthropic: Anthropic
 
     constructor(options: LLMProvider.LLMOptions) {
@@ -52,7 +53,4 @@ export class AnthropicOpenAIProvider extends LLMProvider {
 
 
     }
-
-
-
 }

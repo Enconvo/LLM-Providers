@@ -1,72 +1,56 @@
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
-import { HarmBlockThreshold, HarmCategory } from "@google/generative-ai";
-
-import { Runnable } from "langchain/runnables";
-import { BaseMessage } from "langchain/schema";
-import { LLMProvider, LLMOptions, LLMResult } from "./llm_provider.ts";
-import { env } from "process";
-
-
+import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, LLMProvider, Stream } from "@enconvo/api";
+import Anthropic from '@anthropic-ai/sdk';
+import { convertMessagesToAnthropicMessages, convertMessageToAnthropicMessage, streamFromAnthropic } from "./utils/anthropic_util.ts";
 
 export default function main(options: any) {
-    return new LLMProvider({ options })
+    return new GoogleGeminiProvider(options)
 }
 
-export class LLMProvider extends LLMProvider {
-    protected async _initLCChatModel(options: LLMOptions): Promise<Runnable | undefined> {
-        // change options.temperature to number
-        options.temperature = Number(options.temperature.value);
+export class GoogleGeminiProvider extends LLMProvider {
+    anthropic: Anthropic
 
-        const modelOptions = options.modelName
-        const modelName = modelOptions.value
-        options.modelName = modelName
-        if (options.apiKey === "default") {
-            options.apiKey = `${env['accessToken']}`
-        }
+    constructor(options: LLMProvider.LLMOptions) {
+        super(options)
 
-        const baseUrl = options.baseUrl
-        // 取 host + port
-        if (baseUrl) {
-            const url = new URL(baseUrl)
-            options.baseUrl = url.protocol + '//' + url.host
-            // console.log('options', options)
-        }
-
-        // streaming to boolean
-        // options.streaming = options.stream === "true";
-
-
-        /*
-         * Before running this, you should make sure you have created a
-         * Google Cloud Project that has `generativelanguage` API enabled.
-         *
-         * You will also need to generate an API key and set
-         * an environment variable GOOGLE_API_KEY
-         *
-         */
-
-        // Text
-        const model = new ChatGoogleGenerativeAI({
-            ...options,
-            maxOutputTokens: 2048,
-            safetySettings: [
-                {
-                    category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-                    threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
-                },
-            ],
+        this.anthropic = new Anthropic({
+            apiKey: options.anthropicApiKey, // defaults to process.env["ANTHROPIC_API_KEY"]
         });
 
-        return model
+
     }
 
-    protected async _call({ messages }: { messages: BaseMessage[]; }): Promise<LLMResult> {
+    protected async _call(content: { messages: BaseChatMessage[]; }): Promise<BaseChatMessage> {
 
-        const stream = await this.lcChatModel?.stream(messages)
+        const msg = await this.anthropic.messages.create(this.initParams(content.messages));
+
+        if (msg.content[0]?.type === "text") {
+            return new AssistantMessage(msg.content[0].text)
+        }
+
+        return new AssistantMessage(msg.content[0].type)
+    }
+
+    protected async _stream(content: { messages: BaseChatMessage[]; }): Promise<Stream<BaseChatMessageChunk>> {
+
+        const stream = this.anthropic.messages.stream(this.initParams(content.messages));
+
+        return streamFromAnthropic(stream, stream.controller)
+
+    }
+
+    initParams(messages: BaseChatMessage[]) {
+        const systemMessage = messages[0]?.role === 'system' ? messages.shift() : undefined
+        const system = typeof systemMessage?.content === 'string' ? systemMessage.content : ''
 
         return {
-            stream
+            system,
+            model: this.options.modelName.value,
+            temperature: this.options.temperature.value,
+            max_tokens: 1024,
+            messages: convertMessagesToAnthropicMessages(messages),
         }
+
+
     }
 
 

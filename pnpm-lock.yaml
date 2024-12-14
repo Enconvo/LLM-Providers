@@ -15,8 +15,8 @@ importers:
         specifier: link:/Users/ysnows/Documents/Project/enconvo.nodejs/enconvo_api
         version: link:../../enconvo.nodejs/enconvo_api
       '@google/generative-ai':
-        specifier: ^0.5.0
-        version: 0.5.0
+        specifier: ^0.21.0
+        version: 0.21.0
       '@langchain/anthropic':
         specifier: ^0.1.21
         version: 0.1.21(openai@4.76.2(zod@3.23.8))
@@ -389,8 +389,8 @@ packages:
     resolution: {integrity: sha512-d9zaMRSTIKDLhctzH12MtXvJKSSUhaHcjV+2Z+GK+EEY7XKpP5yR4x+N3TAcHTcu963nIr+TMcCb4DBCYX1z6Q==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
 
-  '@google/generative-ai@0.5.0':
-    resolution: {integrity: sha512-uxfN3mROgVxb+9KrlVHIiglcWgNE86pVTS9TRkGS6hMvQoZ5TrB1TIMcW5ZYWxlRhMwtmEdJnNMUxSqM3Qp/Ag==}
+  '@google/generative-ai@0.21.0':
+    resolution: {integrity: sha512-7XhUbtnlkSEZK15kN3t+tzIMxsbKm/dSkKBFalj+20NvPKe1kBY7mR2P7vuijEn+f06z5+A8bVGKO0v39cr6Wg==}
     engines: {node: '>=18.0.0'}
 
   '@google/generative-ai@0.7.1':
@@ -3390,7 +3390,7 @@ snapshots:
 
   '@eslint/js@8.57.1': {}
 
-  '@google/generative-ai@0.5.0': {}
+  '@google/generative-ai@0.21.0': {}
 
   '@google/generative-ai@0.7.1': {}
 
