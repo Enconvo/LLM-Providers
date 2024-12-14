@@ -21,7 +21,7 @@ interface ModelOutput {
  * @returns Promise<ModelOutput[]> - Array of processed model data
  */
 async function fetchModels(url: string, api_key: string, type: string): Promise<ModelOutput[]> {
-    console.log("fetchModels", url, api_key, type)
+    // console.log("fetchModels", url, api_key, type)
     try {
         const resp = await fetch(url, {
             headers: {
@@ -69,7 +69,7 @@ async function fetchModels(url: string, api_key: string, type: string): Promise<
             return true
         })
 
-        console.log("Total models fetched:", result)
+        // console.log("Total models fetched:", result)
         return result
 
     } catch (error) {
@@ -107,7 +107,7 @@ async function updateModelsCache(modelCachePath: string, url: string, api_key: s
  */
 async function getModelsCache({ input_text, url, api_key, type }: { input_text: string, url: string, api_key: string, type: string }): Promise<ModelOutput[]> {
     const modelCachePath = getModelCachePath()
-    console.log("modelCachePath", modelCachePath)
+    // console.log("modelCachePath", modelCachePath)
 
     // Force refresh or create new cache if it doesn't exist
     if (!fs.existsSync(modelCachePath) || input_text === 'refresh') {
@@ -123,7 +123,7 @@ async function getModelsCache({ input_text, url, api_key, type }: { input_text: 
         // console.log("stats", stats.mtimeMs)
         const thirtyMinutesAgo = Date.now() - 30 * 60 * 1000;
         const shouldUpdate = stats.mtimeMs < thirtyMinutesAgo;
-        console.log("shouldUpdate", shouldUpdate)
+        // console.log("shouldUpdate", shouldUpdate)
 
         if (shouldUpdate) {
             updateModelsCache(modelCachePath, url, api_key, type).catch(err =>

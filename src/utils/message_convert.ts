@@ -1,4 +1,4 @@
-import { BaseChatMessage, BaseChatMessageChunk, Stream } from "@enconvo/api"
+import { BaseChatMessage, BaseChatMessageChunk, FileUtil, Stream } from "@enconvo/api"
 import { AIMessage, BaseMessage, HumanMessage, SystemMessage } from "@langchain/core/messages"
 import OpenAI from "openai"
 
@@ -34,10 +34,27 @@ export const convertMessageToOpenAIMessage = (message: BaseChatMessage): OpenAI.
             content: message.content
         }
     } else {
+        const content = message.content.map((item) => {
+            if (item.type === "image_url") {
+                const url = item.image_url.url
+                if (url.startsWith("file://")) {
+                    const base64 = FileUtil.convertFileUrlToBase64(url)
+                    const mimeType = url.split(".").pop()
+                    return {
+                        type: "image_url",
+                        image_url: {
+                            url: `data:image/${mimeType};base64,${base64}`
+                        }
+                    }
+                }
+            }
+            return item
+        })
+
         return {
             role: message.role,
             //@ts-ignore
-            content: message.content
+            content: content
         }
     }
 

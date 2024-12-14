@@ -78,7 +78,8 @@ export abstract class LLMProvider {
 
         // }
 
-        return this._stream({ messages: params.messages });
+        let stream =  this._stream({ messages: params.messages });
+        return stream
     }
 
 
