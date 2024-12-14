@@ -1125,6 +1125,7 @@
       "description": "Chat with LM Studio, learn more : [lmstudio.ai](https://lmstudio.ai/)",
       "icon": "lm_studio.png",
       "mode": "provider",
+      "targetCommand": "llm|chat_open_ai",
       "preferences": [
         {
           "name": "baseUrl",
@@ -1135,6 +1136,15 @@
           "default": "http://127.0.0.1:1234/v1",
           "defaultProxy": "KEY_LMSTUDIO_BASEURL",
           "placeholder": "LM Studio Api Base Url"
+        },
+        {
+          "name": "modelName",
+          "description": "The model to generate the completion.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Model Name",
+          "default": "default",
+          "visibility": "hidden"
         },
         {
           "name": "temperature",
@@ -1165,6 +1175,16 @@
               "value": 2
             }
           ]
+        },
+        {
+          "name": "openAIApiKey",
+          "description": "How to get api key? [🔑here](https://www.perplexity.ai/settings/api)",
+          "type": "password",
+          "required": false,
+          "title": "API Key",
+          "default": "default",
+          "placeholder": "pplx-********",
+          "visibility": "hidden"
         },
         {
           "name": "streaming",
