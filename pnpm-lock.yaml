@@ -47,15 +47,15 @@ importers:
       '@langchain/openai':
         specifier: ^0.3.2
         version: 0.3.5(@langchain/core@0.3.8(openai@4.76.2(zod@3.23.8)))
-      '@premai/prem-sdk':
-        specifier: ^0.3.69
-        version: 0.3.70
       langchain:
         specifier: ^0.1.37
         version: 0.1.37(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/credential-provider-node@3.667.0(@aws-sdk/client-sso-oidc@3.667.0(@aws-sdk/client-sts@3.667.0))(@aws-sdk/client-sts@3.667.0))(@cloudflare/ai@1.2.2)(@premai/prem-sdk@0.3.70)(@smithy/util-utf8@2.3.0)(axios@1.7.7)(cohere-ai@7.14.0(@aws-sdk/client-sso-oidc@3.667.0(@aws-sdk/client-sts@3.667.0)))(fast-xml-parser@4.5.0)(google-auth-library@8.9.0)(ignore@5.3.2)(jsonwebtoken@9.0.2)(openai@4.76.2(zod@3.23.8))
       langsmith:
         specifier: ^0.2.13
         version: 0.2.13(openai@4.76.2(zod@3.23.8))
+      ollama:
+        specifier: ^0.5.11
+        version: 0.5.11
       openai:
         specifier: ^4.76.2
         version: 4.76.2(zod@3.23.8)
@@ -2387,6 +2387,9 @@ packages:
     resolution: {integrity: sha512-IRZSRuzJiynemAXPYtPe5BoI/RESNYR7TYm50MC5Mqbd3Jmw5y790sErYw3V6SryFJD64b74qQQs9wn5Bg/k3g==}
     engines: {node: '>= 0.4'}
 
+  ollama@0.5.11:
+    resolution: {integrity: sha512-lDAKcpmBU3VAOGF05NcQipHNKTdpKfAHpZ7bjCsElkUkmX7SNZImi6lwIxz/l1zQtLq0S3wuLneRuiXxX2KIew==}
+
   once@1.4.0:
     resolution: {integrity: sha512-lNaJgI+2Q5URQBkccEKHTQOPaXdUxnZZElQTZY0MFUAuaEqe1E+Nyvgdz/aIyNi6Z9MzO5dv1H8n58/GELp3+w==}
 
@@ -2715,6 +2718,9 @@ packages:
 
   webidl-conversions@4.0.2:
     resolution: {integrity: sha512-YQ+BmxuTgd6UXZW3+ICGfyqRyHXVlD5GtQr5+qjiNW7bF0cqrzX500HVXPBOvgXb5YnzDd+h0zqyv61KUD7+Sg==}
+
+  whatwg-fetch@3.6.20:
+    resolution: {integrity: sha512-EqhiFU6daOA8kpjOWTL0olhVOF3i7OrFzSYiGsEMB8GcXS+RrzauAERX65xMeNWVqxA6HXH2m69Z9LaKKdisfg==}
 
   whatwg-url@5.0.0:
     resolution: {integrity: sha512-saE57nupxk6v3HY35+jzBwYa0rKSy0XR8JSxZPwgLr7ys0IBzhGviA1/TUGJLmSVqs8pb9AnvICXEuOHLprYTw==}
@@ -3693,6 +3699,7 @@ snapshots:
       form-data: 4.0.0
     transitivePeerDependencies:
       - debug
+    optional: true
 
   '@smithy/abort-controller@3.1.5':
     dependencies:
@@ -5000,6 +5007,10 @@ snapshots:
 
   object-inspect@1.13.2: {}
 
+  ollama@0.5.11:
+    dependencies:
+      whatwg-fetch: 3.6.20
+
   once@1.4.0:
     dependencies:
       wrappy: 1.0.2
@@ -5290,6 +5301,8 @@ snapshots:
   webidl-conversions@3.0.1: {}
 
   webidl-conversions@4.0.2: {}
+
+  whatwg-fetch@3.6.20: {}
 
   whatwg-url@5.0.0:
     dependencies:

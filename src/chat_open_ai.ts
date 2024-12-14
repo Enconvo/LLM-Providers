@@ -1,9 +1,8 @@
 import { env } from 'process';
 import { BaseChatMessage, BaseChatMessageChunk, LLMProvider, Stream, UserMessage } from '@enconvo/api';
-import { convertMessagesToOpenAIMessages } from './utils/openai_util.ts';
 import OpenAI from 'openai';
 import { wrapOpenAI } from "langsmith/wrappers";
-import { streamFromOpenAI } from './utils/stream_utils.ts';
+import { OpenAIUtil } from './utils/openai_util.ts';
 
 
 
@@ -24,12 +23,12 @@ class ChatOpenAIProvider extends LLMProvider {
         const params = this.initParams()
 
         const chatCompletion = await this.client.chat.completions.create({
-            messages: convertMessagesToOpenAIMessages(content.messages),
+            messages: OpenAIUtil.convertMessagesToOpenAIMessages(content.messages),
             stream: true,
             ...params
         });
 
-        return streamFromOpenAI(chatCompletion, chatCompletion.controller)
+        return OpenAIUtil.streamFromOpenAI(chatCompletion, chatCompletion.controller)
     }
 
 
@@ -37,7 +36,7 @@ class ChatOpenAIProvider extends LLMProvider {
         const params = this.initParams()
 
         const chatCompletion = await this.client.chat.completions.create({
-            messages: convertMessagesToOpenAIMessages(content.messages),
+            messages: OpenAIUtil.convertMessagesToOpenAIMessages(content.messages),
             ...params
         });
 
@@ -68,8 +67,7 @@ class ChatOpenAIProvider extends LLMProvider {
         }
 
         return {
-            model: "accounts/fireworks/models/llama-v3p3-70b-instruct",
-            // model: this.options.modelName,
+            model: this.options.modelName,
             temperature: this.options.temperature.value,
         }
     }

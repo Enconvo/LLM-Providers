@@ -740,7 +740,7 @@
       "mode": "provider",
       "preferences": [
         {
-          "name": "model",
+          "name": "modelName",
           "description": "The model to generate the completion.",
           "type": "dropdown",
           "required": false,
@@ -2459,6 +2459,7 @@
     "@langchain/openai": "^0.3.2",
     "langchain": "^0.1.37",
     "langsmith": "^0.2.13",
+    "ollama": "^0.5.11",
     "openai": "^4.76.2"
   },
   "devDependencies": {
