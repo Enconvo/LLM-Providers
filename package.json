@@ -475,47 +475,6 @@
           "dataProxy": "llm|groq_models"
         },
         {
-          "name": "temperature",
-          "description": "What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.",
-          "type": "dropdown",
-          "required": false,
-          "title": "Temperature",
-          "default": 1,
-          "data": [
-            {
-              "title": "none",
-              "value": 0
-            },
-            {
-              "title": "low",
-              "value": 0.5
-            },
-            {
-              "title": "medium",
-              "value": 1
-            },
-            {
-              "title": "high",
-              "value": 1.5
-            },
-            {
-              "title": "maximum",
-              "value": 2
-            }
-          ]
-        },
-        {
-          "name": "apiKey",
-          "description": "How to get api key? [🔑here](https://console.groq.com/keys)",
-          "type": "password",
-          "required": false,
-          "title": "API KEY",
-          "default": "",
-          "defaultProxy": "KEY_GROQ_APIKEY",
-          "placeholder": "gsk_********",
-          "visibility": "hidden"
-        },
-        {
           "name": "openAIApiKey",
           "description": "How to get api key? [🔑here](https://console.groq.com/keys)",
           "type": "password",
@@ -534,16 +493,6 @@
           "default": "https://api.groq.com/openai/v1",
           "placeholder": "Groq Api Base Url",
           "visibility": "hidden"
-        },
-        {
-          "name": "streaming",
-          "description": "Whether to stream output",
-          "type": "checkbox",
-          "required": false,
-          "title": "Streaming",
-          "default": true,
-          "label": "Streaming",
-          "visibility": "hidden"
         }
       ]
     },
@@ -561,16 +510,8 @@
           "type": "dropdown",
           "required": false,
           "title": "Model Name",
-          "default": "grok-beta",
-          "data": [
-            {
-              "title": "Grok-Beta",
-              "value": "grok-beta",
-              "context": 128000,
-              "inputPrice": 0.0005,
-              "outputPrice": 0.015
-            }
-          ]
+          "default": "grok-2-1212",
+          "dataProxy": "llm|x_ai_models"
         },
         {
           "name": "openAIApiKey",
@@ -590,46 +531,6 @@
           "title": "X.AI Api Base Url",
           "default": "https://api.x.ai/v1",
           "placeholder": "X.AI Api Base Url",
-          "visibility": "hidden"
-        },
-        {
-          "name": "temperature",
-          "description": "What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.",
-          "type": "dropdown",
-          "required": false,
-          "title": "Temperature",
-          "default": 1,
-          "data": [
-            {
-              "title": "none",
-              "value": 0
-            },
-            {
-              "title": "low",
-              "value": 0.5
-            },
-            {
-              "title": "medium",
-              "value": 1
-            },
-            {
-              "title": "high",
-              "value": 1.5
-            },
-            {
-              "title": "maximum",
-              "value": 2
-            }
-          ]
-        },
-        {
-          "name": "streaming",
-          "description": "Whether to stream output",
-          "type": "checkbox",
-          "required": false,
-          "title": "Streaming",
-          "default": true,
-          "label": "Streaming",
           "visibility": "hidden"
         }
       ]
@@ -1299,93 +1200,6 @@
       ]
     },
     {
-      "name": "chat_vertex",
-      "title": "Google Vertex AI",
-      "description": "Chat with Google Vertex AI, learn more : [Google Vertex](https://cloud.google.com/vertex-ai/docs),  [How to Authenticate](https://cloud.google.com/docs/authentication/client-libraries), Powered by [Langchain JS](https://js.langchain.com/docs/integrations/chat/google_vertex_ai)",
-      "icon": "vertex.png",
-      "mode": "provider",
-      "preferences": [
-        {
-          "name": "modelName",
-          "description": "The model to generate the completion.",
-          "type": "dropdown",
-          "required": false,
-          "title": "Model Name",
-          "default": "gemini-1.5-flash-002",
-          "data": [
-            {
-              "title": "Gemini 1.5 Flash 002",
-              "value": "gemini-1.5-flash-002",
-              "context": 1048576,
-              "visionEnable": true
-            },
-            {
-              "title": "Gemini 1.5 Pro 002",
-              "value": "gemini-1.5-pro-002",
-              "context": 2097152,
-              "visionEnable": true
-            },
-            {
-              "title": "Claude 3.5 Sonnet",
-              "value": "claude-3-5-sonnet@20240620",
-              "context": 200000,
-              "visionEnable": true
-            }
-          ]
-        },
-        {
-          "name": "project_id",
-          "description": "How to get project id? [🔑here](https://cloud.google.com/resource-manager/docs/creating-managing-projects)",
-          "type": "textfield",
-          "required": false,
-          "title": "Project ID",
-          "default": "",
-          "defaultProxy": "KEY_GOOGLE_PROJECT_ID",
-          "placeholder": "Google Project ID"
-        },
-        {
-          "name": "temperature",
-          "description": "What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.",
-          "type": "dropdown",
-          "required": false,
-          "title": "Temperature",
-          "default": 1,
-          "data": [
-            {
-              "title": "none",
-              "value": 0
-            },
-            {
-              "title": "low",
-              "value": 0.5
-            },
-            {
-              "title": "medium",
-              "value": 1
-            },
-            {
-              "title": "high",
-              "value": 1.5
-            },
-            {
-              "title": "maximum",
-              "value": 2
-            }
-          ]
-        },
-        {
-          "name": "streaming",
-          "description": "Whether to stream output",
-          "type": "checkbox",
-          "required": false,
-          "title": "Streaming",
-          "default": true,
-          "label": "Streaming",
-          "visibility": "hidden"
-        }
-      ]
-    },
-    {
       "name": "chat_fireworks",
       "title": "Fireworks",
       "description": "Chat with Fireworks, learn more : [fireworks.ai](https://fireworks.ai), get all models from [fireworks models](https://fireworks.ai/models/fireworks/mixtral-8x7b-instruct)",
@@ -1766,6 +1580,36 @@
           "title": "Groq Api Base Url",
           "default": "https://api.groq.com/openai/v1",
           "placeholder": "Groq Api Base Url",
+          "visibility": "hidden"
+        }
+      ]
+    },
+    {
+      "name": "x_ai_models",
+      "title": "X.AI Models",
+      "description": "get X.AI model list",
+      "icon": "x_ai.png",
+      "showInCommandList": false,
+      "mode": "no-view",
+      "preferences": [
+        {
+          "name": "openAIApiKey",
+          "description": "How to get api key? [🔑here](https://docs.x.ai/docs/quickstart#creating-an-api-key)",
+          "type": "password",
+          "required": false,
+          "title": "API Key",
+          "default": "",
+          "defaultProxy": "llm|chat_x_ai",
+          "placeholder": "xai-********"
+        },
+        {
+          "name": "baseUrl",
+          "description": "X.AI api base url",
+          "type": "textfield",
+          "required": false,
+          "title": "X.AI Api Base Url",
+          "default": "https://api.x.ai/v1",
+          "placeholder": "X.AI Api Base Url",
           "visibility": "hidden"
         }
       ]

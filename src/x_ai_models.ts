@@ -1,5 +1,43 @@
 import { ModelCache } from "./utils/model_cache.ts"
 
+const models: ModelCache.ModelOutput[] = [
+    {
+        title: "grok-beta",
+        value: "grok-beta",
+        context: 131072,
+        inputPrice: 5.00,
+        outputPrice: 15.00,
+        toolUse: true,
+        visionEnable: false,
+    },
+    {
+        title: "grok-vision-beta",
+        value: "grok-vision-beta",
+        context: 8192,
+        inputPrice: 5.00,
+        outputPrice: 15.00,
+        toolUse: true,
+        visionEnable: true,
+    },
+    {
+        title: "grok-2-vision-1212",
+        value: "grok-2-vision-1212",
+        context: 32768,
+        inputPrice: 2.00,
+        outputPrice: 10.00,
+        toolUse: true,
+        visionEnable: true,
+    },
+    {
+        title: "grok-2-1212",
+        value: "grok-2-1212",
+        context: 131072,
+        inputPrice: 2.00,
+        outputPrice: 10.00,
+        toolUse: true,
+        visionEnable: false,
+    }
+]
 
 /**
  * Fetches models from the API and transforms them into ModelOutput format
@@ -21,20 +59,26 @@ async function fetchModels(url: string, api_key: string, type: string): Promise<
         }
 
         const data = await resp.json()
-        const result = data.data.filter((item: any) => !item.id.includes('whisper')).map((item: any) => {
-            const context = item.context_window || 8000
-            const visionEnable = item.id.includes('vision')
-            const toolUse = item.id.includes('tool-use')
+        const result = data.data.map((item: any) => {
+            const model = models.find((m) => {
+                return m.value === item.id
+            })
+
+            const context = model?.context || 8000
+            const visionEnable = model?.visionEnable || false
+            const toolUse = model?.toolUse || true
+            const title = model?.title || item.id
+            const value = model?.value || item.id
+            const inputPrice = model?.inputPrice || 0
+            const outputPrice = model?.outputPrice || 0
             return {
-                title: item.title || item.id,
-                value: item.value || item.id,
+                title: title,
+                value: value,
                 context: context,
-                inputPrice: item.inputPrice || 0,
-                outputPrice: item.outputPrice || 0,
+                inputPrice: inputPrice,
+                outputPrice: outputPrice,
                 toolUse: toolUse,
-                visionEnable: visionEnable,
-                visionImageCountLimit: 1,
-                systemMessageEnable: !visionEnable
+                visionEnable: visionEnable
             }
         })
 

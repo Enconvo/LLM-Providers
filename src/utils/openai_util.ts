@@ -1,19 +1,31 @@
-import { BaseChatMessage, BaseChatMessageChunk, FileUtil, Stream } from "@enconvo/api"
+import { BaseChatMessage, BaseChatMessageChunk, FileUtil, LLMProvider, Stream } from "@enconvo/api"
 import OpenAI from "openai"
 
 
 
 export namespace OpenAIUtil {
-    export const convertMessageToOpenAIMessage = (message: BaseChatMessage): OpenAI.Chat.ChatCompletionMessageParam => {
+    export const convertMessageToOpenAIMessage = (options: LLMProvider.LLMOptions, message: BaseChatMessage): OpenAI.Chat.ChatCompletionMessageParam => {
+        let role = message.role
+        if (options.modelName.systemMessageEnable === false && message.role === "system") {
+            role = "user"
+        }
 
         if (typeof message.content === "string") {
             //@ts-ignore
             return {
-                role: message.role,
+                role: role,
                 content: message.content
             }
         } else {
-            const content = message.content.filter((item) => item.type === "text" || item.type === "image_url").map((item) => {
+
+            const content = message.content.filter((item) => {
+                if (options.modelName.visionEnable === true) {
+                    return item.type === "text" || item.type === "image_url"
+                }
+
+                return item.type === "text"
+
+            }).map((item) => {
                 if (item.type === "image_url") {
                     const url = item.image_url.url
                     if (url.startsWith("file://")) {
@@ -30,18 +42,71 @@ export namespace OpenAIUtil {
                 return item
             })
 
+
+            if (message.content.length === 1 && message.content[0].type === "text") {
+                //@ts-ignore
+                return {
+                    role: role,
+                    content: message.content[0].text
+                }
+            }
+
+
+
             return {
-                role: message.role,
+                role: role,
                 //@ts-ignore
                 content: content
             }
         }
-
-
     }
 
-    export const convertMessagesToOpenAIMessages = (messages: BaseChatMessage[]): OpenAI.Chat.ChatCompletionMessageParam[] => {
-        return messages.map((message) => convertMessageToOpenAIMessage(message))
+
+    export const convertMessagesToOpenAIMessages = (options: LLMProvider.LLMOptions, messages: BaseChatMessage[]): OpenAI.Chat.ChatCompletionMessageParam[] => {
+
+        if (options.modelName.visionImageCountLimit !== undefined && options.modelName.visionImageCountLimit > 0 && options.modelName.visionEnable === true) {
+            if (options.modelName.visionImageCountLimit !== undefined && options.modelName.visionEnable === true) {
+                const countLimit = options.modelName.visionImageCountLimit;
+                let imageCount = 0;
+
+                messages = messages.reverse().map(message => {
+                    if (typeof message.content !== "string") {
+                        const filteredContent = message.content.filter(item => {
+                            if (item.type === "image_url" && imageCount < countLimit) {
+                                imageCount++;
+                                return true;
+                            }
+                            return item.type !== "image_url";
+                        }).reverse();
+
+                        return { ...message, content: filteredContent };
+                    }
+                    return message;
+                }).reverse();
+
+                imageCount = 0;
+                messages = messages.filter(message => {
+                    if (typeof message.content !== "string" && message.content.some(item => item.type === "image_url")) {
+                        if (imageCount < countLimit) {
+                            imageCount++;
+                            return true;
+                        }
+                        return false;
+                    }
+                    return true;
+                });
+            }
+        }
+
+        let newMessages = messages.map((message) => convertMessageToOpenAIMessage(options, message)).filter((message) => {
+            if (typeof message.content === "string" && message.content === "") {
+                return false
+            } else {
+                return message.content?.length !== 0
+            }
+        })
+
+        return newMessages
     }
 
 

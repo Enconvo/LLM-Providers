@@ -20,10 +20,14 @@ class ChatOpenAIProvider extends LLMProvider {
     }
 
     protected async _stream(content: { messages: BaseChatMessage[]; }): Promise<Stream<BaseChatMessageChunk>> {
+        console.log("options", this.options)
         const params = this.initParams()
 
+
+        const messages = OpenAIUtil.convertMessagesToOpenAIMessages(this.options, content.messages)
+
         const chatCompletion = await this.client.chat.completions.create({
-            messages: OpenAIUtil.convertMessagesToOpenAIMessages(content.messages),
+            messages,
             stream: true,
             ...params
         });
@@ -36,7 +40,7 @@ class ChatOpenAIProvider extends LLMProvider {
         const params = this.initParams()
 
         const chatCompletion = await this.client.chat.completions.create({
-            messages: OpenAIUtil.convertMessagesToOpenAIMessages(content.messages),
+            messages: OpenAIUtil.convertMessagesToOpenAIMessages(this.options, content.messages),
             ...params
         });
 
@@ -48,26 +52,8 @@ class ChatOpenAIProvider extends LLMProvider {
     private initParams() {
         const modelOptions = this.options.modelName
 
-        if (modelOptions) {
-
-            if (this.options.originCommandName !== 'chat_sambanova') {
-                this.options.maxTokens = modelOptions.maxTokens || 4096;
-            } else {
-                delete this.options.maxTokens;
-            }
-
-            const modelName = modelOptions.value || modelOptions;
-
-            if (this.options.originCommandName === 'azure_openai') {
-                this.options.azureOpenAIApiDeploymentName = modelName;
-                delete this.options.modelName;
-            } else {
-                this.options.modelName = modelName;
-            }
-        }
-
         return {
-            model: this.options.modelName,
+            model: modelOptions.value,
             temperature: this.options.temperature.value,
         }
     }
