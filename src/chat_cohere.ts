@@ -1,7 +1,7 @@
+import { LLMProvider } from "@enconvo/api";
 import { ChatCohere } from "@langchain/cohere";
 import { Runnable } from "langchain/runnables";
 import { BaseMessage } from "langchain/schema";
-import { LLMProvider, LLMOptions, LLMResult } from "./llm_provider.ts";
 
 
 
@@ -10,7 +10,7 @@ export default function main(options: any) {
 }
 
 export class CohereAIProvider extends LLMProvider {
-    protected async _initLCChatModel(options: LLMOptions): Promise<Runnable | undefined> {
+    protected async _initLCChatModel(options: LLMProvider.LLMOptions): Promise<Runnable | undefined> {
 
         options.temperature = Number(options.temperature.value);
 

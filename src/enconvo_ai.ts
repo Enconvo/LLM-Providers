@@ -1,65 +1,28 @@
-import { LLMOptions, LLMProvider, LLMResult } from "./llm_provider.ts";
-import { BaseMessage } from "@langchain/core/messages";
-import { Runnable } from "@langchain/core/runnables";
-import { ServiceProvider } from "./provider.ts";
-import { StructuredToolInterface } from "@langchain/core/tools";
+import { BaseChatMessage, Stream, BaseChatMessageChunk, LLMProvider } from "@enconvo/api";
 
 
 export default function main(options: any) {
 
-    return new EnconvoAIProvider({ options, autoInit: false })
+    return new EnconvoAIProvider(options)
 }
 
 class EnconvoAIProvider extends LLMProvider {
 
-    originalTools: StructuredToolInterface[] = []
-    protected async _call({ messages }: { messages: BaseMessage[]; }): Promise<LLMResult> {
-        const llmArr = (this.options.modelName.value || this.options.modelName).split("/")
-        let modelProvider = llmArr[0]
-        let newLLMOptions: LLMOptions = {}
+    llmProvider?: LLMProvider
 
-        this.resetTools()
-
-        newLLMOptions = this.options
-
-        if (modelProvider === 'anthropic') {
-            delete newLLMOptions.frequency_penalty
-            delete newLLMOptions.presence_penalty
-
-        }
-
-
-        await this.initLCChatModel(JSON.parse(JSON.stringify(newLLMOptions)))
-
-        // console.log("bindings", this.bindings)
-        this.lcChatModel = this.lcChatModel?.bind(this.bindings)
-
-        if (this.tools.length > 0) {
-            //@ts-ignore
-            this.lcChatModel = this.lcChatModel?.bind({ tools: this.tools })
-        }
-
-
-        const stream = await this.lcChatModel?.stream(messages)
-        return {
-            stream
-        }
+    constructor(options: LLMProvider.LLMOptions) {
+        super(options)
     }
 
-    resetTools() {
-        if (this.tools.length <= 0) {
-            this.tools = this.originalTools
+
+    async initLLMProvider() {
+        console.log("LLLLLLLLL", this.options)
+        if (this.llmProvider) {
+            return this.llmProvider
         }
-    }
+        console.log("this.options", this.options)
 
-    clearTools() {
-        this.originalTools = this.tools
-        this.tools = []
-    }
-
-    protected async _initLCChatModel(newLLMOptions: LLMOptions): Promise<Runnable | undefined> {
-        // console.log("LLLLLLLLL", newLLMOptions)
-        const newLLMArr = (newLLMOptions.modelName.value || newLLMOptions.modelName).split("/")
+        const newLLMArr = (this.options.modelName.value || this.options.modelName).split("/")
         const modelProvider = newLLMArr[0]
 
         const anthropicApiUrl = "https://api.enconvo.com/"
@@ -69,44 +32,37 @@ class EnconvoAIProvider extends LLMProvider {
 
         switch (modelProvider) {
             case "anthropic":
-                newLLMOptions.commandName = "chat_anthropic";
-                newLLMOptions.anthropicApiUrl = anthropicApiUrl
+                this.options.commandName = "chat_anthropic";
+                this.options.anthropicApiUrl = anthropicApiUrl
                 break;
             default:
-                newLLMOptions.commandName = "chat_open_ai";
-                newLLMOptions.baseUrl = openAIBaseUrl
+                this.options.commandName = "chat_open_ai";
+                this.options.baseUrl = openAIBaseUrl
                 break;
         }
-        newLLMOptions.extensionName = "llm";
+        this.options.extensionName = "llm";
 
-        const llmProvider: LLMProvider = ServiceProvider.load(newLLMOptions)
-        this.lcChatModel = await llmProvider.initLCChatModel(newLLMOptions)
-        return this.lcChatModel
+        const llmProvider: LLMProvider = await LLMProvider.fromOptions(this.options)
+
+        this.llmProvider = llmProvider
+
+        return llmProvider
     }
 
 
 
-    isVisionEnabled(messages: BaseMessage[]) {
-        let visionEnabled = false
+    protected async _call(content: { messages: BaseChatMessage[]; }): Promise<BaseChatMessage> {
+        const llmProvider = await this.initLLMProvider()
 
-        for (const message of messages) {
-            if (typeof message.content === 'string') {
-                continue
-            }
-            if (typeof message.content === 'object') {
-                // array
-                for (const content of message.content) {
-                    if (content.type === 'image_url') {
-                        visionEnabled = true
-                        break
-                    }
-                }
-            }
-            if (visionEnabled) {
-                break
-            }
-        }
-        return visionEnabled
+        return llmProvider.call(content)
     }
+
+    protected async _stream(content: { messages: BaseChatMessage[]; }): Promise<Stream<BaseChatMessageChunk>> {
+        const llmProvider = await this.initLLMProvider()
+
+        return llmProvider.stream(content)
+    }
+
+
 }
 

@@ -1,9 +1,9 @@
-import { LLMProvider } from './llm_provider.ts';
 import { env } from 'process';
-import { BaseChatMessage, BaseChatMessageChunk, Stream, UserMessage } from '@enconvo/api';
-import { convertMessagesToOpenAIMessages, streamFromOpenAI } from './utils/message_convert.ts';
+import { BaseChatMessage, BaseChatMessageChunk, LLMProvider, Stream, UserMessage } from '@enconvo/api';
+import { convertMessagesToOpenAIMessages } from './utils/openai_util.ts';
 import OpenAI from 'openai';
 import { wrapOpenAI } from "langsmith/wrappers";
+import { streamFromOpenAI } from './utils/stream_utils.ts';
 
 
 
@@ -87,35 +87,21 @@ class ChatOpenAIProvider extends LLMProvider {
     private _createOpenaiClient(options: LLMProvider.LLMOptions): OpenAI {
         // change options.temperature to number
         options.temperature = Number(options.temperature.value);
-        options.frequencyPenalty = Number(options.frequencyPenalty || "0.0");
 
         // streaming to boolean
-        let customHeaders = {}
-        try {
-            customHeaders = JSON.parse(options.customHeaders)
-        } catch (error) {
-
-        }
 
 
         let headers = {
-            ...options.headers,
-            ...customHeaders
         }
 
         if (options.originCommandName === 'enconvo_ai') {
             headers = {
-                ...headers,
                 "accessToken": `${env['accessToken']}`,
                 "client_id": `${env['client_id']}`,
                 "commandKey": `${env['commandKey']}`
             }
         }
 
-        let config: any = {
-            baseURL: options.baseUrl || "https://api.openai.com/v1",
-            defaultHeaders: headers,
-        }
 
         if (
             options.modelName === "openai/o1-mini"
@@ -137,6 +123,7 @@ class ChatOpenAIProvider extends LLMProvider {
         const client = new OpenAI({
             apiKey: options.openAIApiKey, // This is the default and can be omitted
             baseURL: options.baseUrl || "https://api.openai.com/v1",
+            defaultHeaders: headers,
         });
 
 

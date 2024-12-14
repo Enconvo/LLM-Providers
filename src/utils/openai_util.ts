@@ -34,7 +34,7 @@ export const convertMessageToOpenAIMessage = (message: BaseChatMessage): OpenAI.
             content: message.content
         }
     } else {
-        const content = message.content.map((item) => {
+        const content = message.content.filter((item) => item.type === "text" || item.type === "image_url").map((item) => {
             if (item.type === "image_url") {
                 const url = item.image_url.url
                 if (url.startsWith("file://")) {
@@ -66,40 +66,3 @@ export const convertMessagesToOpenAIMessages = (messages: BaseChatMessage[]): Op
 }
 
 
-
-export function streamFromOpenAI(response: AsyncIterable<OpenAI.Chat.ChatCompletionChunk>, controller: AbortController): Stream<BaseChatMessageChunk> {
-    let consumed = false;
-
-    async function* iterator(): AsyncIterator<BaseChatMessageChunk, any, undefined> {
-        if (consumed) {
-            throw new Error('Cannot iterate over a consumed stream, use `.tee()` to split the stream.');
-        }
-        consumed = true;
-        let done = false;
-        try {
-            for await (const chunk of response) {
-                if (done) continue;
-
-                if (chunk.choices[0].finish_reason) {
-                    done = true;
-                    continue
-                }
-
-                const newChunk = new BaseChatMessageChunk({
-                    content: chunk.choices[0].delta.content || '',
-                    id: chunk.id
-                })
-
-                yield newChunk
-            }
-            done = true;
-        } catch (e) {
-            if (e instanceof Error && e.name === 'AbortError') return;
-            throw e;
-        } finally {
-            if (!done) controller.abort();
-        }
-    }
-
-    return new Stream(iterator, controller);
-}

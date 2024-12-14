@@ -35,27 +35,27 @@
           "type": "dropdown",
           "required": false,
           "title": "Temperature",
-          "default": "1.0",
+          "default": 1,
           "data": [
             {
               "title": "none",
-              "value": "0.0"
+              "value": 0
             },
             {
               "title": "low",
-              "value": "0.5"
+              "value": 0.5
             },
             {
               "title": "medium",
-              "value": "1.0"
+              "value": 1
             },
             {
               "title": "high",
-              "value": "1.5"
+              "value": 1.5
             },
             {
               "title": "maximum",
-              "value": "2.0"
+              "value": 2
             }
           ]
         },
@@ -123,27 +123,27 @@
           "type": "dropdown",
           "required": false,
           "title": "Temperature",
-          "default": "1.0",
+          "default": 1,
           "data": [
             {
               "title": "none",
-              "value": "0.0"
+              "value": 0
             },
             {
               "title": "low",
-              "value": "0.5"
+              "value": 0.5
             },
             {
               "title": "medium",
-              "value": "1.0"
+              "value": 1
             },
             {
               "title": "high",
-              "value": "1.5"
+              "value": 1.5
             },
             {
               "title": "maximum",
-              "value": "2.0"
+              "value": 2
             }
           ]
         },
@@ -220,27 +220,27 @@
           "type": "dropdown",
           "required": false,
           "title": "Temperature",
-          "default": "1.0",
+          "default": 1,
           "data": [
             {
               "title": "none",
-              "value": "0.0"
+              "value": 0
             },
             {
               "title": "low",
-              "value": "0.5"
+              "value": 0.5
             },
             {
               "title": "medium",
-              "value": "1.0"
+              "value": 1
             },
             {
               "title": "high",
-              "value": "1.5"
+              "value": 1.5
             },
             {
               "title": "maximum",
-              "value": "2.0"
+              "value": 2
             }
           ]
         },
@@ -262,7 +262,8 @@
           "title": "Anthropic Api Base Url",
           "defaultProxy": "KEY_CLAUDE_BASEURL",
           "default": "https://api.anthropic.com",
-          "placeholder": "https://api.anthropic.com"
+          "placeholder": "https://api.anthropic.com",
+          "visibility": "show"
         },
         {
           "name": "streaming",
@@ -333,27 +334,27 @@
           "type": "dropdown",
           "required": false,
           "title": "Temperature",
-          "default": "1.0",
+          "default": 1,
           "data": [
             {
               "title": "none",
-              "value": "0.0"
+              "value": 0
             },
             {
               "title": "low",
-              "value": "0.5"
+              "value": 0.5
             },
             {
               "title": "medium",
-              "value": "1.0"
+              "value": 1
             },
             {
               "title": "high",
-              "value": "1.5"
+              "value": 1.5
             },
             {
               "title": "maximum",
-              "value": "2.0"
+              "value": 2
             }
           ]
         },
@@ -420,27 +421,27 @@
           "type": "dropdown",
           "required": false,
           "title": "Temperature",
-          "default": "1.0",
+          "default": 1,
           "data": [
             {
               "title": "none",
-              "value": "0.0"
+              "value": 0
             },
             {
               "title": "low",
-              "value": "0.5"
+              "value": 0.5
             },
             {
               "title": "medium",
-              "value": "1.0"
+              "value": 1
             },
             {
               "title": "high",
-              "value": "1.5"
+              "value": 1.5
             },
             {
               "title": "maximum",
-              "value": "2.0"
+              "value": 2
             }
           ]
         },
@@ -479,27 +480,27 @@
           "type": "dropdown",
           "required": false,
           "title": "Temperature",
-          "default": "1.0",
+          "default": 1,
           "data": [
             {
               "title": "none",
-              "value": "0.0"
+              "value": 0
             },
             {
               "title": "low",
-              "value": "0.5"
+              "value": 0.5
             },
             {
               "title": "medium",
-              "value": "1.0"
+              "value": 1
             },
             {
               "title": "high",
-              "value": "1.5"
+              "value": 1.5
             },
             {
               "title": "maximum",
-              "value": "2.0"
+              "value": 2
             }
           ]
         },
@@ -597,27 +598,27 @@
           "type": "dropdown",
           "required": false,
           "title": "Temperature",
-          "default": "1.0",
+          "default": 1,
           "data": [
             {
               "title": "none",
-              "value": "0.0"
+              "value": 0
             },
             {
               "title": "low",
-              "value": "0.5"
+              "value": 0.5
             },
             {
               "title": "medium",
-              "value": "1.0"
+              "value": 1
             },
             {
               "title": "high",
-              "value": "1.5"
+              "value": 1.5
             },
             {
               "title": "maximum",
-              "value": "2.0"
+              "value": 2
             }
           ]
         },
@@ -695,27 +696,27 @@
           "type": "dropdown",
           "required": false,
           "title": "Temperature",
-          "default": "1.0",
+          "default": 1,
           "data": [
             {
               "title": "none",
-              "value": "0.0"
+              "value": 0
             },
             {
               "title": "low",
-              "value": "0.5"
+              "value": 0.5
             },
             {
               "title": "medium",
-              "value": "1.0"
+              "value": 1
             },
             {
               "title": "high",
-              "value": "1.5"
+              "value": 1.5
             },
             {
               "title": "maximum",
-              "value": "2.0"
+              "value": 2
             }
           ]
         },
@@ -753,27 +754,27 @@
           "type": "dropdown",
           "required": false,
           "title": "Temperature",
-          "default": "1.0",
+          "default": 1,
           "data": [
             {
               "title": "none",
-              "value": "0.0"
+              "value": 0
             },
             {
               "title": "low",
-              "value": "0.5"
+              "value": 0.5
             },
             {
               "title": "medium",
-              "value": "1.0"
+              "value": 1
             },
             {
               "title": "high",
-              "value": "1.5"
+              "value": 1.5
             },
             {
               "title": "maximum",
-              "value": "2.0"
+              "value": 2
             }
           ]
         },
@@ -821,27 +822,27 @@
           "type": "dropdown",
           "required": false,
           "title": "Temperature",
-          "default": "1.0",
+          "default": 1,
           "data": [
             {
               "title": "none",
-              "value": "0.0"
+              "value": 0
             },
             {
               "title": "low",
-              "value": "0.5"
+              "value": 0.5
             },
             {
               "title": "medium",
-              "value": "1.0"
+              "value": 1
             },
             {
               "title": "high",
-              "value": "1.5"
+              "value": 1.5
             },
             {
               "title": "maximum",
-              "value": "2.0"
+              "value": 2
             }
           ]
         },
@@ -880,27 +881,27 @@
           "type": "dropdown",
           "required": false,
           "title": "Temperature",
-          "default": "1.0",
+          "default": 1,
           "data": [
             {
               "title": "none",
-              "value": "0.0"
+              "value": 0
             },
             {
               "title": "low",
-              "value": "0.5"
+              "value": 0.5
             },
             {
               "title": "medium",
-              "value": "1.0"
+              "value": 1
             },
             {
               "title": "high",
-              "value": "1.5"
+              "value": 1.5
             },
             {
               "title": "maximum",
-              "value": "2.0"
+              "value": 2
             }
           ]
         },
@@ -983,27 +984,27 @@
           "type": "dropdown",
           "required": false,
           "title": "Temperature",
-          "default": "1.0",
+          "default": 1,
           "data": [
             {
               "title": "none",
-              "value": "0.0"
+              "value": 0
             },
             {
               "title": "low",
-              "value": "0.5"
+              "value": 0.5
             },
             {
               "title": "medium",
-              "value": "1.0"
+              "value": 1
             },
             {
               "title": "high",
-              "value": "1.5"
+              "value": 1.5
             },
             {
               "title": "maximum",
-              "value": "2.0"
+              "value": 2
             }
           ]
         },
@@ -1062,27 +1063,27 @@
           "type": "dropdown",
           "required": false,
           "title": "Temperature",
-          "default": "1.0",
+          "default": 1,
           "data": [
             {
               "title": "none",
-              "value": "0.0"
+              "value": 0
             },
             {
               "title": "low",
-              "value": "0.5"
+              "value": 0.5
             },
             {
               "title": "medium",
-              "value": "1.0"
+              "value": 1
             },
             {
               "title": "high",
-              "value": "1.5"
+              "value": 1.5
             },
             {
               "title": "maximum",
-              "value": "2.0"
+              "value": 2
             }
           ]
         },
@@ -1141,27 +1142,27 @@
           "type": "dropdown",
           "required": false,
           "title": "Temperature",
-          "default": "1.0",
+          "default": 1,
           "data": [
             {
               "title": "none",
-              "value": "0.0"
+              "value": 0
             },
             {
               "title": "low",
-              "value": "0.5"
+              "value": 0.5
             },
             {
               "title": "medium",
-              "value": "1.0"
+              "value": 1
             },
             {
               "title": "high",
-              "value": "1.5"
+              "value": 1.5
             },
             {
               "title": "maximum",
-              "value": "2.0"
+              "value": 2
             }
           ]
         },
@@ -1210,27 +1211,27 @@
           "type": "dropdown",
           "required": false,
           "title": "Temperature",
-          "default": "1.0",
+          "default": 1,
           "data": [
             {
               "title": "none",
-              "value": "0.0"
+              "value": 0
             },
             {
               "title": "low",
-              "value": "0.5"
+              "value": 0.5
             },
             {
               "title": "medium",
-              "value": "1.0"
+              "value": 1
             },
             {
               "title": "high",
-              "value": "1.5"
+              "value": 1.5
             },
             {
               "title": "maximum",
-              "value": "2.0"
+              "value": 2
             }
           ]
         },
@@ -1317,27 +1318,27 @@
           "type": "dropdown",
           "required": false,
           "title": "Temperature",
-          "default": "1.0",
+          "default": 1,
           "data": [
             {
               "title": "none",
-              "value": "0.0"
+              "value": 0
             },
             {
               "title": "low",
-              "value": "0.5"
+              "value": 0.5
             },
             {
               "title": "medium",
-              "value": "1.0"
+              "value": 1
             },
             {
               "title": "high",
-              "value": "1.5"
+              "value": 1.5
             },
             {
               "title": "maximum",
-              "value": "2.0"
+              "value": 2
             }
           ]
         },
@@ -1375,27 +1376,27 @@
           "type": "dropdown",
           "required": false,
           "title": "Temperature",
-          "default": "1.0",
+          "default": 1,
           "data": [
             {
               "title": "none",
-              "value": "0.0"
+              "value": 0
             },
             {
               "title": "low",
-              "value": "0.5"
+              "value": 0.5
             },
             {
               "title": "medium",
-              "value": "1.0"
+              "value": 1
             },
             {
               "title": "high",
-              "value": "1.5"
+              "value": 1.5
             },
             {
               "title": "maximum",
-              "value": "2.0"
+              "value": 2
             }
           ]
         },
@@ -1512,27 +1513,27 @@
           "type": "dropdown",
           "required": false,
           "title": "Temperature",
-          "default": "1.0",
+          "default": 1,
           "data": [
             {
               "title": "none",
-              "value": "0.0"
+              "value": 0
             },
             {
               "title": "low",
-              "value": "0.5"
+              "value": 0.5
             },
             {
               "title": "medium",
-              "value": "1.0"
+              "value": 1
             },
             {
               "title": "high",
-              "value": "1.5"
+              "value": 1.5
             },
             {
               "title": "maximum",
-              "value": "2.0"
+              "value": 2
             }
           ]
         },
@@ -1594,27 +1595,27 @@
           "type": "dropdown",
           "required": false,
           "title": "Temperature",
-          "default": "1.0",
+          "default": 1,
           "data": [
             {
               "title": "none",
-              "value": "0.0"
+              "value": 0
             },
             {
               "title": "low",
-              "value": "0.5"
+              "value": 0.5
             },
             {
               "title": "medium",
-              "value": "1.0"
+              "value": 1
             },
             {
               "title": "high",
-              "value": "1.5"
+              "value": 1.5
             },
             {
               "title": "maximum",
-              "value": "2.0"
+              "value": 2
             }
           ]
         },
@@ -1987,27 +1988,27 @@
           "type": "dropdown",
           "required": false,
           "title": "Temperature",
-          "default": "1.0",
+          "default": 1,
           "data": [
             {
               "title": "none",
-              "value": "0.0"
+              "value": 0
             },
             {
               "title": "low",
-              "value": "0.5"
+              "value": 0.5
             },
             {
               "title": "medium",
-              "value": "1.0"
+              "value": 1
             },
             {
               "title": "high",
-              "value": "1.5"
+              "value": 1.5
             },
             {
               "title": "maximum",
-              "value": "2.0"
+              "value": 2
             }
           ]
         },
@@ -2104,27 +2105,27 @@
           "type": "dropdown",
           "required": false,
           "title": "Temperature",
-          "default": "1.0",
+          "default": 1,
           "data": [
             {
               "title": "none",
-              "value": "0.0"
+              "value": 0
             },
             {
               "title": "low",
-              "value": "0.5"
+              "value": 0.5
             },
             {
               "title": "medium",
-              "value": "1.0"
+              "value": 1
             },
             {
               "title": "high",
-              "value": "1.5"
+              "value": 1.5
             },
             {
               "title": "maximum",
-              "value": "2.0"
+              "value": 2
             }
           ]
         },
@@ -2209,27 +2210,27 @@
           "type": "dropdown",
           "required": false,
           "title": "Temperature",
-          "default": "1.0",
+          "default": 1,
           "data": [
             {
               "title": "none",
-              "value": "0.0"
+              "value": 0
             },
             {
               "title": "low",
-              "value": "0.5"
+              "value": 0.5
             },
             {
               "title": "medium",
-              "value": "1.0"
+              "value": 1
             },
             {
               "title": "high",
-              "value": "1.5"
+              "value": 1.5
             },
             {
               "title": "maximum",
-              "value": "2.0"
+              "value": 2
             }
           ]
         },
@@ -2299,27 +2300,27 @@
           "type": "dropdown",
           "required": false,
           "title": "Temperature",
-          "default": "1.0",
+          "default": 1,
           "data": [
             {
               "title": "none",
-              "value": "0.0"
+              "value": 0
             },
             {
               "title": "low",
-              "value": "0.5"
+              "value": 0.5
             },
             {
               "title": "medium",
-              "value": "1.0"
+              "value": 1
             },
             {
               "title": "high",
-              "value": "1.5"
+              "value": 1.5
             },
             {
               "title": "maximum",
-              "value": "2.0"
+              "value": 2
             }
           ]
         },
@@ -2388,27 +2389,27 @@
           "type": "dropdown",
           "required": false,
           "title": "Temperature",
-          "default": "1.0",
+          "default": 1,
           "data": [
             {
               "title": "none",
-              "value": "0.0"
+              "value": 0
             },
             {
               "title": "low",
-              "value": "0.5"
+              "value": 0.5
             },
             {
               "title": "medium",
-              "value": "1.0"
+              "value": 1
             },
             {
               "title": "high",
-              "value": "1.5"
+              "value": 1.5
             },
             {
               "title": "maximum",
-              "value": "2.0"
+              "value": 2
             }
           ]
         },
@@ -2462,6 +2463,7 @@
     }
   ],
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.1",
     "@enconvo/api": "link:/Users/ysnows/Documents/Project/enconvo.nodejs/enconvo_api",
     "@google/generative-ai": "^0.5.0",
     "@langchain/anthropic": "^0.1.21",

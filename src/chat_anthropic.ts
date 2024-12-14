@@ -1,48 +1,54 @@
-import { ChatAnthropic } from "@langchain/anthropic";
-import { BaseMessage } from "langchain/schema";
-import { LLMProvider, LLMOptions, LLMResult } from "./llm_provider.ts";
-import { Runnable } from "@langchain/core/runnables";
-import { env } from "process";
+import { BaseChatMessage, BaseChatMessageChunk, LLMProvider, Stream } from "@enconvo/api";
+import Anthropic from '@anthropic-ai/sdk';
+import { convertMessagesToAnthropicMessages, convertMessageToAnthropicMessage, streamFromAnthropic } from "./utils/anthropic_util.ts";
 
 export default function main(options: any) {
-    return new AnthropicOpenAIProvider({ options })
+    return new AnthropicOpenAIProvider(options)
 }
 
 export class AnthropicOpenAIProvider extends LLMProvider {
-    protected async _initLCChatModel(options: LLMOptions): Promise<Runnable | undefined> {
+    anthropic: Anthropic
 
-        options.temperature = Number(options.temperature.value);
-        options.frequencyPenalty = Number(options.frequencyPenalty || "0.0");
+    constructor(options: LLMProvider.LLMOptions) {
+        super(options)
 
-        const modelOptions = options.modelName
-        const modelName = modelOptions.value
-        options.modelName = modelName;
-        options.streaming = true;
-        options.anthropicApiUrl = options.anthropicApiUrl || "https://api.anthropic.com";
-
-
-        let config: any = {
-            defaultHeaders: {
-                ...options.headers,
-                "accessToken": `${env['accessToken']}`,
-                "client_id": `${env['client_id']}`,
-                "commandKey": `${env['commandKey']}`
-            },
-        }
-
-        return new ChatAnthropic({
-            ...options,
-            clientOptions: config
+        this.anthropic = new Anthropic({
+            apiKey: options.anthropicApiKey, // defaults to process.env["ANTHROPIC_API_KEY"]
         });
+
+
     }
 
-    protected async _call({ messages }: { messages: BaseMessage[]; }): Promise<LLMResult> {
+    protected async _call(content: { messages: BaseChatMessage[]; }): Promise<BaseChatMessage> {
 
-        const stream = await this.lcChatModel?.stream(messages)
+        const msg = await this.anthropic.messages.create({
+            model: "claude-3-5-sonnet-20241022",
+            max_tokens: 1024,
+            messages: [{ role: "user", content: "Hello, Claude" }],
+        });
+        console.log(msg);
+        throw new Error("Method not implemented.");
+    }
 
-        return {
-            stream
-        }
+    protected async _stream(content: { messages: BaseChatMessage[]; }): Promise<Stream<BaseChatMessageChunk>> {
+        // get system message from messages
+        console.log("content", JSON.stringify(content))
+
+        const systemMessage = content.messages[0]?.role === 'system' ? content.messages.shift() : undefined
+        const system = typeof systemMessage?.content === 'string' ? systemMessage.content : ''
+
+
+
+        const stream = this.anthropic.messages.stream({
+            system,
+            model: this.options.modelName.value,
+            temperature: this.options.temperature.value,
+            max_tokens: 1024,
+            messages: convertMessagesToAnthropicMessages(content.messages),
+        });
+
+        return streamFromAnthropic(stream, stream.controller)
+
     }
 
 

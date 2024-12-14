@@ -2,16 +2,14 @@ import { ChatOpenAI } from "langchain/chat_models/openai";
 
 import { Runnable } from "langchain/runnables";
 import { BaseMessage } from "langchain/schema";
-import { LLMProvider, LLMOptions, LLMResult } from "./llm_provider.ts";
-
-
+import { LLMProvider } from "@enconvo/api";
 
 export default function main(options: any) {
-    return new LLMProvider({ options })
+    return new ChatLMStudioProvider({ options })
 }
 
-export class LLMProvider extends LLMProvider {
-    protected async _initLCChatModel(options: LLMOptions): Promise<Runnable | undefined> {
+export class ChatLMStudioProvider extends LLMProvider {
+    protected async _initLCChatModel(options: LLMProvider.LLMOptions): Promise<Runnable | undefined> {
         // change options.temperature to number
         options.temperature = Number(options.temperature.value);
 

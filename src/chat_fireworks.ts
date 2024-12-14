@@ -1,15 +1,15 @@
-import { LLMOptions, LLMProvider, LLMResult } from './llm_provider.ts';
 import { BaseMessage } from 'langchain/schema';
 import { Runnable } from 'langchain/runnables';
 import { env } from 'process';
 import { ChatFireworks } from "@langchain/community/chat_models/fireworks";
+import { LLMProvider } from '@enconvo/api';
 
 export default function main(options: any) {
-    return new ChatOpenAIProvider({ options })
+    return new ChatFireworksProvider( options )
 }
 
-class ChatOpenAIProvider extends LLMProvider {
-    protected async _initLCChatModel(options: LLMOptions): Promise<Runnable> {
+class ChatFireworksProvider extends LLMProvider {
+    protected async _initLCChatModel(options: LLMProvider.LLMOptions): Promise<Runnable> {
 
         // change options.temperature to number
         options.temperature = Number(options.temperature.value);
