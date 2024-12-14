@@ -640,6 +640,7 @@
       "description": "Chat with Mistral AI, learn more : [mistral.ai](https://mistral.ai/)",
       "icon": "mistral.jpg",
       "mode": "provider",
+      "targetCommand": "llm|chat_open_ai",
       "preferences": [
         {
           "name": "modelName",
@@ -681,7 +682,7 @@
           ]
         },
         {
-          "name": "apiKey",
+          "name": "openAIApiKey",
           "description": "How to get api key? [🔑here](https://console.mistral.ai/api-keys/)",
           "type": "password",
           "required": false,
@@ -689,6 +690,16 @@
           "default": "",
           "defaultProxy": "KEY_MISTRAL_APIKEY",
           "placeholder": "Mistral AI Api Key"
+        },
+        {
+          "name": "baseUrl",
+          "description": "Mixtral api base url",
+          "type": "textfield",
+          "required": false,
+          "title": "BaseUrl",
+          "default": "https://api.mistral.ai/v1",
+          "defaultProxy": "KEY_MISTRAL_BASEURL",
+          "placeholder": "Mixtral Api Base Url"
         },
         {
           "name": "temperature",
