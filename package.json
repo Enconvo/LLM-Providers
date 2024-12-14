@@ -1360,6 +1360,7 @@
       "description": "Chat with Fireworks, learn more : [fireworks.ai](https://fireworks.ai), get all models from [fireworks models](https://fireworks.ai/models/fireworks/mixtral-8x7b-instruct)",
       "icon": "fireworks.jpg",
       "mode": "provider",
+      "targetCommand": "llm|chat_open_ai",
       "preferences": [
         {
           "name": "modelName",
@@ -1705,26 +1706,6 @@
           "type": "textfield",
           "required": false,
           "default": "https://file.enconvo.com/modles/perplexity.json"
-        }
-      ]
-    },
-    {
-      "name": "premai_models",
-      "title": "premai Models",
-      "description": "get premai model list",
-      "icon": "premai.png",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "apiKey",
-          "description": "APIKey for premai",
-          "type": "password",
-          "required": false,
-          "title": "Api Key",
-          "default": "",
-          "defaultProxy": "llm|premai",
-          "placeholder": "Api Key"
         }
       ]
     },
@@ -2476,7 +2457,6 @@
     "@langchain/groq": "^0.0.1",
     "@langchain/mistralai": "^0.0.5",
     "@langchain/openai": "^0.3.2",
-    "@premai/prem-sdk": "^0.3.69",
     "langchain": "^0.1.37",
     "langsmith": "^0.2.13",
     "openai": "^4.76.2"

@@ -21,30 +21,12 @@ class ChatOpenAIProvider extends LLMProvider {
     }
 
     protected async _stream(content: { messages: BaseChatMessage[]; }): Promise<Stream<BaseChatMessageChunk>> {
-        const modelOptions = this.options.modelName
-
-        if (modelOptions) {
-
-            if (this.options.originCommandName !== 'chat_sambanova') {
-                this.options.maxTokens = modelOptions.maxTokens || 4096;
-            } else {
-                delete this.options.maxTokens;
-            }
-
-            const modelName = modelOptions.value || modelOptions;
-
-            if (this.options.originCommandName === 'azure_openai') {
-                this.options.azureOpenAIApiDeploymentName = modelName;
-                delete this.options.modelName;
-            } else {
-                this.options.modelName = modelName;
-            }
-        }
+        const params = this.initParams()
 
         const chatCompletion = await this.client.chat.completions.create({
             messages: convertMessagesToOpenAIMessages(content.messages),
-            model: this.options.modelName,
-            stream: true
+            stream: true,
+            ...params
         });
 
         return streamFromOpenAI(chatCompletion, chatCompletion.controller)
@@ -52,7 +34,19 @@ class ChatOpenAIProvider extends LLMProvider {
 
 
     protected async _call(content: { messages: BaseChatMessage[]; }): Promise<BaseChatMessage> {
+        const params = this.initParams()
 
+        const chatCompletion = await this.client.chat.completions.create({
+            messages: convertMessagesToOpenAIMessages(content.messages),
+            ...params
+        });
+
+        const result = chatCompletion.choices[0]
+
+        return new UserMessage(result?.message?.content || '')
+    }
+
+    private initParams() {
         const modelOptions = this.options.modelName
 
         if (modelOptions) {
@@ -73,16 +67,12 @@ class ChatOpenAIProvider extends LLMProvider {
             }
         }
 
-        const chatCompletion = await this.client.chat.completions.create({
-            messages: convertMessagesToOpenAIMessages(content.messages),
-            model: this.options.modelName
-        });
-
-        const result = chatCompletion.choices[0]
-
-        return new UserMessage(result?.message?.content || '')
+        return {
+            model: "accounts/fireworks/models/llama-v3p3-70b-instruct",
+            // model: this.options.modelName,
+            temperature: this.options.temperature.value,
+        }
     }
-
 
     private _createOpenaiClient(options: LLMProvider.LLMOptions): OpenAI {
         // change options.temperature to number
