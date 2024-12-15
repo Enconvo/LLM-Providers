@@ -550,37 +550,7 @@
           "required": false,
           "title": "Model Name",
           "default": "mistral-small-latest",
-          "data": [
-            {
-              "title": "Mistral Small",
-              "value": "mistral-small-latest",
-              "context": 32000,
-              "inputPrice": 0.0002,
-              "outputPrice": 0.0006
-            },
-            {
-              "title": "Mistral Large",
-              "value": "mistral-large-latest",
-              "context": 128000,
-              "inputPrice": 0.002,
-              "outputPrice": 0.006
-            },
-            {
-              "title": "Codestral",
-              "value": "codestral-latest",
-              "context": 32000,
-              "inputPrice": 0.0002,
-              "outputPrice": 0.0006
-            },
-            {
-              "title": "Pixtral",
-              "value": "pixtral-12b-2409",
-              "context": 128000,
-              "visionEnable": true,
-              "inputPrice": 0.00015,
-              "outputPrice": 0.00015
-            }
-          ]
+          "dataProxy": "llm|mistral_models"
         },
         {
           "name": "openAIApiKey",
@@ -631,16 +601,6 @@
               "value": 2
             }
           ]
-        },
-        {
-          "name": "streaming",
-          "description": "Whether to stream output",
-          "type": "checkbox",
-          "required": false,
-          "title": "Streaming",
-          "default": true,
-          "label": "Streaming",
-          "visibility": "hidden"
         }
       ]
     },
@@ -1611,6 +1571,36 @@
           "default": "https://api.x.ai/v1",
           "placeholder": "X.AI Api Base Url",
           "visibility": "hidden"
+        }
+      ]
+    },
+    {
+      "name": "mistral_models",
+      "title": "Mistral Models",
+      "description": "get Mistral model list",
+      "icon": "mistral.png",
+      "showInCommandList": false,
+      "mode": "no-view",
+      "preferences": [
+        {
+          "name": "openAIApiKey",
+          "description": "How to get api key? [🔑here](https://console.mistral.ai/api-keys/)",
+          "type": "password",
+          "required": false,
+          "title": "API Key",
+          "default": "",
+          "defaultProxy": "llm|chat_mistral",
+          "placeholder": "Mistral AI Api Key"
+        },
+        {
+          "name": "baseUrl",
+          "description": "Mixtral api base url",
+          "type": "textfield",
+          "required": false,
+          "title": "BaseUrl",
+          "default": "https://api.mistral.ai/v1",
+          "defaultProxy": "KEY_MISTRAL_BASEURL",
+          "placeholder": "Mixtral Api Base Url"
         }
       ]
     },
