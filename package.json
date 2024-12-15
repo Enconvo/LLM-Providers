@@ -1460,392 +1460,6 @@
       ]
     },
     {
-      "name": "ollama_models",
-      "title": "Ollama Models",
-      "description": "get ollama model list",
-      "icon": "ollama.png",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "baseUrl",
-          "description": "Ollama api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "BaseUrl",
-          "default": "http://127.0.0.1:11434",
-          "placeholder": "http://127.0.0.1:11434",
-          "defaultProxy": "KEY_OLLAMA_BASEURL"
-        }
-      ]
-    },
-    {
-      "name": "openrouter_models",
-      "targetCommand": "llm|fetch_models",
-      "title": "openrouter Models",
-      "description": "get openrouter model list",
-      "icon": "openrouter.png",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "url",
-          "description": "openrouter api url",
-          "type": "textfield",
-          "required": false,
-          "default": "https://api-v.enconvo.com/openrouter/v1/models"
-        }
-      ]
-    },
-    {
-      "name": "perplexity_models",
-      "targetCommand": "llm|fetch_models",
-      "title": "perplexity Models",
-      "description": "get perplexity model list",
-      "icon": "perplexity.png",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "url",
-          "title": "Url",
-          "description": "perplexity api url",
-          "type": "textfield",
-          "required": false,
-          "default": "https://file.enconvo.com/modles/perplexity.json"
-        }
-      ]
-    },
-    {
-      "name": "groq_models",
-      "title": "groq Models",
-      "description": "get groq model list",
-      "icon": "groq.png",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "openAIApiKey",
-          "description": "How to get api key? [🔑here](https://console.groq.com/keys)",
-          "type": "password",
-          "required": false,
-          "title": "API Key",
-          "default": "",
-          "defaultProxy": "llm|chat_groq",
-          "placeholder": "gsk_********"
-        },
-        {
-          "name": "baseUrl",
-          "description": "Groq api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "Groq Api Base Url",
-          "default": "https://api.groq.com/openai/v1",
-          "placeholder": "Groq Api Base Url",
-          "visibility": "hidden"
-        }
-      ]
-    },
-    {
-      "name": "x_ai_models",
-      "title": "X.AI Models",
-      "description": "get X.AI model list",
-      "icon": "x_ai.png",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "openAIApiKey",
-          "description": "How to get api key? [🔑here](https://docs.x.ai/docs/quickstart#creating-an-api-key)",
-          "type": "password",
-          "required": false,
-          "title": "API Key",
-          "default": "",
-          "defaultProxy": "llm|chat_x_ai",
-          "placeholder": "xai-********"
-        },
-        {
-          "name": "baseUrl",
-          "description": "X.AI api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "X.AI Api Base Url",
-          "default": "https://api.x.ai/v1",
-          "placeholder": "X.AI Api Base Url",
-          "visibility": "hidden"
-        }
-      ]
-    },
-    {
-      "name": "dashscope_models",
-      "title": "DashScope Models",
-      "description": "get DashScope model list",
-      "icon": "dashscope.png",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "openAIApiKey",
-          "description": "How to get api key? [🔑here](https://bailian.console.aliyun.com/#/home)",
-          "type": "password",
-          "required": false,
-          "title": "API Key",
-          "default": "",
-          "defaultProxy": "llm|chat_dashscope",
-          "placeholder": "sk-********"
-        },
-        {
-          "name": "baseUrl",
-          "description": "DashScope api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "OpenAI Api Base Url",
-          "default": "https://dashscope.aliyuncs.com/compatible-mode/v1",
-          "placeholder": "OpenAI Api Base Url",
-          "visibility": "hidden"
-        }
-      ]
-    },
-    {
-      "name": "sambanova_models",
-      "title": "Sambanova Models",
-      "description": "get Sambanova model list",
-      "icon": "sambanova.png",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "openAIApiKey",
-          "description": "How to get api key? [🔑here](https://cloud.sambanova.ai/apis)",
-          "type": "password",
-          "required": false,
-          "title": "API Key",
-          "default": "",
-          "defaultProxy": "llm|chat_sambanova",
-          "placeholder": "********"
-        },
-        {
-          "name": "baseUrl",
-          "description": "Sambanova api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "Sambanova Api Base Url",
-          "default": "https://api.sambanova.ai/v1",
-          "placeholder": "Sambanova Api Base Url",
-          "visibility": "hidden"
-        }
-      ]
-    },
-    {
-      "name": "cerebras_models",
-      "title": "Cerebras Models",
-      "description": "get Cerebras model list",
-      "icon": "cerebras.png",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "openAIApiKey",
-          "description": "How to get api key? [🔑here](https://cloud.sambanova.ai/apis)",
-          "type": "password",
-          "required": false,
-          "title": "API Key",
-          "default": "",
-          "defaultProxy": "llm|chat_cerebras",
-          "placeholder": "********"
-        },
-        {
-          "name": "baseUrl",
-          "description": "Cerebras api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "Cerebras Api Base Url",
-          "default": "https://api.cerebras.ai/v1",
-          "placeholder": "Cerebras Api Base Url",
-          "visibility": "hidden"
-        }
-      ]
-    },
-    {
-      "name": "mistral_models",
-      "title": "Mistral Models",
-      "description": "get Mistral model list",
-      "icon": "mistral.png",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "openAIApiKey",
-          "description": "How to get api key? [🔑here](https://console.mistral.ai/api-keys/)",
-          "type": "password",
-          "required": false,
-          "title": "API Key",
-          "default": "",
-          "defaultProxy": "llm|chat_mistral",
-          "placeholder": "Mistral AI Api Key"
-        },
-        {
-          "name": "baseUrl",
-          "description": "Mixtral api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "BaseUrl",
-          "default": "https://api.mistral.ai/v1",
-          "defaultProxy": "KEY_MISTRAL_BASEURL",
-          "placeholder": "Mixtral Api Base Url"
-        }
-      ]
-    },
-    {
-      "name": "together_models",
-      "targetCommand": "llm|fetch_models",
-      "title": "together Models",
-      "description": "get together model list",
-      "icon": "together.png",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
-        {
-          "title": "Url",
-          "name": "url",
-          "description": "together api url",
-          "type": "textfield",
-          "required": false,
-          "default": "https://api-v.enconvo.com/together/v1/models"
-        }
-      ]
-    },
-    {
-      "name": "fireworks_models",
-      "targetCommand": "llm|fetch_models",
-      "title": "fireworks Models",
-      "description": "get fireworks model list",
-      "icon": "fireworks.png",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
-        {
-          "title": "Url",
-          "name": "url",
-          "description": "fireworks api url",
-          "type": "textfield",
-          "required": false,
-          "default": "https://api-v.enconvo.com/fireworks/v1/models"
-        }
-      ]
-    },
-    {
-      "name": "fetch_models",
-      "title": "fetch Models",
-      "description": "get models list",
-      "icon": "together.png",
-      "showInCommandList": false,
-      "mode": "no-view"
-    },
-    {
-      "name": "enconvo_models",
-      "targetCommand": "llm|fetch_models",
-      "title": "enconvo Models",
-      "description": "get enconvo model list",
-      "icon": "enconvo.png",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "url",
-          "description": "enconvo api url",
-          "type": "textfield",
-          "required": false,
-          "default": "https://file.enconvo.com/modles/enconvo.json"
-        }
-      ]
-    },
-    {
-      "name": "openai_models",
-      "title": "openai Models",
-      "description": "get openai model list",
-      "icon": "openai.png",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "openAIApiKey",
-          "description": "OpenAI api key",
-          "type": "password",
-          "required": false,
-          "title": "OpenAI Api Key",
-          "default": "",
-          "defaultProxy": "llm|chat_open_ai",
-          "placeholder": "sk-********"
-        },
-        {
-          "name": "baseUrl",
-          "description": "OpenAI api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "OpenAI Api Base Url",
-          "defaultProxy": "llm|chat_open_ai",
-          "default": "https://api.openai.com/v1",
-          "placeholder": "OpenAI Api Base Url"
-        }
-      ]
-    },
-    {
-      "name": "azureai_models",
-      "title": "azureai Models",
-      "targetCommand": "llm|fetch_models",
-      "description": "get azureai model list",
-      "icon": "azureai.png",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "url",
-          "description": "openai api url",
-          "type": "textfield",
-          "required": false,
-          "default": "https://file.enconvo.com/modles/openai.json"
-        }
-      ]
-    },
-    {
-      "name": "cloudflare_models",
-      "title": "cloudflare Models",
-      "targetCommand": "llm|fetch_models",
-      "description": "get cloudflare model list",
-      "icon": "cloudflare.png",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "url",
-          "description": "cloudflare api url",
-          "type": "textfield",
-          "required": false,
-          "default": "https://api-v.enconvo.com/cloudflare/v1/models"
-        }
-      ]
-    },
-    {
-      "name": "cohere_models",
-      "title": "cohere Models",
-      "targetCommand": "llm|fetch_models",
-      "description": "get cohere model list",
-      "icon": "cohere.jpg",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "url",
-          "title": "Url",
-          "description": "cohere api url",
-          "type": "textfield",
-          "required": false,
-          "default": "https://api-v.enconvo.com/cohere/v1/models"
-        }
-      ]
-    },
-    {
       "name": "chat_yii",
       "title": "Yi",
       "description": "Chat with Yi , learn more : [Yi developers](https://platform.lingyiwanwu.com/)",
@@ -2279,6 +1893,478 @@
       ]
     },
     {
+      "name": "chat_straico",
+      "title": "Straico AI",
+      "description": "Chat with straico.com, learn more : [straico.com](https://straico.com/)",
+      "icon": "straico.png",
+      "mode": "provider",
+      "preferences": [
+        {
+          "name": "modelName",
+          "description": "The model to generate the completion.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Model Name",
+          "default": "(TRIAL) Llama-3.1-70B-ArliAI-RPMax-v1.1",
+          "dataProxy": "llm|straico_models"
+        },
+        {
+          "name": "api_key",
+          "description": "How to get api key? [🔑here](https://straico.com/)",
+          "type": "password",
+          "required": false,
+          "title": "API Key",
+          "default": "",
+          "defaultProxy": "KEY_STRAICO_APIKEY",
+          "placeholder": "Straico Api Key"
+        },
+        {
+          "name": "temperature",
+          "description": "What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Temperature",
+          "default": 1,
+          "data": [
+            {
+              "title": "none",
+              "value": 0
+            },
+            {
+              "title": "low",
+              "value": 0.5
+            },
+            {
+              "title": "medium",
+              "value": 1
+            },
+            {
+              "title": "high",
+              "value": 1.5
+            },
+            {
+              "title": "maximum",
+              "value": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ollama_models",
+      "title": "Ollama Models",
+      "description": "get ollama model list",
+      "icon": "ollama.png",
+      "showInCommandList": false,
+      "mode": "no-view",
+      "preferences": [
+        {
+          "name": "baseUrl",
+          "description": "Ollama api base url",
+          "type": "textfield",
+          "required": false,
+          "title": "BaseUrl",
+          "default": "http://127.0.0.1:11434",
+          "placeholder": "http://127.0.0.1:11434",
+          "defaultProxy": "KEY_OLLAMA_BASEURL"
+        }
+      ]
+    },
+    {
+      "name": "openrouter_models",
+      "targetCommand": "llm|fetch_models",
+      "title": "openrouter Models",
+      "description": "get openrouter model list",
+      "icon": "openrouter.png",
+      "showInCommandList": false,
+      "mode": "no-view",
+      "preferences": [
+        {
+          "name": "url",
+          "description": "openrouter api url",
+          "type": "textfield",
+          "required": false,
+          "default": "https://api-v.enconvo.com/openrouter/v1/models"
+        }
+      ]
+    },
+    {
+      "name": "perplexity_models",
+      "targetCommand": "llm|fetch_models",
+      "title": "perplexity Models",
+      "description": "get perplexity model list",
+      "icon": "perplexity.png",
+      "showInCommandList": false,
+      "mode": "no-view",
+      "preferences": [
+        {
+          "name": "url",
+          "title": "Url",
+          "description": "perplexity api url",
+          "type": "textfield",
+          "required": false,
+          "default": "https://file.enconvo.com/modles/perplexity.json"
+        }
+      ]
+    },
+    {
+      "name": "groq_models",
+      "title": "groq Models",
+      "description": "get groq model list",
+      "icon": "groq.png",
+      "showInCommandList": false,
+      "mode": "no-view",
+      "preferences": [
+        {
+          "name": "openAIApiKey",
+          "description": "How to get api key? [🔑here](https://console.groq.com/keys)",
+          "type": "password",
+          "required": false,
+          "title": "API Key",
+          "default": "",
+          "defaultProxy": "llm|chat_groq",
+          "placeholder": "gsk_********"
+        },
+        {
+          "name": "baseUrl",
+          "description": "Groq api base url",
+          "type": "textfield",
+          "required": false,
+          "title": "Groq Api Base Url",
+          "default": "https://api.groq.com/openai/v1",
+          "placeholder": "Groq Api Base Url",
+          "visibility": "hidden"
+        }
+      ]
+    },
+    {
+      "name": "x_ai_models",
+      "title": "X.AI Models",
+      "description": "get X.AI model list",
+      "icon": "x_ai.png",
+      "showInCommandList": false,
+      "mode": "no-view",
+      "preferences": [
+        {
+          "name": "openAIApiKey",
+          "description": "How to get api key? [🔑here](https://docs.x.ai/docs/quickstart#creating-an-api-key)",
+          "type": "password",
+          "required": false,
+          "title": "API Key",
+          "default": "",
+          "defaultProxy": "llm|chat_x_ai",
+          "placeholder": "xai-********"
+        },
+        {
+          "name": "baseUrl",
+          "description": "X.AI api base url",
+          "type": "textfield",
+          "required": false,
+          "title": "X.AI Api Base Url",
+          "default": "https://api.x.ai/v1",
+          "placeholder": "X.AI Api Base Url",
+          "visibility": "hidden"
+        }
+      ]
+    },
+    {
+      "name": "straico_models",
+      "title": "Straico Models",
+      "description": "get Straico model list",
+      "icon": "straico.png",
+      "showInCommandList": false,
+      "mode": "no-view",
+      "preferences": [
+        {
+          "name": "api_key",
+          "description": "How to get api key? [🔑here](https://straico.com/)",
+          "type": "password",
+          "required": false,
+          "title": "API Key",
+          "default": "",
+          "defaultProxy": "llm|chat_straico",
+          "placeholder": "straico-********"
+        },
+        {
+          "name": "type",
+          "description": "How to get api key? [🔑here](https://straico.com/)",
+          "type": "textfield",
+          "required": false,
+          "title": "Type",
+          "default": "chat"
+        }
+      ]
+    },
+    {
+      "name": "dashscope_models",
+      "title": "DashScope Models",
+      "description": "get DashScope model list",
+      "icon": "dashscope.png",
+      "showInCommandList": false,
+      "mode": "no-view",
+      "preferences": [
+        {
+          "name": "openAIApiKey",
+          "description": "How to get api key? [🔑here](https://bailian.console.aliyun.com/#/home)",
+          "type": "password",
+          "required": false,
+          "title": "API Key",
+          "default": "",
+          "defaultProxy": "llm|chat_dashscope",
+          "placeholder": "sk-********"
+        },
+        {
+          "name": "baseUrl",
+          "description": "DashScope api base url",
+          "type": "textfield",
+          "required": false,
+          "title": "OpenAI Api Base Url",
+          "default": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+          "placeholder": "OpenAI Api Base Url",
+          "visibility": "hidden"
+        }
+      ]
+    },
+    {
+      "name": "sambanova_models",
+      "title": "Sambanova Models",
+      "description": "get Sambanova model list",
+      "icon": "sambanova.png",
+      "showInCommandList": false,
+      "mode": "no-view",
+      "preferences": [
+        {
+          "name": "openAIApiKey",
+          "description": "How to get api key? [🔑here](https://cloud.sambanova.ai/apis)",
+          "type": "password",
+          "required": false,
+          "title": "API Key",
+          "default": "",
+          "defaultProxy": "llm|chat_sambanova",
+          "placeholder": "********"
+        },
+        {
+          "name": "baseUrl",
+          "description": "Sambanova api base url",
+          "type": "textfield",
+          "required": false,
+          "title": "Sambanova Api Base Url",
+          "default": "https://api.sambanova.ai/v1",
+          "placeholder": "Sambanova Api Base Url",
+          "visibility": "hidden"
+        }
+      ]
+    },
+    {
+      "name": "cerebras_models",
+      "title": "Cerebras Models",
+      "description": "get Cerebras model list",
+      "icon": "cerebras.png",
+      "showInCommandList": false,
+      "mode": "no-view",
+      "preferences": [
+        {
+          "name": "openAIApiKey",
+          "description": "How to get api key? [🔑here](https://cloud.sambanova.ai/apis)",
+          "type": "password",
+          "required": false,
+          "title": "API Key",
+          "default": "",
+          "defaultProxy": "llm|chat_cerebras",
+          "placeholder": "********"
+        },
+        {
+          "name": "baseUrl",
+          "description": "Cerebras api base url",
+          "type": "textfield",
+          "required": false,
+          "title": "Cerebras Api Base Url",
+          "default": "https://api.cerebras.ai/v1",
+          "placeholder": "Cerebras Api Base Url",
+          "visibility": "hidden"
+        }
+      ]
+    },
+    {
+      "name": "mistral_models",
+      "title": "Mistral Models",
+      "description": "get Mistral model list",
+      "icon": "mistral.png",
+      "showInCommandList": false,
+      "mode": "no-view",
+      "preferences": [
+        {
+          "name": "openAIApiKey",
+          "description": "How to get api key? [🔑here](https://console.mistral.ai/api-keys/)",
+          "type": "password",
+          "required": false,
+          "title": "API Key",
+          "default": "",
+          "defaultProxy": "llm|chat_mistral",
+          "placeholder": "Mistral AI Api Key"
+        },
+        {
+          "name": "baseUrl",
+          "description": "Mixtral api base url",
+          "type": "textfield",
+          "required": false,
+          "title": "BaseUrl",
+          "default": "https://api.mistral.ai/v1",
+          "defaultProxy": "KEY_MISTRAL_BASEURL",
+          "placeholder": "Mixtral Api Base Url"
+        }
+      ]
+    },
+    {
+      "name": "together_models",
+      "targetCommand": "llm|fetch_models",
+      "title": "together Models",
+      "description": "get together model list",
+      "icon": "together.png",
+      "showInCommandList": false,
+      "mode": "no-view",
+      "preferences": [
+        {
+          "title": "Url",
+          "name": "url",
+          "description": "together api url",
+          "type": "textfield",
+          "required": false,
+          "default": "https://api-v.enconvo.com/together/v1/models"
+        }
+      ]
+    },
+    {
+      "name": "fireworks_models",
+      "targetCommand": "llm|fetch_models",
+      "title": "fireworks Models",
+      "description": "get fireworks model list",
+      "icon": "fireworks.png",
+      "showInCommandList": false,
+      "mode": "no-view",
+      "preferences": [
+        {
+          "title": "Url",
+          "name": "url",
+          "description": "fireworks api url",
+          "type": "textfield",
+          "required": false,
+          "default": "https://api-v.enconvo.com/fireworks/v1/models"
+        }
+      ]
+    },
+    {
+      "name": "fetch_models",
+      "title": "fetch Models",
+      "description": "get models list",
+      "icon": "together.png",
+      "showInCommandList": false,
+      "mode": "no-view"
+    },
+    {
+      "name": "enconvo_models",
+      "targetCommand": "llm|fetch_models",
+      "title": "enconvo Models",
+      "description": "get enconvo model list",
+      "icon": "enconvo.png",
+      "showInCommandList": false,
+      "mode": "no-view",
+      "preferences": [
+        {
+          "name": "url",
+          "description": "enconvo api url",
+          "type": "textfield",
+          "required": false,
+          "default": "https://file.enconvo.com/modles/enconvo.json"
+        }
+      ]
+    },
+    {
+      "name": "openai_models",
+      "title": "openai Models",
+      "description": "get openai model list",
+      "icon": "openai.png",
+      "showInCommandList": false,
+      "mode": "no-view",
+      "preferences": [
+        {
+          "name": "openAIApiKey",
+          "description": "OpenAI api key",
+          "type": "password",
+          "required": false,
+          "title": "OpenAI Api Key",
+          "default": "",
+          "defaultProxy": "llm|chat_open_ai",
+          "placeholder": "sk-********"
+        },
+        {
+          "name": "baseUrl",
+          "description": "OpenAI api base url",
+          "type": "textfield",
+          "required": false,
+          "title": "OpenAI Api Base Url",
+          "defaultProxy": "llm|chat_open_ai",
+          "default": "https://api.openai.com/v1",
+          "placeholder": "OpenAI Api Base Url"
+        }
+      ]
+    },
+    {
+      "name": "azureai_models",
+      "title": "azureai Models",
+      "targetCommand": "llm|fetch_models",
+      "description": "get azureai model list",
+      "icon": "azureai.png",
+      "showInCommandList": false,
+      "mode": "no-view",
+      "preferences": [
+        {
+          "name": "url",
+          "description": "openai api url",
+          "type": "textfield",
+          "required": false,
+          "default": "https://file.enconvo.com/modles/openai.json"
+        }
+      ]
+    },
+    {
+      "name": "cloudflare_models",
+      "title": "cloudflare Models",
+      "targetCommand": "llm|fetch_models",
+      "description": "get cloudflare model list",
+      "icon": "cloudflare.png",
+      "showInCommandList": false,
+      "mode": "no-view",
+      "preferences": [
+        {
+          "name": "url",
+          "description": "cloudflare api url",
+          "type": "textfield",
+          "required": false,
+          "default": "https://api-v.enconvo.com/cloudflare/v1/models"
+        }
+      ]
+    },
+    {
+      "name": "cohere_models",
+      "title": "cohere Models",
+      "targetCommand": "llm|fetch_models",
+      "description": "get cohere model list",
+      "icon": "cohere.jpg",
+      "showInCommandList": false,
+      "mode": "no-view",
+      "preferences": [
+        {
+          "name": "url",
+          "title": "Url",
+          "description": "cohere api url",
+          "type": "textfield",
+          "required": false,
+          "default": "https://api-v.enconvo.com/cohere/v1/models"
+        }
+      ]
+    },
+    {
       "name": "silliconflow_models",
       "title": "silliconflow_models",
       "targetCommand": "llm|fetch_models",
@@ -2329,6 +2415,8 @@
     "@langchain/groq": "^0.1.2",
     "@langchain/mistralai": "^0.2.0",
     "@langchain/openai": "^0.3.14",
+    "axios": "^1.7.9",
+    "form-data": "^4.0.1",
     "langchain": "^0.3.7",
     "langsmith": "^0.2.13",
     "ollama": "^0.5.11",
