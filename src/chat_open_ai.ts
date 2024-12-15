@@ -20,7 +20,6 @@ class ChatOpenAIProvider extends LLMProvider {
     }
 
     protected async _stream(content: { messages: BaseChatMessage[]; }): Promise<Stream<BaseChatMessageChunk>> {
-        console.log("options", this.options)
         const params = this.initParams()
 
 
@@ -60,10 +59,6 @@ class ChatOpenAIProvider extends LLMProvider {
     }
 
     private _createOpenaiClient(options: LLMProvider.LLMOptions): OpenAI {
-        // change options.temperature to number
-        options.temperature = Number(options.temperature.value);
-
-        // streaming to boolean
 
 
         let headers = {
@@ -79,10 +74,10 @@ class ChatOpenAIProvider extends LLMProvider {
 
 
         if (
-            options.modelName === "openai/o1-mini"
-            || options.modelName === "openai/o1-preview"
-            || options.modelName === "o1-mini"
-            || options.modelName === "o1-preview"
+            options.modelName.value === "openai/o1-mini"
+            || options.modelName.value === "openai/o1-preview"
+            || options.modelName.value === "o1-mini"
+            || options.modelName.value === "o1-preview"
         ) {
             options.max_completion_tokens = options.maxTokens;
             delete options.maxTokens;

@@ -58,7 +58,6 @@ export function streamFromAnthropic(response: AsyncIterable<Anthropic.Messages.M
         let done = false;
         try {
             for await (const chunk of response) {
-                console.log("chunk", chunk)
                 if (done) continue;
 
                 if (chunk.type === "message_stop") {

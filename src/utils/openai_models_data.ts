@@ -15,7 +15,8 @@ export const openai_models_data = [
         "inputPrice": 0.003,
         "outputPrice": 0.012,
         "toolUse": true,
-        "visionEnable": true
+        "visionEnable": true,
+        "systemMessageEnable": false
     },
     {
         "title": "o1-preview",
@@ -24,7 +25,8 @@ export const openai_models_data = [
         "inputPrice": 0.015,
         "outputPrice": 0.06,
         "toolUse": true,
-        "visionEnable": true
+        "visionEnable": true,
+        "systemMessageEnable": false
     },
     {
         "title": "gpt-4o",

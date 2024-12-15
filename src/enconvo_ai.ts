@@ -20,9 +20,8 @@ class EnconvoAIProvider extends LLMProvider {
         if (this.llmProvider) {
             return this.llmProvider
         }
-        console.log("this.options", this.options)
 
-        const newLLMArr = (this.options.modelName.value || this.options.modelName).split("/")
+        const newLLMArr = this.options.modelName.value.split("/")
         const modelProvider = newLLMArr[0]
 
         const anthropicApiUrl = "https://api.enconvo.com/"

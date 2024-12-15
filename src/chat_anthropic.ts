@@ -1,6 +1,7 @@
 import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, LLMProvider, Stream } from "@enconvo/api";
 import Anthropic from '@anthropic-ai/sdk';
 import { convertMessagesToAnthropicMessages, streamFromAnthropic } from "./utils/anthropic_util.ts";
+import { env } from "process";
 
 
 export default function main(options: any) {
@@ -13,11 +14,24 @@ export class AnthropicProvider extends LLMProvider {
     constructor(options: LLMProvider.LLMOptions) {
         super(options)
 
+        console.log("AnthropicProvider", options)
+
+        let headers = {
+        }
+
+        if (options.originCommandName === 'enconvo_ai') {
+            headers = {
+                "accessToken": `${env['accessToken']}`,
+                "client_id": `${env['client_id']}`,
+                "commandKey": `${env['commandKey']}`
+            }
+        }
+
         this.anthropic = new Anthropic({
             apiKey: options.anthropicApiKey, // defaults to process.env["ANTHROPIC_API_KEY"]
+            baseURL: options.anthropicApiUrl,
+            defaultHeaders: headers
         });
-
-
     }
 
     protected async _call(content: { messages: BaseChatMessage[]; }): Promise<BaseChatMessage> {
