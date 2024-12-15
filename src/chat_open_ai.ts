@@ -33,6 +33,7 @@ class ChatOpenAIProvider extends LLMProvider {
         });
 
         return OpenAIUtil.streamFromOpenAI(chatCompletion, chatCompletion.controller)
+
     }
 
 
