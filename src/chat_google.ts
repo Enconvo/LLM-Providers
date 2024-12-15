@@ -1,6 +1,7 @@
 import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, LLMProvider, Stream } from "@enconvo/api";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { convertMessagesToGoogleMessages, streamFromGoogle } from "./utils/google_util.ts";
+import { env } from "process";
 
 export default function main(options: any) {
     return new GoogleGeminiProvider(options)
@@ -42,13 +43,18 @@ export class GoogleGeminiProvider extends LLMProvider {
 
         const params = this.initParams(content.messages)
 
-        const model = this.genAI.getGenerativeModel({
-            systemInstruction: params.system,
-            model: params.model,
-            generationConfig: {
-                temperature: params.temperature,
-            }
-        });
+        const model = this.genAI.getGenerativeModel(
+            {
+                systemInstruction: params.system,
+                model: params.model,
+                generationConfig: {
+                    temperature: params.temperature,
+                }
+            },
+            {
+                baseUrl: params.baseUrl,
+                customHeaders: params.headers
+            });
 
         const newMessages = params.messages
 
@@ -72,12 +78,31 @@ export class GoogleGeminiProvider extends LLMProvider {
             newMessages.shift();
         }
 
+        let headers = {}
+        let baseUrl = 'https://generativelanguage.googleapis.com'
+
+        let model = this.options.modelName.value
+
+
+        if (this.options.originCommandName === 'enconvo_ai') {
+            headers = {
+                "accessToken": `${env['accessToken']}`,
+                "client_id": `${env['client_id']}`,
+                "commandKey": `${env['commandKey']}`,
+                "modelName": model
+            }
+            baseUrl = this.options.baseUrl
+            model = model.split('/')[1]
+        }
+
         return {
             system,
-            model: this.options.modelName.value,
+            model,
             temperature: this.options.temperature.value,
             max_tokens: 1024,
             messages: newMessages,
+            headers,
+            baseUrl
         }
 
 
