@@ -1605,7 +1605,8 @@
           "visibility": "hidden"
         }
       ]
-    },    {
+    },
+    {
       "name": "sambanova_models",
       "title": "Sambanova Models",
       "description": "get Sambanova model list",
@@ -1631,6 +1632,36 @@
           "title": "Sambanova Api Base Url",
           "default": "https://api.sambanova.ai/v1",
           "placeholder": "Sambanova Api Base Url",
+          "visibility": "hidden"
+        }
+      ]
+    },
+    {
+      "name": "cerebras_models",
+      "title": "Cerebras Models",
+      "description": "get Cerebras model list",
+      "icon": "cerebras.png",
+      "showInCommandList": false,
+      "mode": "no-view",
+      "preferences": [
+        {
+          "name": "openAIApiKey",
+          "description": "How to get api key? [🔑here](https://cloud.sambanova.ai/apis)",
+          "type": "password",
+          "required": false,
+          "title": "API Key",
+          "default": "",
+          "defaultProxy": "llm|chat_cerebras",
+          "placeholder": "********"
+        },
+        {
+          "name": "baseUrl",
+          "description": "Cerebras api base url",
+          "type": "textfield",
+          "required": false,
+          "title": "Cerebras Api Base Url",
+          "default": "https://api.cerebras.ai/v1",
+          "placeholder": "Cerebras Api Base Url",
           "visibility": "hidden"
         }
       ]
@@ -2124,18 +2155,7 @@
           "required": false,
           "title": "Model Name",
           "default": "llama3.1-8b",
-          "data": [
-            {
-              "title": "Llama 3.1 8B",
-              "value": "llama3.1-8b",
-              "context": 8192
-            },
-            {
-              "title": "Llama 3.1 70B",
-              "value": "llama3.1-70b",
-              "context": 8192
-            }
-          ]
+          "dataProxy": "llm|cerebras_models"
         },
         {
           "name": "temperature",
@@ -2174,7 +2194,7 @@
           "required": false,
           "title": "API Key",
           "default": "",
-          "defaultProxy": "KEY_CEREBRAS_APIKEY",
+          "defaultProxy": "llm|chat_cerebras",
           "placeholder": "********"
         },
         {
@@ -2185,16 +2205,6 @@
           "title": "Perplexity Api Base Url",
           "default": "https://api.cerebras.ai/v1",
           "placeholder": "Perplexity Api Base Url",
-          "visibility": "hidden"
-        },
-        {
-          "name": "streaming",
-          "description": "Whether to stream output",
-          "type": "checkbox",
-          "required": false,
-          "title": "Streaming",
-          "default": true,
-          "label": "Streaming",
           "visibility": "hidden"
         }
       ]
