@@ -1,4 +1,4 @@
-import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, LLMProvider, Stream } from "@enconvo/api";
+import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, ChatMessageContentText, LLMProvider, MessageRole, Stream } from "@enconvo/api";
 import Anthropic from '@anthropic-ai/sdk';
 import ollama from 'ollama'
 import { OllamaUtil } from "./utils/ollama_util.ts";
@@ -24,13 +24,9 @@ export class StraicoProvider extends LLMProvider {
     }
 
     protected async _call(content: { messages: BaseChatMessage[]; }): Promise<BaseChatMessage> {
-        const newMessages = OllamaUtil.convertMessagesToOllamaMessages(content.messages)
+        const response = await this.request(content.messages)
 
-        const params = this.initParams()
-
-        const response = await ollama.chat({ ...params, messages: newMessages })
-
-        return new AssistantMessage(response.message.content)
+        return new AssistantMessage(response)
     }
 
     protected async _stream(content: { messages: BaseChatMessage[]; }): Promise<Stream<BaseChatMessageChunk>> {
@@ -116,10 +112,7 @@ export class StraicoProvider extends LLMProvider {
 
         if (typeof message.content === "string") {
             return {
-                text: {
-                    role: role,
-                    content: message.content
-                },
+                text: new BaseChatMessage(role, [new ChatMessageContentText(message.content)]),
                 files: []
             }
         } else {
@@ -139,10 +132,7 @@ export class StraicoProvider extends LLMProvider {
             const files = await Promise.all(images)
 
             return {
-                text: {
-                    role: role,
-                    content: content.join("\n")
-                },
+                text: new BaseChatMessage(role, [new ChatMessageContentText(content.join("\n"))]),
                 files: files
             }
         }
