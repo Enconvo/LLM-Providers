@@ -524,6 +524,36 @@
           "placeholder": "xai-********"
         },
         {
+          "name": "temperature",
+          "description": "What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Temperature",
+          "default": 1,
+          "data": [
+            {
+              "title": "none",
+              "value": 0
+            },
+            {
+              "title": "low",
+              "value": 0.5
+            },
+            {
+              "title": "medium",
+              "value": 1
+            },
+            {
+              "title": "high",
+              "value": 1.5
+            },
+            {
+              "title": "maximum",
+              "value": 2
+            }
+          ]
+        },
+        {
           "name": "baseUrl",
           "description": "X.AI api base url",
           "type": "textfield",
