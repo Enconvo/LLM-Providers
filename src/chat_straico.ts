@@ -57,17 +57,17 @@ export class StraicoProvider extends LLMProvider {
 
 
     async request(messages: BaseChatMessage[]) {
-        const newMessages = await this.convertMessagesToOpenAIMessages(messages)
+        const newMessages = await this.convertMessagesToStraicoMessages(messages)
 
         const files = newMessages.map((message) => {
             return message.files
         }).flat()
 
         const lastMessage = newMessages.pop();
-        const userInput = lastMessage?.text.content || '';
+        const userInput = lastMessage?.text.text()
 
         const history = newMessages.map((message) => {
-            return `${message.text.role}: ${message.text.content}`
+            return `${message.text.role}: ${message.text.text()}`
         }).join("\n")
 
 
@@ -80,6 +80,8 @@ export class StraicoProvider extends LLMProvider {
             "message": prompt,
             "temperature": this.options.temperature.value
         });
+
+        console.log("data", data)
 
         var config = {
             method: 'post',
@@ -107,7 +109,7 @@ export class StraicoProvider extends LLMProvider {
     }
 
 
-    private async convertMessageToOpenAIMessage(message: BaseChatMessage): Promise<{ text: BaseChatMessage; files: string[]; }> {
+    private async convertMessageToStraicoMessage(message: BaseChatMessage): Promise<{ text: BaseChatMessage; files: string[]; }> {
         let role = message.role
 
         if (typeof message.content === "string") {
@@ -139,9 +141,9 @@ export class StraicoProvider extends LLMProvider {
     }
 
 
-    private async convertMessagesToOpenAIMessages(messages: BaseChatMessage[]): Promise<{ text: BaseChatMessage; files: string[]; }[]> {
+    private async convertMessagesToStraicoMessages(messages: BaseChatMessage[]): Promise<{ text: BaseChatMessage; files: string[]; }[]> {
 
-        let newMessages = messages.map((message) => this.convertMessageToOpenAIMessage(message))
+        let newMessages = messages.map((message) => this.convertMessageToStraicoMessage(message))
         return await Promise.all(newMessages)
     }
 
