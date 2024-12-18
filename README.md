@@ -36,9 +36,6 @@ This is an Enconvo Extension that provides a series of Large Language Models (LL
   - Custom API endpoints
   - Flexible parameters
 
-## Installation
-
-Visit [Enconvo Store](https://store.enconvo.com/plugins/LLM-Providers) to install the extension.
 
 ## Usage
 
