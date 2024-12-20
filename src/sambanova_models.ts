@@ -1,6 +1,7 @@
-import { ModelCache } from "./utils/model_cache.ts"
+import { DropdownListCache } from "@enconvo/api"
 
-const models: ModelCache.ModelOutput[] = [
+
+const models: DropdownListCache.ModelOutput[] = [
     {
         title: "Qwen2.5 Coder 32B",
         value: "Qwen2.5-Coder-32B-Instruct",
@@ -79,7 +80,7 @@ const models: ModelCache.ModelOutput[] = [
  * @param api_key - API authentication key
  * @returns Promise<ModelOutput[]> - Array of processed model data
  */
-async function fetchModels(url: string, api_key: string, type: string): Promise<ModelCache.ModelOutput[]> {
+async function fetchModels(url: string, api_key: string, type: string): Promise<DropdownListCache.ModelOutput[]> {
     // console.log("fetchModels", url, api_key, type)
     return models
 }
@@ -100,7 +101,7 @@ export default async function main(req: Request): Promise<string> {
 
     options.url = url
 
-    const modelCache = new ModelCache(fetchModels)
+    const modelCache = new DropdownListCache(fetchModels)
 
     const models = await modelCache.getModelsCache(options)
     return JSON.stringify(models)

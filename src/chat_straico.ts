@@ -1,7 +1,4 @@
-import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, ChatMessageContentText, LLMProvider, MessageRole, Stream } from "@enconvo/api";
-import Anthropic from '@anthropic-ai/sdk';
-import ollama from 'ollama'
-import { OllamaUtil } from "./utils/ollama_util.ts";
+import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, ChatMessageContentText, LLMProvider, Stream } from "@enconvo/api";
 import axios from 'axios'
 import { createReadStream } from 'node:fs';
 import FormData from 'form-data';
@@ -11,16 +8,9 @@ export default function main(options: any) {
 }
 
 export class StraicoProvider extends LLMProvider {
-    anthropic: Anthropic
 
     constructor(options: LLMProvider.LLMOptions) {
         super(options)
-
-        this.anthropic = new Anthropic({
-            apiKey: options.anthropicApiKey, // defaults to process.env["ANTHROPIC_API_KEY"]
-        });
-
-
     }
 
     protected async _call(content: { messages: BaseChatMessage[]; }): Promise<BaseChatMessage> {

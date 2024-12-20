@@ -1,6 +1,6 @@
-import { ModelCache } from "./utils/model_cache.ts"
+import { DropdownListCache } from "@enconvo/api" 
 
-const models: ModelCache.ModelOutput[] = [
+const models: DropdownListCache.ModelOutput[] = [
 
 ]
 
@@ -10,7 +10,7 @@ const models: ModelCache.ModelOutput[] = [
  * @param api_key - API authentication key
  * @returns Promise<ModelOutput[]> - Array of processed model data
  */
-async function fetchModels(url: string, api_key: string, type: string): Promise<ModelCache.ModelOutput[]> {
+async function fetchModels(url: string, api_key: string, type: string): Promise<DropdownListCache.ModelOutput[]> {
     // console.log("fetchModels", url, api_key, type)
     try {
         const resp = await fetch(url, {
@@ -66,7 +66,7 @@ export default async function main(req: Request): Promise<string> {
 
     options.url = 'https://api.straico.com/v1/models'
 
-    const modelCache = new ModelCache(fetchModels)
+    const modelCache = new DropdownListCache(fetchModels)
 
     const models = await modelCache.getModelsCache(options)
     return JSON.stringify(models)

@@ -1,5 +1,6 @@
+import { DropdownListCache } from '@enconvo/api'
 import { openai_models_data } from './utils/openai_models_data.ts'
-import { ModelCache } from "./utils/model_cache.ts"
+
 
 
 
@@ -9,7 +10,7 @@ import { ModelCache } from "./utils/model_cache.ts"
  * @param api_key - API authentication key
  * @returns Promise<ModelOutput[]> - Array of processed model data
  */
-async function fetchModels(url: string, api_key: string, type: string): Promise<ModelCache.ModelOutput[]> {
+async function fetchModels(url: string, api_key: string, type: string): Promise<DropdownListCache.ModelOutput[]> {
     // console.log("fetchModels", url, api_key, type)
     try {
         const resp = await fetch(url, {
@@ -89,7 +90,7 @@ export default async function main(req: Request): Promise<string> {
 
     options.url = url
 
-    const modelCache = new ModelCache(fetchModels)
+    const modelCache = new DropdownListCache(fetchModels)
 
     const models = await modelCache.getModelsCache(options)
 
