@@ -1,7 +1,7 @@
 {
   "$schema": "https://enconvo.com/schemas/extension.json",
   "name": "llm",
-  "version": "1.3.120",
+  "version": "1.3.121",
   "description": "Large Language Models (LLM) services providers",
   "title": "LLM Providers",
   "icon": "icon.png",
@@ -291,32 +291,7 @@
           "required": false,
           "title": "Model Name",
           "default": "gemini-2.0-flash-exp",
-          "data": [
-            {
-              "title": "Gemini 2.0 Flash Exp",
-              "value": "gemini-2.0-flash-exp",
-              "context": 1048576,
-              "visionEnable": true
-            },
-            {
-              "title": "Gemini 1.5 Flash-8B",
-              "value": "gemini-1.5-flash-8b",
-              "context": 1048576,
-              "visionEnable": true
-            },
-            {
-              "title": "Gemini 1.5 Flash 002",
-              "value": "gemini-1.5-flash-002",
-              "context": 1048576,
-              "visionEnable": true
-            },
-            {
-              "title": "Gemini 1.5 Pro 002",
-              "value": "gemini-1.5-pro-002",
-              "context": 2097152,
-              "visionEnable": true
-            }
-          ]
+          "dataProxy": "llm|gemini_models"
         },
         {
           "name": "apiKey",
@@ -2113,6 +2088,16 @@
           "title": "Type",
           "default": "chat"
         }
+      ]
+    },
+    {
+      "name": "gemini_models",
+      "title": "Gemini Models",
+      "description": "get Gemini model list",
+      "icon": "gemini.png",
+      "showInCommandList": false,
+      "mode": "no-view",
+      "preferences": [
       ]
     },
     {
