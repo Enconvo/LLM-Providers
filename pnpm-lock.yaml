@@ -12,8 +12,8 @@ importers:
         specifier: ^0.32.1
         version: 0.32.1
       '@enconvo/api':
-        specifier: ^0.1.156
-        version: 0.1.156
+        specifier: ^0.1.158
+        version: 0.1.158
       '@google/generative-ai':
         specifier: ^0.21.0
         version: 0.21.0
@@ -242,8 +242,8 @@ packages:
   '@emnapi/runtime@1.3.1':
     resolution: {integrity: sha512-kEBmG8KyqtxJZv+ygbEim+KCGtIq1fC22Ms3S4ziXmYKm8uyoLX0MHONVKwp+9opg390VaKRNt4a7A9NwmpNhw==}
 
-  '@enconvo/api@0.1.156':
-    resolution: {integrity: sha512-rlKCXWtn6lX0gIfByixOwL4TMuGa/pky/Hi+Ki41vhVO3FPS/kHjM0L45+bSB84qDxOtOHC+vWAKtJcCkCm6aQ==}
+  '@enconvo/api@0.1.158':
+    resolution: {integrity: sha512-+enA8pb3+Ms9QuiAv6FPVuNhqW7v/SKwoLmYtfi41HjSkBdP2kTficiDD/PgpjesoF2kcU0dAOf0X4YwAULteQ==}
     hasBin: true
 
   '@esbuild/aix-ppc64@0.24.0':
@@ -3142,7 +3142,7 @@ snapshots:
       tslib: 2.8.1
     optional: true
 
-  '@enconvo/api@0.1.156': {}
+  '@enconvo/api@0.1.158': {}
 
   '@esbuild/aix-ppc64@0.24.0':
     optional: true

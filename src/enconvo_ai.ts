@@ -16,7 +16,6 @@ class EnconvoAIProvider extends LLMProvider {
 
 
     async initLLMProvider() {
-        console.log("LLLLLLLLL", this.options)
         if (this.llmProvider) {
             return this.llmProvider
         }
