@@ -14,6 +14,19 @@ class EnconvoAIProvider extends LLMProvider {
         super(options)
     }
 
+    protected async _call(content: { messages: BaseChatMessage[]; }): Promise<BaseChatMessage> {
+        const llmProvider = await this.initLLMProvider()
+
+        return llmProvider.call(content)
+    }
+
+    protected async _stream(content: { messages: BaseChatMessage[]; }): Promise<Stream<BaseChatMessageChunk>> {
+        const llmProvider = await this.initLLMProvider()
+
+        return llmProvider.stream(content)
+    }
+
+
 
     async initLLMProvider() {
         if (this.llmProvider) {
@@ -52,21 +65,6 @@ class EnconvoAIProvider extends LLMProvider {
 
         return llmProvider
     }
-
-
-
-    protected async _call(content: { messages: BaseChatMessage[]; }): Promise<BaseChatMessage> {
-        const llmProvider = await this.initLLMProvider()
-
-        return llmProvider.call(content)
-    }
-
-    protected async _stream(content: { messages: BaseChatMessage[]; }): Promise<Stream<BaseChatMessageChunk>> {
-        const llmProvider = await this.initLLMProvider()
-
-        return llmProvider.stream(content)
-    }
-
 
 }
 

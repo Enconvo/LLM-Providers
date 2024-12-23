@@ -2427,7 +2427,7 @@
   ],
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.1",
-    "@enconvo/api": "^0.1.158",
+    "@enconvo/api": "^0.1.159",
     "@google/generative-ai": "^0.21.0",
     "@langchain/cloudflare": "^0.1.0",
     "@langchain/cohere": "^0.3.1",
