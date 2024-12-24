@@ -18,7 +18,7 @@ export class ChatCloudflareWorkersProvider extends LLMProvider {
     }
 
 
-    protected async _call(content: { messages: BaseChatMessage[]; }): Promise<BaseChatMessage> {
+    protected async _call(content: LLMProvider.Params): Promise<BaseChatMessage> {
         const newMessages = this.convertMessagesToLangchainMessages(content.messages)
 
         const msg = await this.model.invoke(newMessages)
@@ -26,7 +26,7 @@ export class ChatCloudflareWorkersProvider extends LLMProvider {
         return new AssistantMessage(result)
     }
 
-    protected async _stream(content: { messages: BaseChatMessage[]; }): Promise<Stream<BaseChatMessageChunk>> {
+    protected async _stream(content: LLMProvider.Params): Promise<Stream<BaseChatMessageChunk>> {
         const newMessages = this.convertMessagesToLangchainMessages(content.messages)
 
         const stream = await this.model.stream(newMessages)

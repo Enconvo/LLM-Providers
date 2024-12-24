@@ -3,7 +3,8 @@ import { BaseChatMessage, BaseChatMessageChunk, LLMProvider, Stream, UserMessage
 import OpenAI from 'openai';
 import { wrapOpenAI } from "langsmith/wrappers";
 import { OpenAIUtil } from './utils/openai_util.ts';
-
+import fs from 'fs';
+import { homedir } from 'os';
 
 
 export default function main(options: any) {
@@ -11,36 +12,35 @@ export default function main(options: any) {
 }
 
 
-
 class ChatOpenAIProvider extends LLMProvider {
+
+    protected async _stream(content: LLMProvider.Params): Promise<Stream<BaseChatMessageChunk>> {
+        console.log("content", content)
+        const params = this.initParams(content)
+
+        const chatCompletion = await this.client.chat.completions.create({
+            ...params,
+            stream: true,
+        });
+
+        const stream = OpenAIUtil.streamFromOpenAI(chatCompletion, chatCompletion.controller)
+        return stream
+
+    }
+
+
     client: OpenAI
     constructor(options: LLMProvider.LLMOptions) {
         super(options)
         this.client = this._createOpenaiClient(this.options)
     }
 
-    protected async _stream(content: { messages: BaseChatMessage[]; }): Promise<Stream<BaseChatMessageChunk>> {
-        const params = this.initParams()
-
-
-        const messages = OpenAIUtil.convertMessagesToOpenAIMessages(this.options, content.messages)
-
-        const chatCompletion = await this.client.chat.completions.create({
-            messages,
-            stream: true,
-            ...params
-        });
-
-        return OpenAIUtil.streamFromOpenAI(chatCompletion, chatCompletion.controller)
-
-    }
 
 
     protected async _call(content: { messages: BaseChatMessage[]; }): Promise<BaseChatMessage> {
-        const params = this.initParams()
+        const params = this.initParams(content)
 
         const chatCompletion = await this.client.chat.completions.create({
-            messages: OpenAIUtil.convertMessagesToOpenAIMessages(this.options, content.messages),
             ...params
         });
 
@@ -49,13 +49,21 @@ class ChatOpenAIProvider extends LLMProvider {
         return new UserMessage(result?.message?.content || '')
     }
 
-    private initParams() {
+    private initParams(content: LLMProvider.Params) {
         const modelOptions = this.options.modelName
 
-        return {
+        const messages = OpenAIUtil.convertMessagesToOpenAIMessages(this.options, content.messages)
+        const tools = OpenAIUtil.convertToolsToOpenAITools(content.tools)
+
+        let params = {
             model: modelOptions.value,
             temperature: this.options.temperature.value,
+            messages,
+            tools,
+            tool_choice: content.tool_choice
         }
+
+        return params
     }
 
     private _createOpenaiClient(options: LLMProvider.LLMOptions): OpenAI {

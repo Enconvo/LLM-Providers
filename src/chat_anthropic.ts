@@ -14,8 +14,6 @@ export class AnthropicProvider extends LLMProvider {
     constructor(options: LLMProvider.LLMOptions) {
         super(options)
 
-        console.log("AnthropicProvider", options)
-
         let headers = {
         }
 
@@ -34,7 +32,7 @@ export class AnthropicProvider extends LLMProvider {
         });
     }
 
-    protected async _call(content: { messages: BaseChatMessage[]; }): Promise<BaseChatMessage> {
+    protected async _call(content: LLMProvider.Params): Promise<BaseChatMessage> {
 
         const msg = await this.anthropic.messages.create(this.initParams(content.messages));
 
@@ -45,7 +43,7 @@ export class AnthropicProvider extends LLMProvider {
         return new AssistantMessage(msg.content[0].type)
     }
 
-    protected async _stream(content: { messages: BaseChatMessage[]; }): Promise<Stream<BaseChatMessageChunk>> {
+    protected async _stream(content: LLMProvider.Params): Promise<Stream<BaseChatMessageChunk>> {
 
         const stream = this.anthropic.messages.stream(this.initParams(content.messages));
 

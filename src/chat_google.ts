@@ -15,7 +15,7 @@ export class GoogleGeminiProvider extends LLMProvider {
         this.genAI = new GoogleGenerativeAI(options.apiKey);
     }
 
-    protected async _call(content: { messages: BaseChatMessage[]; }): Promise<BaseChatMessage> {
+    protected async _call(content: LLMProvider.Params): Promise<BaseChatMessage> {
         const params = this.initParams(content.messages)
 
         const model = this.genAI.getGenerativeModel({
@@ -39,7 +39,7 @@ export class GoogleGeminiProvider extends LLMProvider {
         return new AssistantMessage(result.response.text())
     }
 
-    protected async _stream(content: { messages: BaseChatMessage[]; }): Promise<Stream<BaseChatMessageChunk>> {
+    protected async _stream(content: LLMProvider.Params): Promise<Stream<BaseChatMessageChunk>> {
 
         const params = this.initParams(content.messages)
 

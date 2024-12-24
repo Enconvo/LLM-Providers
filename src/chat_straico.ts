@@ -13,13 +13,13 @@ export class StraicoProvider extends LLMProvider {
         super(options)
     }
 
-    protected async _call(content: { messages: BaseChatMessage[]; }): Promise<BaseChatMessage> {
+    protected async _call(content: LLMProvider.Params): Promise<BaseChatMessage> {
         const response = await this.request(content.messages)
 
         return new AssistantMessage(response)
     }
 
-    protected async _stream(content: { messages: BaseChatMessage[]; }): Promise<Stream<BaseChatMessageChunk>> {
+    protected async _stream(content: LLMProvider.Params): Promise<Stream<BaseChatMessageChunk>> {
 
 
         const response = await this.request(content.messages)

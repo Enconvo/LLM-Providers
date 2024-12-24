@@ -14,13 +14,13 @@ class EnconvoAIProvider extends LLMProvider {
         super(options)
     }
 
-    protected async _call(content: { messages: BaseChatMessage[]; }): Promise<BaseChatMessage> {
+    protected async _call(content: LLMProvider.Params): Promise<BaseChatMessage> {
         const llmProvider = await this.initLLMProvider()
 
         return llmProvider.call(content)
     }
 
-    protected async _stream(content: { messages: BaseChatMessage[]; }): Promise<Stream<BaseChatMessageChunk>> {
+    protected async _stream(content: LLMProvider.Params): Promise<Stream<BaseChatMessageChunk>> {
         const llmProvider = await this.initLLMProvider()
 
         return llmProvider.stream(content)

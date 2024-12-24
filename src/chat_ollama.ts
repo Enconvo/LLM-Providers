@@ -22,7 +22,7 @@ export class OllamaProvider extends LLMProvider {
 
     }
 
-    protected async _call(content: { messages: BaseChatMessage[]; }): Promise<BaseChatMessage> {
+    protected async _call(content: LLMProvider.Params): Promise<BaseChatMessage> {
         const newMessages = OllamaUtil.convertMessagesToOllamaMessages(content.messages)
 
         const params = this.initParams()
@@ -32,7 +32,7 @@ export class OllamaProvider extends LLMProvider {
         return new AssistantMessage(response.message.content)
     }
 
-    protected async _stream(content: { messages: BaseChatMessage[]; }): Promise<Stream<BaseChatMessageChunk>> {
+    protected async _stream(content: LLMProvider.Params): Promise<Stream<BaseChatMessageChunk>> {
         const newMessages = OllamaUtil.convertMessagesToOllamaMessages(content.messages)
 
         const params = this.initParams()

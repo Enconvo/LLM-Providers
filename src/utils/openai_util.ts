@@ -1,4 +1,4 @@
-import { BaseChatMessage, BaseChatMessageChunk, FileUtil, LLMProvider, Stream } from "@enconvo/api"
+import { BaseChatMessage, BaseChatMessageChunk, FileUtil, LLMProvider, LLMTool, Stream } from "@enconvo/api"
 import OpenAI from "openai"
 
 
@@ -61,6 +61,39 @@ export namespace OpenAIUtil {
         }
     }
 
+
+    export const convertToolsToOpenAITools = (tools?: LLMTool[]): OpenAI.Chat.ChatCompletionTool[] | undefined => {
+        if (!tools) {
+            return undefined
+        }
+
+        let newTools: OpenAI.Chat.ChatCompletionTool[] | undefined = tools?.map((tool) => {
+
+            const requestedParameters = tool.parameters ? Object.entries(tool.parameters).reduce((acc, [key, value]) => {
+                if (value.required === true) {
+                    acc.push(key);
+                }
+                return acc;
+            }, [] as string[]) : []
+
+
+            return {
+                type: "function",
+                function: {
+                    name: tool.title,
+                    description: tool.description,
+                    parameters: {
+                        type: "object",
+                        properties: tool.parameters,
+                        required: requestedParameters
+                    },
+                    strict: tool.strict
+                }
+            }
+        })
+
+        return newTools
+    }
 
     export const convertMessagesToOpenAIMessages = (options: LLMProvider.LLMOptions, messages: BaseChatMessage[]): OpenAI.Chat.ChatCompletionMessageParam[] => {
 
@@ -138,6 +171,7 @@ export namespace OpenAIUtil {
                 }
                 done = true;
             } catch (e) {
+                console.log(e)
                 if (e instanceof Error && e.name === 'AbortError') return;
                 throw e;
             } finally {
@@ -145,6 +179,8 @@ export namespace OpenAIUtil {
             }
         }
 
-        return new Stream(iterator, controller);
+        const stream = new Stream(iterator, controller);
+
+        return stream
     }
 }
