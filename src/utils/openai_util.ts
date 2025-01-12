@@ -1,14 +1,28 @@
-import { BaseChatMessage, BaseChatMessageChunk, FileUtil, LLMProvider, LLMTool, Stream } from "@enconvo/api"
+import { AssistantMessage, BaseChatMessageChunk, BaseChatMessageLike, FileUtil, LLMProvider, LLMTool, Stream } from "@enconvo/api"
 import OpenAI from "openai"
 
 
 
 export namespace OpenAIUtil {
-    export const convertMessageToOpenAIMessage = (options: LLMProvider.LLMOptions, message: BaseChatMessage): OpenAI.Chat.ChatCompletionMessageParam => {
+    export const convertMessageToOpenAIMessage = (options: LLMProvider.LLMOptions, message: BaseChatMessageLike): OpenAI.Chat.ChatCompletionMessageParam => {
         let role = message.role
         if (options.modelName.systemMessageEnable === false && message.role === "system") {
             role = "user"
         }
+
+        if (message.role === "tool") {
+            //@ts-ignore
+            return message
+        }
+
+        if (message.role === "assistant") {
+            const aiMessage = message as AssistantMessage
+            if (aiMessage.tool_calls && aiMessage.tool_calls.length > 0) {
+                //@ts-ignore
+                return aiMessage
+            }
+        }
+
 
         if (typeof message.content === "string") {
             //@ts-ignore
@@ -19,16 +33,15 @@ export namespace OpenAIUtil {
         } else {
 
             const content = message.content.filter((item) => {
+                let filter = item.type === "text" || item.type === "flow_step"
                 if (options.modelName.visionEnable === true) {
-                    return item.type === "text" || item.type === "image_url"
+                    filter = filter || item.type === "image_url"
                 }
-
-                return item.type === "text"
-
+                return filter
             }).map((item) => {
                 if (item.type === "image_url") {
                     const url = item.image_url.url
-                    if (url.startsWith("file://")) {
+                    if (role === "user" && url.startsWith("file://")) {
                         const base64 = FileUtil.convertFileUrlToBase64(url)
                         const mimeType = url.split(".").pop()
                         return {
@@ -37,8 +50,19 @@ export namespace OpenAIUtil {
                                 url: `data:image/${mimeType};base64,${base64}`
                             }
                         }
+                    } else {
+                        return {
+                            type: "text",
+                            content: "type:image_url , url:" + url
+                        }
+                    }
+                } else if (item.type === "flow_step") {
+                    return {
+                        type: "text",
+                        content: `type:tool_use, \n tool_name: ${item.title}\ntool_params: ${item.flowParams}\ntool_result: ${JSON.stringify(item.flowResults)}`
                     }
                 }
+
                 return item
             })
 
@@ -71,6 +95,7 @@ export namespace OpenAIUtil {
 
             const requestedParameters = tool.parameters ? Object.entries(tool.parameters).reduce((acc, [key, value]) => {
                 if (value.required === true) {
+                    delete value.required
                     acc.push(key);
                 }
                 return acc;
@@ -80,7 +105,7 @@ export namespace OpenAIUtil {
             return {
                 type: "function",
                 function: {
-                    name: tool.title,
+                    name: tool.id.replace("|", "-"),
                     description: tool.description,
                     parameters: {
                         type: "object",
@@ -95,13 +120,14 @@ export namespace OpenAIUtil {
         return newTools
     }
 
-    export const convertMessagesToOpenAIMessages = (options: LLMProvider.LLMOptions, messages: BaseChatMessage[]): OpenAI.Chat.ChatCompletionMessageParam[] => {
+    export const convertMessagesToOpenAIMessages = (options: LLMProvider.LLMOptions, messages: BaseChatMessageLike[]): OpenAI.Chat.ChatCompletionMessageParam[] => {
 
         if (options.modelName.visionImageCountLimit !== undefined && options.modelName.visionImageCountLimit > 0 && options.modelName.visionEnable === true) {
             if (options.modelName.visionImageCountLimit !== undefined && options.modelName.visionEnable === true) {
                 const countLimit = options.modelName.visionImageCountLimit;
                 let imageCount = 0;
 
+                //@ts-ignore
                 messages = messages.reverse().map(message => {
                     if (typeof message.content !== "string") {
                         const filteredContent = message.content.filter(item => {
@@ -139,6 +165,7 @@ export namespace OpenAIUtil {
             }
         })
 
+
         return newMessages
     }
 
@@ -157,17 +184,7 @@ export namespace OpenAIUtil {
                 for await (const chunk of response) {
                     if (done) continue;
 
-                    if (chunk.choices[0].finish_reason) {
-                        done = true;
-                        continue
-                    }
-
-                    const newChunk = new BaseChatMessageChunk({
-                        content: chunk.choices[0].delta.content || '',
-                        id: chunk.id
-                    })
-
-                    yield newChunk
+                    yield chunk
                 }
                 done = true;
             } catch (e) {

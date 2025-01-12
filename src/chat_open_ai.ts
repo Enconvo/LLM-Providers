@@ -3,8 +3,6 @@ import { BaseChatMessage, BaseChatMessageChunk, LLMProvider, Stream, UserMessage
 import OpenAI from 'openai';
 import { wrapOpenAI } from "langsmith/wrappers";
 import { OpenAIUtil } from './utils/openai_util.ts';
-import fs from 'fs';
-import { homedir } from 'os';
 
 
 export default function main(options: any) {
@@ -15,7 +13,6 @@ export default function main(options: any) {
 class ChatOpenAIProvider extends LLMProvider {
 
     protected async _stream(content: LLMProvider.Params): Promise<Stream<BaseChatMessageChunk>> {
-        console.log("content", content)
         const params = this.initParams(content)
 
         const chatCompletion = await this.client.chat.completions.create({
@@ -23,7 +20,9 @@ class ChatOpenAIProvider extends LLMProvider {
             stream: true,
         });
 
-        const stream = OpenAIUtil.streamFromOpenAI(chatCompletion, chatCompletion.controller)
+
+        const ac = new AbortController()
+        const stream = OpenAIUtil.streamFromOpenAI(chatCompletion, ac)
         return stream
 
     }
@@ -34,7 +33,6 @@ class ChatOpenAIProvider extends LLMProvider {
         super(options)
         this.client = this._createOpenaiClient(this.options)
     }
-
 
 
     protected async _call(content: { messages: BaseChatMessage[]; }): Promise<BaseChatMessage> {
@@ -55,7 +53,7 @@ class ChatOpenAIProvider extends LLMProvider {
         const messages = OpenAIUtil.convertMessagesToOpenAIMessages(this.options, content.messages)
         const tools = OpenAIUtil.convertToolsToOpenAITools(content.tools)
 
-        let params = {
+        let params: any = {
             model: modelOptions.value,
             temperature: this.options.temperature.value,
             messages,
@@ -63,11 +61,17 @@ class ChatOpenAIProvider extends LLMProvider {
             tool_choice: content.tool_choice
         }
 
+        if (tools && tools.length > 0) {
+            params = {
+                ...params,
+                parallel_tool_calls: false,
+            }
+        }
+
         return params
     }
 
     private _createOpenaiClient(options: LLMProvider.LLMOptions): OpenAI {
-
 
         let headers = {
         }

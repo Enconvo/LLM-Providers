@@ -1,8 +1,7 @@
 import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, LLMProvider, Stream } from "@enconvo/api";
 import Anthropic from '@anthropic-ai/sdk';
-import { convertMessagesToAnthropicMessages, streamFromAnthropic } from "./utils/anthropic_util.ts";
+import { AnthropicUtil, convertMessagesToAnthropicMessages, streamFromAnthropic } from "./utils/anthropic_util.ts";
 import { env } from "process";
-
 
 export default function main(options: any) {
     return new AnthropicProvider(options)
@@ -34,7 +33,11 @@ export class AnthropicProvider extends LLMProvider {
 
     protected async _call(content: LLMProvider.Params): Promise<BaseChatMessage> {
 
-        const msg = await this.anthropic.messages.create(this.initParams(content.messages));
+        const params = this.initParams(content)
+        const msg = await this.anthropic.messages.create({
+            ...params,
+            stream: false
+        });
 
         if (msg.content[0]?.type === "text") {
             return new AssistantMessage(msg.content[0].text)
@@ -43,24 +46,37 @@ export class AnthropicProvider extends LLMProvider {
         return new AssistantMessage(msg.content[0].type)
     }
 
+
     protected async _stream(content: LLMProvider.Params): Promise<Stream<BaseChatMessageChunk>> {
 
-        const stream = this.anthropic.messages.stream(this.initParams(content.messages));
+        const params = this.initParams(content)
+
+        const stream = this.anthropic.messages.stream({
+            ...params
+        });
 
         return streamFromAnthropic(stream, stream.controller)
-
     }
 
-    initParams(messages: BaseChatMessage[]) {
+    initParams(content: LLMProvider.Params): Anthropic.MessageStreamParams {
+        const messages = content.messages
         const systemMessage = messages[0]?.role === 'system' ? messages.shift() : undefined
         const system = typeof systemMessage?.content === 'string' ? systemMessage.content : ''
+        const tools = AnthropicUtil.convertToolsToAnthropicTools(content.tools)
+
+        const newMessages = convertMessagesToAnthropicMessages(messages)
 
         return {
             system,
             model: this.options.modelName.value,
             temperature: this.options.temperature.value,
             max_tokens: 1024,
-            messages: convertMessagesToAnthropicMessages(messages),
+            messages: newMessages,
+            tools,
+            tool_choice: {
+                type: "auto",
+                disable_parallel_tool_use: true
+            }
         }
 
 
