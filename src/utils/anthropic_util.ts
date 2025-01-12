@@ -55,8 +55,6 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike): 
     if (message.role === "assistant") {
         const aiMessage = message as AssistantMessage
 
-        console.log('aiMessage', JSON.stringify(aiMessage, null, 2))
-
         if (aiMessage.tool_calls && aiMessage.tool_calls.length > 0) {
             return {
                 role: "assistant",
@@ -81,7 +79,7 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike): 
         }
     } else {
 
-        const content = message.content.filter((item) => {
+        const content: Array<Anthropic.TextBlockParam | Anthropic.ImageBlockParam | Anthropic.ToolUseBlockParam | Anthropic.ToolResultBlockParam> = message.content.filter((item) => {
             let filter = item.type === "text" || item.type === "flow_step" || item.type === "image_url"
             return filter
         }).map((item) => {
@@ -89,41 +87,38 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike): 
                 const url = item.image_url.url
                 if (role === "user" && url.startsWith("file://")) {
                     const base64 = FileUtil.convertFileUrlToBase64(url)
-                    const mimeType = url.split(".").pop()
+                    const mimeType = `image/${url.split(".").pop()}` as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp'
                     return {
                         "type": "image",
                         "source": {
                             "type": "base64",
-                            "media_type": `image/${mimeType}`,
+                            "media_type": `${mimeType}`,
                             "data": base64
                         }
                     }
                 } else {
                     return {
                         type: "text",
-                        content: "type:image_url , url:" + url
+                        text: "type:image_url , url:" + url
                     }
                 }
             } else if (item.type === "flow_step") {
                 return {
                     type: "text",
-                    content: `type:tool_use, \n tool_name: ${item.title}\ntool_params: ${item.flowParams}\ntool_result: ${JSON.stringify(item.flowResults)}`
+                    text: `type:tool_use, \n tool_name: ${item.title}\ntool_params: ${item.flowParams}\ntool_result: ${JSON.stringify(item.flowResults)}`
+                }
+            } else if (item.type === "text") {
+                return {
+                    type: "text",
+                    text: item.text
                 }
             }
 
-            return item
-        })
-
-
-        if (message.content.length === 1 && message.content[0].type === "text") {
             return {
-                //@ts-ignore
-                role: role,
-                content: message.content[0].text
+                type: "text",
+                text: ""
             }
-        }
-
-
+        })
 
         return {
             //@ts-ignore

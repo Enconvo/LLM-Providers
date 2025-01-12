@@ -1,5 +1,47 @@
-import Google from "@google/generative-ai"
-import { BaseChatMessage, BaseChatMessageChunk, FileUtil, Stream } from "@enconvo/api"
+import Google, { FunctionDeclaration, FunctionDeclarationsTool, SchemaType, Tool } from "@google/generative-ai"
+import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, BaseChatMessageLike, FileUtil, LLMTool, Stream, ToolMessage, uuid } from "@enconvo/api"
+
+
+export namespace GoogleUtil {
+
+    export const convertToolsToGoogleTools = (tools?: LLMTool[]): FunctionDeclarationsTool[] | undefined => {
+        if (!tools) {
+            return undefined
+        }
+
+
+        let functionDeclarations: FunctionDeclaration[] | undefined = tools?.map((tool) => {
+
+            const requestedParameters = tool.parameters ? Object.entries(tool.parameters).reduce((acc, [key, value]) => {
+                if (value.required === true) {
+                    delete value.required
+                    acc.push(key);
+                }
+                return acc;
+            }, [] as string[]) : []
+
+
+            const functionDeclarationTool: FunctionDeclaration = {
+                name: tool.id.replace("|", "-"),
+                description: tool.description,
+                parameters: {
+                    type: SchemaType.OBJECT,
+                    //@ts-ignore
+                    properties: tool.parameters,
+                    required: requestedParameters
+                }
+            }
+            return functionDeclarationTool
+        })
+
+        const functionDeclarationTool = {
+            functionDeclarations: functionDeclarations
+        }
+
+        return [functionDeclarationTool]
+    }
+}
+
 
 
 function convertRole(role: BaseChatMessage["role"]) {
@@ -7,12 +49,55 @@ function convertRole(role: BaseChatMessage["role"]) {
         return "user"
     } else if (role === "assistant") {
         return "model"
+    } else if (role === "system") {
+        return "user"
     }
     return "user"
 }
 
 
-export const convertMessageToGoogleMessage = (message: BaseChatMessage): Google.Content => {
+
+export const convertMessageToGoogleMessage = (message: BaseChatMessageLike): Google.Content => {
+
+    if (message.role === "tool") {
+        const toolMessage = message as ToolMessage
+        return {
+            role: "function",
+            parts: [
+                {
+                    functionResponse: {
+                        name: toolMessage.tool_name,
+                        response: JSON.parse(toolMessage.content as string)
+                    }
+                }
+            ]
+        }
+    }
+
+    if (message.role === "assistant") {
+        const aiMessage = message as AssistantMessage
+
+        console.log('aiMessage', JSON.stringify(aiMessage, null, 2))
+
+        if (aiMessage.tool_calls && aiMessage.tool_calls.length > 0) {
+
+            let args = JSON.parse(aiMessage.tool_calls[0].function.arguments)
+            return {
+                role: convertRole(message.role),
+                parts: [
+                    {
+                        functionCall: {
+                            name: aiMessage.tool_calls[0].function.name,
+                            args: args
+                        }
+                    }
+                ]
+            }
+        }
+    }
+
+
+
 
     if (typeof message.content === "string") {
         return {
@@ -22,10 +107,13 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessage): Google.
             }]
         }
     } else {
-        const content = message.content.filter((item) => item.type === "text" || item.type === "image_url").map((item) => {
+        const content: Google.Part[] = message.content.filter((item) => {
+            let filter = item.type === "text" || item.type === "flow_step" || item.type === "image_url"
+            return filter
+        }).map((item) => {
             if (item.type === "image_url") {
                 const url = item.image_url.url
-                if (url.startsWith("file://")) {
+                if (message.role === "user" && url.startsWith("file://")) {
                     const base64 = FileUtil.convertFileUrlToBase64(url)
                     const mimeType = url.split(".").pop()
                     return {
@@ -34,14 +122,27 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessage): Google.
                             mimeType: `image/${mimeType}`
                         },
                     }
+                } else {
+
+                    return {
+                        text: "type:image_url , url:" + url
+                    }
+                }
+            } else if (item.type === "flow_step") {
+                return {
+                    text: `type:tool_use, \n tool_name: ${item.title}\ntool_params: ${item.flowParams}\ntool_result: ${JSON.stringify(item.flowResults)}`
                 }
             } else if (item.type === "text") {
                 return {
-                    "text": item.text
+                    text: item.text
                 }
             }
-            return item
+
+            return {
+                text: ""
+            }
         })
+
 
         return {
             role: convertRole(message.role),
@@ -51,10 +152,9 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessage): Google.
     }
 }
 
-export const convertMessagesToGoogleMessages = (messages: BaseChatMessage[]): Google.Content[] => {
+export const convertMessagesToGoogleMessages = (messages: BaseChatMessageLike[]): Google.Content[] => {
     return messages.map((message) => convertMessageToGoogleMessage(message))
 }
-
 
 
 
@@ -69,16 +169,60 @@ export function streamFromGoogle(response: AsyncIterable<Google.EnhancedGenerate
         let done = false;
         try {
             for await (const chunk of response) {
-                // console.log("chunk", chunk)
+                console.log("google chunk", JSON.stringify(chunk, null, 2))
                 if (done) continue;
-                if (chunk.candidates?.[0]?.finishReason === "STOP") {
+                const candidate = chunk.candidates?.[0]
+                if (candidate?.finishReason === "STOP") {
                     done = true;
                 }
 
-                const newChunk = new BaseChatMessageChunk({
-                    content: chunk.text(),
-                })
-                yield newChunk
+
+                const functionCalls = chunk.functionCalls()
+
+                if (functionCalls && functionCalls.length > 0) {
+                    const functionCall = functionCalls[0]
+                    yield {
+                        model: "Google",
+                        id: uuid(),
+                        choices: [{
+                            delta: {
+                                tool_calls: [
+                                    {
+                                        type: "function",
+                                        index: 0,
+                                        id: uuid(),
+                                        function: {
+                                            name: functionCall.name,
+                                            arguments: JSON.stringify(functionCall.args)
+                                        }
+                                    }
+                                ],
+                                role: "assistant"
+                            },
+                            finish_reason: null,
+                            index: 0
+                        }],
+                        created: Date.now(),
+                        object: "chat.completion.chunk"
+                    }
+
+                } else {
+
+                    yield {
+                        model: "Google",
+                        id: uuid(),
+                        choices: [{
+                            delta: {
+                                content: chunk.text(),
+                                role: "assistant"
+                            },
+                            finish_reason: null,
+                            index: 0
+                        }],
+                        created: Date.now(),
+                        object: "chat.completion.chunk"
+                    }
+                }
 
             }
             done = true;
