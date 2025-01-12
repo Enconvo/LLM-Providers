@@ -1,6 +1,5 @@
-import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, LLMProvider, res, Stream } from "@enconvo/api";
+import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, LLMProvider, res, Stream, uuid } from "@enconvo/api";
 import Anthropic from '@anthropic-ai/sdk';
-import { convertMessagesToAnthropicMessages, streamFromAnthropic } from "./utils/anthropic_util.ts";
 import ollama from 'ollama'
 import { OllamaUtil } from "./utils/ollama_util.ts";
 
@@ -56,9 +55,20 @@ export class OllamaProvider extends LLMProvider {
                         continue
                     }
 
-                    const newChunk = new BaseChatMessageChunk({
-                        content: chunk.message.content
-                    })
+                    const newChunk: BaseChatMessageChunk = {
+                        model: "Ollama",
+                        id: uuid(),
+                        choices: [{
+                            delta: {
+                                content: chunk.message.content,
+                                role: "assistant"
+                            },
+                            finish_reason: null,
+                            index: 0
+                        }],
+                        created: Date.now(),
+                        object: "chat.completion.chunk"
+                    }
 
                     yield newChunk
                 }

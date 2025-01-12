@@ -1,4 +1,4 @@
-import { BaseChatMessage, BaseChatMessageChunk, LLMProvider, Stream } from "@enconvo/api";
+import { BaseChatMessage, BaseChatMessageChunk, BaseChatMessageLike, LLMProvider, Stream } from "@enconvo/api";
 import { ChatCohere } from "@langchain/cohere"
 import { LangchainUtil } from "./utils/langchain_util.ts";
 import { BaseMessageLike } from "@langchain/core/messages";
@@ -50,7 +50,7 @@ export class CohereAIProvider extends LLMProvider {
 
 
 
-    convertMessageToLangchainMessage(message: BaseChatMessage): BaseMessageLike {
+    convertMessageToLangchainMessage(message: BaseChatMessageLike): BaseMessageLike {
 
         if (typeof message.content === "string") {
             //@ts-ignore
@@ -72,7 +72,7 @@ export class CohereAIProvider extends LLMProvider {
 
     }
 
-    convertMessagesToLangchainMessages(messages: BaseChatMessage[]): BaseMessageLike[] {
+    convertMessagesToLangchainMessages(messages: BaseChatMessageLike[]): BaseMessageLike[] {
         return messages.map((message) => this.convertMessageToLangchainMessage(message))
     }
 

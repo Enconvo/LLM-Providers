@@ -25,7 +25,8 @@ async function fetchModels(url: string, api_key: string, type: string): Promise<
 
             const context = item.max_context_length || 8000
             const visionEnable = item.capabilities.vision || false
-            const toolUse = item.capabilities.function_calling || true
+            const toolUse = false
+            // const toolUse = item.capabilities.function_calling || false
             const title = item.name || item.id
             const value = item.id
             const inputPrice = 0

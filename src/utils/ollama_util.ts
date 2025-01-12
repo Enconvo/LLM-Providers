@@ -1,10 +1,10 @@
-import { BaseChatMessage, BaseChatMessageChunk, FileUtil, Stream } from "@enconvo/api"
+import { BaseChatMessageLike, FileUtil } from "@enconvo/api"
 
 export namespace OllamaUtil {
 
 
 
-    export const convertMessageToOllamaMessage = (message: BaseChatMessage): Message => {
+    export const convertMessageToOllamaMessage = (message: BaseChatMessageLike): Message => {
 
         if (typeof message.content === "string") {
             return {
@@ -36,7 +36,7 @@ export namespace OllamaUtil {
         }
     }
 
-    export const convertMessagesToOllamaMessages = (messages: BaseChatMessage[]): Message[] => {
+    export const convertMessagesToOllamaMessages = (messages: BaseChatMessageLike[]): Message[] => {
         return messages.map((message) => convertMessageToOllamaMessage(message))
     }
 

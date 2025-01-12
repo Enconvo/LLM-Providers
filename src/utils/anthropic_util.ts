@@ -105,7 +105,8 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike): 
             } else if (item.type === "flow_step") {
                 return {
                     type: "text",
-                    text: `type:tool_use, \n tool_name: ${item.title}\ntool_params: ${item.flowParams}\ntool_result: ${JSON.stringify(item.flowResults)}`
+                    text: "tool use"
+                    // text: `\nThis is a tool execution log : \ntool_name: ${item.title}\n tool_result: ${JSON.stringify(item.flowResults)}`
                 }
             } else if (item.type === "text") {
                 return {

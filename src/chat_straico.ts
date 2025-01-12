@@ -1,4 +1,4 @@
-import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, ChatMessageContentText, LLMProvider, Stream } from "@enconvo/api";
+import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, BaseChatMessageLike, ChatMessageContent, ChatMessageContentText, LLMProvider, Stream, uuid } from "@enconvo/api";
 import axios from 'axios'
 import { createReadStream } from 'node:fs';
 import FormData from 'form-data';
@@ -26,7 +26,21 @@ export class StraicoProvider extends LLMProvider {
 
 
         async function* iterator(): AsyncIterator<BaseChatMessageChunk, any, undefined> {
-            yield new AssistantMessage(response)
+            yield {
+                model: "Straico",
+                id: uuid(),
+                choices: [{
+                    delta: {
+                        content: response,
+                        role: "assistant"
+                    },
+                    finish_reason: null,
+                    index: 0
+                }],
+                created: Date.now(),
+                object: "chat.completion.chunk"
+            }
+
         }
 
         const controller = new AbortController();
@@ -46,7 +60,7 @@ export class StraicoProvider extends LLMProvider {
     }
 
 
-    async request(messages: BaseChatMessage[]) {
+    async request(messages: BaseChatMessageLike[]) {
         const newMessages = await this.convertMessagesToStraicoMessages(messages)
 
         const files = newMessages.map((message) => {
@@ -99,12 +113,13 @@ export class StraicoProvider extends LLMProvider {
     }
 
 
-    private async convertMessageToStraicoMessage(message: BaseChatMessage): Promise<{ text: BaseChatMessage; files: string[]; }> {
+    private async convertMessageToStraicoMessage(message: BaseChatMessageLike): Promise<{ text: BaseChatMessage; files: string[]; }> {
         let role = message.role
 
         if (typeof message.content === "string") {
+
             return {
-                text: new BaseChatMessage(role, [new ChatMessageContentText(message.content)]),
+                text: new BaseChatMessage(role, [ChatMessageContent.text(message.content)]),
                 files: []
             }
         } else {
@@ -124,14 +139,14 @@ export class StraicoProvider extends LLMProvider {
             const files = await Promise.all(images)
 
             return {
-                text: new BaseChatMessage(role, [new ChatMessageContentText(content.join("\n"))]),
+                text: new BaseChatMessage(role, [ChatMessageContent.text(content.join("\n"))]),
                 files: files
             }
         }
     }
 
 
-    private async convertMessagesToStraicoMessages(messages: BaseChatMessage[]): Promise<{ text: BaseChatMessage; files: string[]; }[]> {
+    private async convertMessagesToStraicoMessages(messages: BaseChatMessageLike[]): Promise<{ text: BaseChatMessage; files: string[]; }[]> {
 
         let newMessages = messages.map((message) => this.convertMessageToStraicoMessage(message))
         return await Promise.all(newMessages)

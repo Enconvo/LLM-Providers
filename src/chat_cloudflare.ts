@@ -1,5 +1,5 @@
 import { ChatCloudflareWorkersAI } from "@langchain/cloudflare";
-import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, LLMProvider, Stream } from "@enconvo/api";
+import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, BaseChatMessageLike, LLMProvider, Stream } from "@enconvo/api";
 import { LangchainUtil } from "./utils/langchain_util.ts";
 import { BaseMessageLike } from "@langchain/core/messages";
 
@@ -41,12 +41,8 @@ export class ChatCloudflareWorkersProvider extends LLMProvider {
 
     private _initLangchainChatModel(options: LLMProvider.LLMOptions) {
 
-        const modelOptions = options.modelName
-        const modelName = modelOptions.value
-        options.modelName = modelName;
-
         const model = new ChatCloudflareWorkersAI({
-            model: options.modelName, // Default value
+            model: options.modelName.value, // Default value
             cloudflareAccountId: options.account_id,
             cloudflareApiToken: options.apiKey,
             ...options,
@@ -57,7 +53,7 @@ export class ChatCloudflareWorkersProvider extends LLMProvider {
     }
 
 
-    convertMessageToLangchainMessage(message: BaseChatMessage): BaseMessageLike {
+    convertMessageToLangchainMessage(message: BaseChatMessageLike): BaseMessageLike {
 
         if (typeof message.content === "string") {
             //@ts-ignore
@@ -79,7 +75,7 @@ export class ChatCloudflareWorkersProvider extends LLMProvider {
 
     }
 
-    convertMessagesToLangchainMessages(messages: BaseChatMessage[]): BaseMessageLike[] {
+    convertMessagesToLangchainMessages(messages: BaseChatMessageLike[]): BaseMessageLike[] {
         return messages.map((message) => this.convertMessageToLangchainMessage(message))
     }
 

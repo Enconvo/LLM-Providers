@@ -1,4 +1,4 @@
-import { BaseChatMessage, BaseChatMessageChunk, FileUtil, Stream } from "@enconvo/api"
+import { BaseChatMessage, BaseChatMessageChunk, FileUtil, Stream, uuid } from "@enconvo/api"
 import { AIMessageChunk, BaseMessageLike } from "@langchain/core/messages"
 
 export namespace LangchainUtil {
@@ -56,10 +56,21 @@ export namespace LangchainUtil {
                 for await (const chunk of response) {
                     if (done) continue;
                     if (typeof chunk.content === "string") {
-                        const newChunk = new BaseChatMessageChunk({
-                            content: chunk.content,
-                            id: chunk.id
-                        })
+
+                        const newChunk: BaseChatMessageChunk = {
+                            model: "Langchain",
+                            id: chunk.id || uuid(),
+                            choices: [{
+                                delta: {
+                                    content: chunk.content,
+                                    role: "assistant"
+                                },
+                                finish_reason: null,
+                                index: 0
+                            }],
+                            created: Date.now(),
+                            object: "chat.completion.chunk"
+                        }
 
                         yield newChunk
                     }

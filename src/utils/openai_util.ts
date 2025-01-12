@@ -53,29 +53,35 @@ export namespace OpenAIUtil {
                     } else {
                         return {
                             type: "text",
-                            content: "type:image_url , url:" + url
+                            text: "type:image_url , url:" + url
                         }
                     }
                 } else if (item.type === "flow_step") {
                     return {
                         type: "text",
-                        content: `type:tool_use, \n tool_name: ${item.title}\ntool_params: ${item.flowParams}\ntool_result: ${JSON.stringify(item.flowResults)}`
+                        text: `type:tool_use, \n tool_name: ${item.title}\ntool_params: ${item.flowParams}\ntool_result: ${JSON.stringify(item.flowResults)}`
                     }
                 }
 
                 return item
             })
 
-
-            if (message.content.length === 1 && message.content[0].type === "text") {
+            if (content.length === 1 && content[0].type === "text") {
                 //@ts-ignore
                 return {
                     role: role,
-                    content: message.content[0].text
+                    content: content[0].text
                 }
             }
 
 
+            if (options.modelName.value === "deepseek-chat" && content[0].type === "text") {
+                //@ts-ignore
+                return {
+                    role: role,
+                    content: content[0].text
+                }
+            }
 
             return {
                 role: role,

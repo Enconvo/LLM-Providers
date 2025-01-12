@@ -51,22 +51,24 @@ class ChatOpenAIProvider extends LLMProvider {
         const modelOptions = this.options.modelName
 
         const messages = OpenAIUtil.convertMessagesToOpenAIMessages(this.options, content.messages)
+
         const tools = OpenAIUtil.convertToolsToOpenAITools(content.tools)
 
         let params: any = {
             model: modelOptions.value,
             temperature: this.options.temperature.value,
-            messages,
-            tools,
-            tool_choice: content.tool_choice
+            messages
         }
 
-        if (tools && tools.length > 0) {
+        if (tools && tools.length > 0 && modelOptions.toolUse === true) {
             params = {
                 ...params,
+                tools,
+                tool_choice: content.tool_choice,
                 parallel_tool_calls: false,
             }
         }
+
 
         return params
     }
