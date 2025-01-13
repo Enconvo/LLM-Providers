@@ -33,13 +33,14 @@ export namespace AnthropicUtil {
         return newTools
     }
 }
-export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike): Anthropic.Messages.MessageParam => {
+
+export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike): Anthropic.Messages.MessageParam[] => {
 
     let role = message.role
 
     if (message.role === "tool") {
         const toolMessage = message as ToolMessage
-        return {
+        return [{
             role: "user",
             content: [
                 {
@@ -49,14 +50,14 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike): 
                     content: toolMessage.content
                 }
             ]
-        }
+        }]
     }
 
     if (message.role === "assistant") {
         const aiMessage = message as AssistantMessage
 
         if (aiMessage.tool_calls && aiMessage.tool_calls.length > 0) {
-            return {
+            return [{
                 role: "assistant",
                 content: [
                     {
@@ -66,72 +67,100 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike): 
                         input: {}
                     }
                 ]
-            }
+            }]
         }
     }
 
 
     if (typeof message.content === "string") {
-        return {
+        return [{
             //@ts-ignore
             role: role,
             content: message.content
-        }
+        }]
     } else {
 
-        const content: Array<Anthropic.TextBlockParam | Anthropic.ImageBlockParam | Anthropic.ToolUseBlockParam | Anthropic.ToolResultBlockParam> = message.content.filter((item) => {
+        const content: Anthropic.MessageParam[][] = message.content.filter((item) => {
             let filter = item.type === "text" || item.type === "flow_step" || item.type === "image_url"
             return filter
         }).map((item) => {
+            role = role as 'user' | 'assistant'
+
             if (item.type === "image_url") {
                 const url = item.image_url.url
                 if (role === "user" && url.startsWith("file://")) {
                     const base64 = FileUtil.convertFileUrlToBase64(url)
                     const mimeType = `image/${url.split(".").pop()}` as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp'
-                    return {
-                        "type": "image",
-                        "source": {
-                            "type": "base64",
-                            "media_type": `${mimeType}`,
-                            "data": base64
-                        }
-                    }
-                } else {
-                    return {
-                        type: "text",
-                        text: "type:image_url , url:" + url
-                    }
-                }
-            } else if (item.type === "flow_step") {
-                return {
-                    type: "text",
-                    text: "tool use"
-                    // text: `\nThis is a tool execution log : \ntool_name: ${item.title}\n tool_result: ${JSON.stringify(item.flowResults)}`
-                }
-            } else if (item.type === "text") {
-                return {
-                    type: "text",
-                    text: item.text
-                }
-            }
 
-            return {
-                type: "text",
-                text: ""
+                    return [{
+                        role: role,
+                        content: [{
+                            "type": "image",
+                            "source": {
+                                "type": "base64",
+                                "media_type": `${mimeType}`,
+                                "data": base64
+                            }
+                        }]
+                    }]
+                } else {
+
+                    return [{
+                        role: role,
+                        content: [{
+                            type: "text",
+                            text: "type:image_url , url:" + url
+                        }]
+                    }]
+                }
+
+            } else if (item.type === "flow_step") {
+
+                return [
+                    {
+                        role: "assistant",
+                        content: [
+                            {
+                                type: "tool_use",
+                                name: item.flowName.replace("|", "-"),
+                                id: item.flowId,
+                                input: {}
+                            }
+                        ]
+                    },
+                    {
+                        role: "user",
+                        content: [
+                            {
+                                type: "tool_result",
+                                tool_use_id: item.flowId,
+                                content: JSON.stringify(item.flowResults)
+                            }
+                        ]
+                    }]
+
+            } else if (item.type === "text") {
+                return [{
+                    role: role,
+                    content: [{
+                        type: "text",
+                        text: item.text
+                    }]
+                }]
+            } else {
+                return [{
+                    role: role,
+                    content: ""
+                }]
             }
         })
 
-        return {
-            //@ts-ignore
-            role: role,
-            //@ts-ignore
-            content: content
-        }
+        return content.flat()
     }
 }
 
 export const convertMessagesToAnthropicMessages = (messages: BaseChatMessageLike[]): Anthropic.Messages.MessageParam[] => {
-    return messages.map((message) => convertMessageToAnthropicMessage(message))
+    return messages.map((message) => convertMessageToAnthropicMessage(message)).flat()
 }
 
 

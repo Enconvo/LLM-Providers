@@ -65,6 +65,7 @@ export class AnthropicProvider extends LLMProvider {
         const tools = AnthropicUtil.convertToolsToAnthropicTools(content.tools)
 
         const newMessages = convertMessagesToAnthropicMessages(messages)
+        console.log("newMessages", JSON.stringify(newMessages, null, 2))
 
         return {
             system,
