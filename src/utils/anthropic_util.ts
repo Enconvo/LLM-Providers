@@ -1,31 +1,20 @@
 import Anthropic from "@anthropic-ai/sdk"
 import { AssistantMessage, BaseChatMessageChunk, BaseChatMessageLike, FileUtil, LLMTool, Stream, ToolMessage, uuid } from "@enconvo/api"
+import { homedir } from "os"
 
 export namespace AnthropicUtil {
     export const convertToolsToAnthropicTools = (tools?: LLMTool[]): Anthropic.Tool[] | undefined => {
+        require('fs').writeFileSync(`${homedir()}/Desktop/tools.json`, JSON.stringify(tools, null, 2))
         if (!tools) {
             return undefined
         }
 
         let newTools: Anthropic.Tool[] | undefined = tools?.map((tool) => {
 
-            const requestedParameters = tool.parameters ? Object.entries(tool.parameters).reduce((acc, [key, value]) => {
-                if (value.required === true) {
-                    delete value.required
-                    acc.push(key);
-                }
-                return acc;
-            }, [] as string[]) : []
-
-
             return {
-                name: tool.id.replace("|", "-"),
+                name: tool.name,
                 description: tool.description,
-                input_schema: {
-                    type: "object",
-                    properties: tool.parameters,
-                    required: requestedParameters
-                },
+                input_schema: tool.parameters,
                 strict: tool.strict
             }
         })

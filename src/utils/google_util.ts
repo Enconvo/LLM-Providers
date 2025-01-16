@@ -1,4 +1,4 @@
-import Google, { FunctionDeclaration, FunctionDeclarationsTool, SchemaType, Tool } from "@google/generative-ai"
+import Google, { FunctionDeclaration, FunctionDeclarationsTool } from "@google/generative-ai"
 import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, BaseChatMessageLike, FileUtil, LLMTool, Stream, ToolMessage, uuid } from "@enconvo/api"
 
 
@@ -12,24 +12,33 @@ export namespace GoogleUtil {
 
         let functionDeclarations: FunctionDeclaration[] | undefined = tools?.map((tool) => {
 
-            const requestedParameters = tool.parameters ? Object.entries(tool.parameters).reduce((acc, [key, value]) => {
-                if (value.required === true) {
-                    delete value.required
-                    acc.push(key);
-                }
-                return acc;
-            }, [] as string[]) : []
+            Object.entries(tool.parameters.properties).forEach(([key, value]: [string, any]) => {
+                // Recursively check and remove additionalProperties from nested objects
+                const removeAdditionalProps = (obj: any) => {
+                    if (typeof obj !== 'object') return;
+                    
+                    // Delete additionalProperties if present
+                    delete obj.default;
+                    
+                    // Recursively process nested properties
+                    Object.values(obj).forEach(val => {
+                        if (typeof val === 'object') {
+                            removeAdditionalProps(val);
+                        }
+                    });
+                };
+                
+                removeAdditionalProps(value);
+            });
 
+            if(Object.keys(tool.parameters.properties).length === 0){
+                delete tool.parameters
+            }
 
             const functionDeclarationTool: FunctionDeclaration = {
-                name: tool.id.replace("|", "-"),
+                name: tool.name,
                 description: tool.description,
-                parameters: {
-                    type: SchemaType.OBJECT,
-                    //@ts-ignore
-                    properties: tool.parameters,
-                    required: requestedParameters
-                }
+                parameters: tool.parameters
             }
             return functionDeclarationTool
         })
@@ -76,9 +85,6 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike): Goo
 
     if (message.role === "assistant") {
         const aiMessage = message as AssistantMessage
-
-        console.log('aiMessage', JSON.stringify(aiMessage, null, 2))
-
         if (aiMessage.tool_calls && aiMessage.tool_calls.length > 0) {
 
             let args = JSON.parse(aiMessage.tool_calls[0].function.arguments)

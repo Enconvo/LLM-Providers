@@ -65,20 +65,24 @@ export class AnthropicProvider extends LLMProvider {
         const tools = AnthropicUtil.convertToolsToAnthropicTools(content.tools)
 
         const newMessages = convertMessagesToAnthropicMessages(messages)
-        console.log("newMessages", JSON.stringify(newMessages, null, 2))
 
-        return {
+        const params: Anthropic.Messages.MessageStreamParams = {
             system,
             model: this.options.modelName.value,
             temperature: this.options.temperature.value,
             max_tokens: 1024,
             messages: newMessages,
-            tools,
-            tool_choice: {
+        }
+
+        if (tools) {
+            params.tools = tools
+            params.tool_choice = {
                 type: "auto",
                 disable_parallel_tool_use: true
             }
         }
+
+        return params
 
 
     }

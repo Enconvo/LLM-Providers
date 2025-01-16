@@ -1,7 +1,7 @@
 {
   "$schema": "https://enconvo.com/schemas/extension.json",
   "name": "llm",
-  "version": "1.3.123",
+  "version": "1.3.124",
   "description": "Large Language Models (LLM) services providers",
   "title": "LLM Providers",
   "icon": "icon.png",
@@ -1968,6 +1968,7 @@
     {
       "name": "ollama_models",
       "title": "Ollama Models",
+      "commandType": "function_command",
       "description": "get ollama model list",
       "icon": "ollama.png",
       "showInCommandList": false,
@@ -1988,6 +1989,7 @@
     {
       "name": "openrouter_models",
       "targetCommand": "llm|fetch_models",
+      "commandType": "function_command",
       "title": "openrouter Models",
       "description": "get openrouter model list",
       "icon": "openrouter.png",
@@ -2006,6 +2008,7 @@
     {
       "name": "perplexity_models",
       "targetCommand": "llm|fetch_models",
+      "commandType": "function_command",
       "title": "perplexity Models",
       "description": "get perplexity model list",
       "icon": "perplexity.png",
@@ -2025,6 +2028,7 @@
     {
       "name": "groq_models",
       "title": "groq Models",
+      "commandType": "function_command",
       "description": "get groq model list",
       "icon": "groq.png",
       "showInCommandList": false,
@@ -2056,6 +2060,7 @@
       "name": "x_ai_models",
       "title": "X.AI Models",
       "description": "get X.AI model list",
+      "commandType": "function_command",
       "icon": "x_ai.png",
       "showInCommandList": false,
       "mode": "no-view",
@@ -2086,6 +2091,7 @@
       "name": "straico_models",
       "title": "Straico Models",
       "description": "get Straico model list",
+      "commandType": "function_command",
       "icon": "straico.png",
       "showInCommandList": false,
       "mode": "no-view",
@@ -2114,6 +2120,7 @@
       "name": "gemini_models",
       "title": "Gemini Models",
       "description": "get Gemini model list",
+      "commandType": "function_command",
       "icon": "gemini.png",
       "showInCommandList": false,
       "mode": "no-view",
@@ -2123,6 +2130,7 @@
       "name": "dashscope_models",
       "title": "DashScope Models",
       "description": "get DashScope model list",
+      "commandType": "function_command",
       "icon": "dashscope.png",
       "showInCommandList": false,
       "mode": "no-view",
@@ -2153,6 +2161,7 @@
       "name": "sambanova_models",
       "title": "Sambanova Models",
       "description": "get Sambanova model list",
+      "commandType": "function_command",
       "icon": "sambanova.png",
       "showInCommandList": false,
       "mode": "no-view",
@@ -2183,6 +2192,7 @@
       "name": "cerebras_models",
       "title": "Cerebras Models",
       "description": "get Cerebras model list",
+      "commandType": "function_command",
       "icon": "cerebras.png",
       "showInCommandList": false,
       "mode": "no-view",
@@ -2213,6 +2223,7 @@
       "name": "mistral_models",
       "title": "Mistral Models",
       "description": "get Mistral model list",
+      "commandType": "function_command",
       "icon": "mistral.png",
       "showInCommandList": false,
       "mode": "no-view",
@@ -2243,6 +2254,7 @@
       "name": "together_models",
       "targetCommand": "llm|fetch_models",
       "title": "together Models",
+      "commandType": "function_command",
       "description": "get together model list",
       "icon": "together.png",
       "showInCommandList": false,
@@ -2262,6 +2274,7 @@
       "name": "fireworks_models",
       "targetCommand": "llm|fetch_models",
       "title": "fireworks Models",
+      "commandType": "function_command",
       "description": "get fireworks model list",
       "icon": "fireworks.png",
       "showInCommandList": false,
@@ -2282,6 +2295,7 @@
       "title": "fetch Models",
       "description": "get models list",
       "icon": "together.png",
+      "commandType": "function_command",
       "showInCommandList": false,
       "mode": "no-view"
     },
@@ -2289,6 +2303,7 @@
       "name": "enconvo_models",
       "targetCommand": "llm|fetch_models",
       "title": "enconvo Models",
+      "commandType": "function_command",
       "description": "get enconvo model list",
       "icon": "enconvo.png",
       "showInCommandList": false,
@@ -2309,6 +2324,7 @@
       "description": "get openai model list",
       "icon": "openai.png",
       "showInCommandList": false,
+      "commandType": "function_command",
       "mode": "no-view",
       "preferences": [
         {
@@ -2340,6 +2356,7 @@
       "description": "get azureai model list",
       "icon": "azureai.png",
       "showInCommandList": false,
+      "commandType": "function_command",
       "mode": "no-view",
       "preferences": [
         {
@@ -2357,6 +2374,7 @@
       "targetCommand": "llm|fetch_models",
       "description": "get cloudflare model list",
       "icon": "cloudflare.png",
+      "commandType": "function_command",
       "showInCommandList": false,
       "mode": "no-view",
       "preferences": [
@@ -2375,6 +2393,7 @@
       "targetCommand": "llm|fetch_models",
       "description": "get cohere model list",
       "icon": "cohere.jpg",
+      "commandType": "function_command",
       "showInCommandList": false,
       "mode": "no-view",
       "preferences": [
@@ -2395,6 +2414,7 @@
       "description": "get silliconflow model list",
       "icon": "openrouter.png",
       "showInCommandList": false,
+      "commandType": "function_command",
       "mode": "no-view",
       "preferences": [
         {
@@ -2413,6 +2433,7 @@
       "description": "get arli model list",
       "icon": "openrouter.png",
       "showInCommandList": false,
+      "commandType": "function_command",
       "mode": "no-view",
       "preferences": [
         {

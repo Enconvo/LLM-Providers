@@ -118,26 +118,12 @@ export namespace OpenAIUtil {
         }
 
         let newTools: OpenAI.Chat.ChatCompletionTool[] | undefined = tools?.map((tool) => {
-
-            const requestedParameters = tool.parameters ? Object.entries(tool.parameters).reduce((acc, [key, value]) => {
-                if (value.required === true) {
-                    delete value.required
-                    acc.push(key);
-                }
-                return acc;
-            }, [] as string[]) : []
-
-
             return {
                 type: "function",
                 function: {
-                    name: tool.id.replace("|", "-"),
+                    name: tool.name,
                     description: tool.description,
-                    parameters: {
-                        type: "object",
-                        properties: tool.parameters,
-                        required: requestedParameters
-                    },
+                    parameters: tool.parameters,
                     strict: tool.strict
                 }
             }
