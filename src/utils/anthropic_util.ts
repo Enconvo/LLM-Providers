@@ -1,10 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk"
 import { AssistantMessage, BaseChatMessageChunk, BaseChatMessageLike, FileUtil, LLMTool, Stream, ToolMessage, uuid } from "@enconvo/api"
-import { homedir } from "os"
 
 export namespace AnthropicUtil {
     export const convertToolsToAnthropicTools = (tools?: LLMTool[]): Anthropic.Tool[] | undefined => {
-        require('fs').writeFileSync(`${homedir()}/Desktop/tools.json`, JSON.stringify(tools, null, 2))
         if (!tools) {
             return undefined
         }

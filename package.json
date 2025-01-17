@@ -184,6 +184,7 @@
       "targetCommand": "llm|fetch_models",
       "title": "Anthropic Models",
       "description": "get anthropic model list",
+      "commandType": "function_command",
       "icon": "anthropic.png",
       "showInCommandList": false,
       "mode": "no-view",
