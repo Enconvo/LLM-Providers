@@ -64,7 +64,7 @@ export class AnthropicProvider extends LLMProvider {
         const system = typeof systemMessage?.content === 'string' ? systemMessage.content : ''
         const tools = AnthropicUtil.convertToolsToAnthropicTools(content.tools)
 
-        const newMessages = convertMessagesToAnthropicMessages(messages)
+        const newMessages = convertMessagesToAnthropicMessages(messages,this.options)
 
         const params: Anthropic.Messages.MessageStreamParams = {
             system,

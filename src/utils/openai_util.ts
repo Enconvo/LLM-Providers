@@ -1,5 +1,6 @@
 import { AssistantMessage, BaseChatMessageChunk, BaseChatMessageLike, FileUtil, LLMProvider, LLMTool, Stream } from "@enconvo/api"
 import OpenAI from "openai"
+import path from "path"
 
 
 
@@ -34,37 +35,32 @@ export namespace OpenAIUtil {
             ]
         } else {
 
-            const content: OpenAI.Chat.ChatCompletionMessageParam[][] = message.content.filter((item) => {
-                let filter = item.type === "text" || item.type === "flow_step"
-                if (options.modelName.visionEnable === true) {
-                    filter = filter || item.type === "image_url"
-                }
-                return filter
-            }).map((item) => {
+            const content: OpenAI.Chat.ChatCompletionMessageParam[][] = message.content.map((item) => {
                 let role = message.role as 'user' | 'assistant'
                 if (item.type === "image_url") {
                     const url = item.image_url.url
-                    if (role === "user" && url.startsWith("file://")) {
+
+                    let parts: OpenAI.Chat.ChatCompletionContentPart[] = []
+                    if (role === "user" && url.startsWith("file://") && options.modelName.visionEnable === true) {
                         const base64 = FileUtil.convertFileUrlToBase64(url)
                         const mimeType = url.split(".").pop()
-                        return [{
-                            role: role,
-                            content: [{
-                                type: "image_url",
-                                image_url: {
-                                    url: `data:image/${mimeType};base64,${base64}`
-                                }
-                            }]
-                        }]
+                        parts.push({
+                            type: "image_url",
+                            image_url: {
+                                url: `data:image/${mimeType};base64,${base64}`
+                            }
+                        })
                     } else {
-                        return [{
-                            role: role,
-                            content: [{
-                                type: "text",
-                                text: "type:image_url , url:" + url
-                            }]
-                        }]
                     }
+                    parts.push({
+                        type: "text",
+                        text: "type:image_url , url:" + url
+                    })
+
+                    return [{
+                        role: role,
+                        content: parts
+                    }]
                 } else if (item.type === "flow_step") {
 
                     const msgs: OpenAI.Chat.ChatCompletionMessageParam[] = [
@@ -79,7 +75,6 @@ export namespace OpenAIUtil {
                                         arguments: item.flowParams || ''
                                     }
                                 }
-
                             ]
                         }
                         ,
@@ -92,19 +87,66 @@ export namespace OpenAIUtil {
                     return msgs
 
                 } else if (item.type === "text") {
-                    return [{
+                    const content: OpenAI.Chat.ChatCompletionMessageParam[] = [{
                         role: role,
                         content: item.text
+                    }]
+                    return content
+                } else if (item.type === "audio") {
+                    function isSupportAudioType(mimeType: string): boolean {
+                        return mimeType === "mp3" || mimeType === "wav"
+                    }
+                    const url = item.file_url.url
+                    const mimeType = path.extname(url).slice(1)
+                    const isSupport = isSupportAudioType(mimeType)
+                    let parts: OpenAI.Chat.ChatCompletionContentPart[] = []
+                    if (role === "user" && url.startsWith("file://") && options.modelName.audioEnable === true && isSupport) {
+                        const base64 = FileUtil.convertFileUrlToBase64(url)
+                        parts.push({
+                            type: "input_audio",
+                            input_audio: {
+                                data: base64,
+                                format: mimeType as "mp3" | "wav"
+                            }
+                        })
+                    } else {
+                        parts.push({
+                            type: "text",
+                            text: "type:audio , url:" + url || ""
+                        })
+                    }
+
+                    return [{
+                        role: role,
+                        content: parts
+                    }]
+                } else if (item.type === "video") {
+                    const url = item.file_url.url
+                    const parts: OpenAI.Chat.ChatCompletionContentPart[] = [{
+                        type: "text",
+                        text: "type:video , url:" + url || ""
+                    }]
+                    return [{
+                        role: role,
+                        content: parts
+                    }]
+                } else if (item.type === "file") {
+                    const url = item.file_url.url
+                    const parts: OpenAI.Chat.ChatCompletionContentPart[] = [{
+                        type: "text",
+                        text: "type:file , url:" + url || ""
+                    }]
+                    return [{
+                        role: role,
+                        content: parts
                     }]
                 }
 
                 return [{
                     role: role,
-                    content: ""
+                    content: JSON.stringify(item)
                 }]
             })
-
-
 
 
             return content.flat()

@@ -94,7 +94,7 @@ export class GoogleGeminiProvider extends LLMProvider {
 
         const fixedMessages = makeFirstMessageBeUserRole(messages)
 
-        let newMessages = convertMessagesToGoogleMessages(fixedMessages)
+        let newMessages = convertMessagesToGoogleMessages(fixedMessages,this.options)
 
 
 

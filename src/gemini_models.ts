@@ -5,7 +5,9 @@ const models: DropdownListCache.ModelOutput[] = [
         "title": "Gemini 2.0 Flash Exp",
         "value": "gemini-2.0-flash-exp",
         "context": 1048576,
-        "visionEnable": true
+        "visionEnable": true,
+        "audioEnable": true,
+        "videoEnable": true,
     },
     {
         "title": "Gemini 2.0 Flash Thinking",

@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk"
-import { AssistantMessage, BaseChatMessageChunk, BaseChatMessageLike, FileUtil, LLMTool, Stream, ToolMessage, uuid } from "@enconvo/api"
+import { AssistantMessage, BaseChatMessageChunk, BaseChatMessageLike, FileUtil, LLMProvider, LLMTool, Stream, ToolMessage, uuid } from "@enconvo/api"
 
 export namespace AnthropicUtil {
     export const convertToolsToAnthropicTools = (tools?: LLMTool[]): Anthropic.Tool[] | undefined => {
@@ -21,7 +21,9 @@ export namespace AnthropicUtil {
     }
 }
 
-export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike): Anthropic.Messages.MessageParam[] => {
+type MessageContentType = Anthropic.TextBlockParam | Anthropic.ImageBlockParam | Anthropic.ToolUseBlockParam | Anthropic.ToolResultBlockParam
+
+export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, options: LLMProvider.LLMOptions): Anthropic.Messages.MessageParam[] => {
 
     let role = message.role
 
@@ -67,39 +69,34 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike): 
         }]
     } else {
 
-        const content: Anthropic.MessageParam[][] = message.content.filter((item) => {
-            let filter = item.type === "text" || item.type === "flow_step" || item.type === "image_url"
-            return filter
-        }).map((item) => {
+        const content: Anthropic.MessageParam[][] = message.content.map((item) => {
             role = role as 'user' | 'assistant'
 
             if (item.type === "image_url") {
                 const url = item.image_url.url
+                let parts: MessageContentType[] = []
                 if (role === "user" && url.startsWith("file://")) {
                     const base64 = FileUtil.convertFileUrlToBase64(url)
                     const mimeType = `image/${url.split(".").pop()}` as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp'
-
-                    return [{
-                        role: role,
-                        content: [{
-                            "type": "image",
-                            "source": {
-                                "type": "base64",
-                                "media_type": `${mimeType}`,
-                                "data": base64
-                            }
-                        }]
-                    }]
-                } else {
-
-                    return [{
-                        role: role,
-                        content: [{
-                            type: "text",
-                            text: "type:image_url , url:" + url
-                        }]
-                    }]
+                    parts.push({
+                        "type": "image",
+                        "source": {
+                            "type": "base64",
+                            "media_type": `${mimeType}`,
+                            "data": base64
+                        }
+                    })
                 }
+
+                parts.push({
+                    type: "text",
+                    text: "type:image_url , url:" + url
+                })
+
+                return [{
+                    role: role,
+                    content: parts
+                }]
 
             } else if (item.type === "flow_step") {
 
@@ -134,20 +131,48 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike): 
                         text: item.text
                     }]
                 }]
-            } else {
+            } else if (item.type === "audio") {
+                const url = item.file_url.url
                 return [{
                     role: role,
-                    content: ""
+                    content: [{
+                        type: "text",
+                        text: "type:audio , url:" + url || ""
+                    }]
+                }]
+            } else if (item.type === "video") {
+                const url = item.file_url.url
+                return [{
+                    role: role,
+                    content: [{
+                        type: "text",
+                        text: "type:video , url:" + url || ""
+                    }]
+                }]
+            } else if (item.type === "file") {
+                const url = item.file_url.url
+                return [{
+                    role: role,
+                    content: [{
+                        type: "text",
+                        text: "type:audio , url:" + url || ""
+                    }]
                 }]
             }
+
+            return [{
+                role: role,
+                content: JSON.stringify(item)
+            }]
+
         })
 
         return content.flat()
     }
 }
 
-export const convertMessagesToAnthropicMessages = (messages: BaseChatMessageLike[]): Anthropic.Messages.MessageParam[] => {
-    return messages.map((message) => convertMessageToAnthropicMessage(message)).flat()
+export const convertMessagesToAnthropicMessages = (messages: BaseChatMessageLike[], options: LLMProvider.LLMOptions): Anthropic.Messages.MessageParam[] => {
+    return messages.map((message) => convertMessageToAnthropicMessage(message, options)).flat()
 }
 
 
