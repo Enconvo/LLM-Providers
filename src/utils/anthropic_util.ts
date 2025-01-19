@@ -46,6 +46,13 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
         const aiMessage = message as AssistantMessage
 
         if (aiMessage.tool_calls && aiMessage.tool_calls.length > 0) {
+
+            let args = {}
+            try {
+                args = JSON.parse(aiMessage.tool_calls[0].function.arguments || '{}')
+            } catch (e) {
+                console.log("flowParams error", aiMessage.tool_calls[0].function.arguments)
+            }
             return [{
                 role: "assistant",
                 content: [
@@ -53,7 +60,7 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
                         type: "tool_use",
                         name: aiMessage.tool_calls[0].function.name,
                         id: aiMessage.tool_calls[0].id!,
-                        input: {}
+                        input: args
                     }
                 ]
             }]
@@ -99,6 +106,16 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
                 }]
 
             } else if (item.type === "flow_step") {
+                const results = item.flowResults.map((message) => {
+                    return message.content
+                }).flat()
+
+                let args = {}
+                try {
+                    args = JSON.parse(item.flowParams || '{}')
+                } catch (e) {
+                    console.log("flowParams error", item.flowParams)
+                }
 
                 return [
                     {
@@ -108,7 +125,7 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
                                 type: "tool_use",
                                 name: item.flowName.replace("|", "-"),
                                 id: item.flowId,
-                                input: {}
+                                input: args
                             }
                         ]
                     },
@@ -118,7 +135,7 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
                             {
                                 type: "tool_result",
                                 tool_use_id: item.flowId,
-                                content: JSON.stringify(item.flowResults)
+                                content: JSON.stringify(results)
                             }
                         ]
                     }]
@@ -172,7 +189,8 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
 }
 
 export const convertMessagesToAnthropicMessages = (messages: BaseChatMessageLike[], options: LLMProvider.LLMOptions): Anthropic.Messages.MessageParam[] => {
-    return messages.map((message) => convertMessageToAnthropicMessage(message, options)).flat()
+    const newMessages = messages.map((message) => convertMessageToAnthropicMessage(message, options)).flat()
+    return newMessages
 }
 
 

@@ -62,7 +62,10 @@ export namespace OpenAIUtil {
                         content: parts
                     }]
                 } else if (item.type === "flow_step") {
-
+                    const results = item.flowResults.map((message) => {
+                        return message.content
+                    }).flat()
+    
                     const msgs: OpenAI.Chat.ChatCompletionMessageParam[] = [
                         {
                             role: "assistant",
@@ -81,7 +84,7 @@ export namespace OpenAIUtil {
                         {
                             role: "tool",
                             tool_call_id: item.flowId,
-                            content: JSON.stringify(item.flowResults)
+                            content: JSON.stringify(results)
                         }]
 
                     return msgs
@@ -218,7 +221,6 @@ export namespace OpenAIUtil {
                 return message.content?.length !== 0
             }
         })
-
 
         return newMessages
     }

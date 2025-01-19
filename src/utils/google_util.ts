@@ -13,7 +13,7 @@ export namespace GoogleUtil {
 
         let functionDeclarations: FunctionDeclaration[] | undefined = tools?.map((tool) => {
 
-            Object.entries(tool.parameters.properties).forEach(([key, value]: [string, any]) => {
+            Object.entries(tool.parameters?.properties || {}).forEach(([key, value]: [string, any]) => {
                 // Recursively check and remove additionalProperties from nested objects
                 const removeAdditionalProps = (obj: any) => {
                     if (typeof obj !== 'object') return;
@@ -32,7 +32,7 @@ export namespace GoogleUtil {
                 removeAdditionalProps(value);
             });
 
-            if (Object.keys(tool.parameters.properties).length === 0) {
+            if (Object.keys(tool.parameters?.properties || {}).length === 0) {
                 delete tool.parameters
             }
 
@@ -71,13 +71,22 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
 
     if (message.role === "tool") {
         const toolMessage = message as ToolMessage
+        let response = {}
+        try {
+            response = JSON.parse(toolMessage.content as string)
+        } catch (e) {
+            console.error(e)
+        }
+
         const content: Google.Content = {
             role: "function",
             parts: [
                 {
                     functionResponse: {
                         name: toolMessage.tool_name,
-                        response: JSON.parse(toolMessage.content as string)
+                        response: {
+                            content: response
+                        }
                     }
                 }
             ]
@@ -89,7 +98,14 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
         const aiMessage = message as AssistantMessage
         if (aiMessage.tool_calls && aiMessage.tool_calls.length > 0) {
 
-            let args = JSON.parse(aiMessage.tool_calls[0].function.arguments)
+
+            let args = {}
+            try {
+                args = JSON.parse(aiMessage.tool_calls[0].function.arguments)
+            } catch (e) {
+                console.error(e)
+            }
+
             const content: Google.Content = {
                 role: convertRole(message.role),
                 parts: [
@@ -149,7 +165,7 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
                 try {
                     args = JSON.parse(item.flowParams || '{}')
                 } catch (e) {
-                    console.error(e)
+                    console.log("flowParams error", item.flowParams)
                 }
 
                 const functionCall: Google.Content = {
@@ -164,13 +180,21 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
                     ]
                 }
 
+                const results = item.flowResults.map((message) => {
+                    return message.content
+                }).flat()
+
                 const functionResponse: Google.Content = {
                     role: "function",
                     parts: [
                         {
                             functionResponse: {
                                 name: item.flowName,
-                                response: item.flowResults
+                                response: {
+                                    content: {
+                                        content: results
+                                    }
+                                }
                             }
                         }
                     ]
@@ -220,7 +244,7 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
             } else if (item.type === "video") {
                 const url = item.file_url.url
                 const mimeType = path.extname(url).slice(1)
-                // Check if the audio format is supported by Gemini
+
                 function isSupportAudioType(mimeType: string): boolean {
                     const supportedFormats = ['mp4'];
                     return supportedFormats.includes(mimeType)
@@ -280,7 +304,9 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
 }
 
 export const convertMessagesToGoogleMessages = (messages: BaseChatMessageLike[], options: LLMProvider.LLMOptions): Google.Content[] => {
-    return messages.map((message) => convertMessageToGoogleMessage(message, options)).flat()
+    const newMessages = messages.map((message) => convertMessageToGoogleMessage(message, options)).flat()
+    console.log("newMessages", JSON.stringify(newMessages, null, 2))
+    return newMessages
 }
 
 
@@ -296,7 +322,7 @@ export function streamFromGoogle(response: AsyncIterable<Google.EnhancedGenerate
         let done = false;
         try {
             for await (const chunk of response) {
-                console.log("google chunk", JSON.stringify(chunk, null, 2))
+                // console.log("google chunk", JSON.stringify(chunk, null, 2))
                 if (done) continue;
                 const candidate = chunk.candidates?.[0]
                 if (candidate?.finishReason === "STOP") {
