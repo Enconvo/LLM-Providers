@@ -121,9 +121,6 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
         }
     }
 
-
-
-
     if (typeof message.content === "string") {
         const content: Google.Content = {
             role: convertRole(message.role),
@@ -298,12 +295,13 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
             return [text]
         })
 
-
         return content.flat()
     }
 }
 
 export const convertMessagesToGoogleMessages = (messages: BaseChatMessageLike[], options: LLMProvider.LLMOptions): Google.Content[] => {
+    // console.log("messages", JSON.stringify(messages, null, 2))
+
     const newMessages = messages.map((message) => convertMessageToGoogleMessage(message, options)).flat()
     console.log("newMessages", JSON.stringify(newMessages, null, 2))
     return newMessages

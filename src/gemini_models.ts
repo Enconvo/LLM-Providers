@@ -7,37 +7,47 @@ const models: DropdownListCache.ModelOutput[] = [
         "context": 1048576,
         "visionEnable": true,
         "audioEnable": true,
-        "videoEnable": true,
+        "toolUse": true
     },
     {
         "title": "Gemini 2.0 Flash Thinking",
         "value": "gemini-2.0-flash-thinking-exp-1219",
         "context": 1048576,
-        "visionEnable": true
+        "visionEnable": true,
+        "audioEnable": true,
+        "toolUse": true
     },
     {
         "title": "Gemini Exp 1206",
         "value": "gemini-exp-1206",
         "context": 1048576,
-        "visionEnable": true
+        "visionEnable": true,
+        "audioEnable": true,
+        "toolUse": true
     },
     {
         "title": "Gemini 1.5 Flash-8B",
         "value": "gemini-1.5-flash-8b",
         "context": 1048576,
-        "visionEnable": true
+        "visionEnable": true,
+        "audioEnable": true,
+        "toolUse": true
     },
     {
         "title": "Gemini 1.5 Flash 002",
         "value": "gemini-1.5-flash-002",
         "context": 1048576,
-        "visionEnable": true
+        "visionEnable": true,
+        "audioEnable": true,
+        "toolUse": true
     },
     {
         "title": "Gemini 1.5 Pro 002",
         "value": "gemini-1.5-pro-002",
         "context": 2097152,
-        "visionEnable": true
+        "visionEnable": true,
+        "audioEnable": true,
+        "toolUse": true
     }
 ]
 
