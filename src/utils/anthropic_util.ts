@@ -97,7 +97,7 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
 
                 parts.push({
                     type: "text",
-                    text: "type:image_url , url:" + url
+                    text: "This is a image file , url is " + url
                 })
 
                 return [{
@@ -154,7 +154,7 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
                     role: role,
                     content: [{
                         type: "text",
-                        text: "type:audio , url:" + url || ""
+                        text: "This is a audio file , url is " + url || ""
                     }]
                 }]
             } else if (item.type === "video") {
@@ -163,7 +163,7 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
                     role: role,
                     content: [{
                         type: "text",
-                        text: "type:video , url:" + url || ""
+                        text: "This is a video file , url is " + url || ""
                     }]
                 }]
             } else if (item.type === "file") {
@@ -172,7 +172,7 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
                     role: role,
                     content: [{
                         type: "text",
-                        text: "type:audio , url:" + url || ""
+                        text: "This is a file , url is " + url || ""
                     }]
                 }]
             }
@@ -190,6 +190,7 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
 
 export const convertMessagesToAnthropicMessages = (messages: BaseChatMessageLike[], options: LLMProvider.LLMOptions): Anthropic.Messages.MessageParam[] => {
     const newMessages = messages.map((message) => convertMessageToAnthropicMessage(message, options)).flat()
+    // console.log("newMessages", JSON.stringify(newMessages, null, 2))
     return newMessages
 }
 

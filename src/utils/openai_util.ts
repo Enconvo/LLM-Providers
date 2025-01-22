@@ -54,7 +54,7 @@ export namespace OpenAIUtil {
                     }
                     parts.push({
                         type: "text",
-                        text: "type:image_url , url:" + url
+                        text: "This is a image file , url is " + url
                     })
 
                     return [{
@@ -115,7 +115,7 @@ export namespace OpenAIUtil {
                     } else {
                         parts.push({
                             type: "text",
-                            text: "type:audio , url:" + url || ""
+                            text: "This is a audio file , url is " + url || ""
                         })
                     }
 
@@ -127,7 +127,7 @@ export namespace OpenAIUtil {
                     const url = item.file_url.url
                     const parts: OpenAI.Chat.ChatCompletionContentPart[] = [{
                         type: "text",
-                        text: "type:video , url:" + url || ""
+                        text: "This is a video file , url is " + url || ""
                     }]
                     return [{
                         role: role,
@@ -137,7 +137,7 @@ export namespace OpenAIUtil {
                     const url = item.file_url.url
                     const parts: OpenAI.Chat.ChatCompletionContentPart[] = [{
                         type: "text",
-                        text: "type:file , url:" + url || ""
+                        text: "This is a file , url is " + url || ""
                     }]
                     return [{
                         role: role,
@@ -221,6 +221,7 @@ export namespace OpenAIUtil {
                 return message.content?.length !== 0
             }
         })
+        // console.log("newMessages", JSON.stringify(newMessages, null, 2))
 
         return newMessages
     }

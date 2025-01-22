@@ -146,7 +146,7 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
                     parts.push(image)
                 }
                 const text: Google.Part = {
-                    text: "type:image_url , url:" + url
+                    text: "This is a image file , url is " + url
                 }
 
                 parts.push(text)
@@ -229,7 +229,7 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
                 }
 
                 const text: Google.Part = {
-                    text: "type:audio , url:" + url
+                    text: "This is a audio file , url is " + url
                 }
                 parts.push(text)
 
@@ -260,7 +260,7 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
                 }
 
                 const text: Google.Part = {
-                    text: "type:video , url:" + url
+                    text: "This is a video file , url is " + url
                 }
                 parts.push(text)
 
@@ -275,7 +275,7 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
                 let parts: Google.Part[] = []
 
                 const text: Google.Part = {
-                    text: "type:file , url:" + url
+                    text: "This is a file , url is " + url
                 }
                 parts.push(text)
 
