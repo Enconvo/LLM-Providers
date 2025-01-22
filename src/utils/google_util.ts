@@ -153,13 +153,6 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
                 parts.push(text)
 
             } else if (item.type === "flow_step") {
-                if (parts.length > 0) {
-                    contents.push({
-                        role: convertRole(message.role),
-                        parts: parts
-                    })
-                    parts = []
-                }
 
                 let args = {}
                 try {
@@ -176,6 +169,14 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
 
 
                 if (options.modelName.toolUse === true) {
+
+                    if (parts.length > 0) {
+                        contents.push({
+                            role: convertRole(message.role),
+                            parts: parts
+                        })
+                        parts = []
+                    }
 
                     const functionCall: Google.Content = {
                         role: convertRole(message.role),

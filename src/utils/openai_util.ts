@@ -58,14 +58,7 @@ export namespace OpenAIUtil {
                     })
 
                 } else if (item.type === "flow_step") {
-                    if (messageContents.length > 0) {
-                        //@ts-ignore
-                        newMessages.push({
-                            role: role,
-                            content: messageContents
-                        })
-                        messageContents = []
-                    }
+
 
 
 
@@ -96,6 +89,15 @@ export namespace OpenAIUtil {
                         }]
 
                     if (options.modelName.toolUse === true) {
+
+                        if (messageContents.length > 0) {
+                            //@ts-ignore
+                            newMessages.push({
+                                role: role,
+                                content: messageContents
+                            })
+                            messageContents = []
+                        }
 
                         newMessages.push(...msgs)
                     } else {
@@ -244,7 +246,7 @@ export namespace OpenAIUtil {
             return message
         })
 
-        // console.log("newMessages", JSON.stringify(newMessages, null, 2))
+        console.log("newMessages", JSON.stringify(newMessages, null, 2))
 
         return newMessages
     }
