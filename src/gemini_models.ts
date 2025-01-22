@@ -11,11 +11,11 @@ const models: DropdownListCache.ModelOutput[] = [
     },
     {
         "title": "Gemini 2.0 Flash Thinking",
-        "value": "gemini-2.0-flash-thinking-exp-1219",
+        "value": "gemini-2.0-flash-thinking-exp-01-21",
         "context": 1048576,
         "visionEnable": true,
         "audioEnable": true,
-        "toolUse": true
+        "toolUse": false
     },
     {
         "title": "Gemini Exp 1206",

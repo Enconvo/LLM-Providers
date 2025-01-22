@@ -303,7 +303,7 @@ export const convertMessagesToGoogleMessages = (messages: BaseChatMessageLike[],
     // console.log("messages", JSON.stringify(messages, null, 2))
 
     const newMessages = messages.map((message) => convertMessageToGoogleMessage(message, options)).flat()
-    console.log("newMessages", JSON.stringify(newMessages, null, 2))
+    // console.log("newMessages", JSON.stringify(newMessages, null, 2))
     return newMessages
 }
 
