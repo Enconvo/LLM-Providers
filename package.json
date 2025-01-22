@@ -337,6 +337,170 @@
       ]
     },
     {
+      "name": "deepseek",
+      "title": "Deep Seek",
+      "description": "Chat with DeepSeek , learn more : [DeepSeek developers](https://platform.deepseek.com/)",
+      "icon": "deepseek.png",
+      "mode": "provider",
+      "targetCommand": "llm|chat_open_ai",
+      "preferences": [
+        {
+          "name": "modelName",
+          "description": "The model to generate the completion.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Model Name",
+          "default": "deepseek-chat",
+          "data": [
+            {
+              "title": "Deepseek Chat",
+              "value": "deepseek-chat",
+              "context": 64000,
+              "inputPrice": 0.00014,
+              "outputPrice": 0.00028,
+              "toolUse": true
+            },
+            {
+              "title": "Deepseek Reasoner",
+              "value": "deepseek-reasoner",
+              "context": 64000,
+              "inputPrice": 0.00014,
+              "outputPrice": 0.00028
+            }
+          ]
+        },
+        {
+          "name": "temperature",
+          "description": "What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Temperature",
+          "default": 1,
+          "data": [
+            {
+              "title": "none",
+              "value": 0
+            },
+            {
+              "title": "low",
+              "value": 0.5
+            },
+            {
+              "title": "medium",
+              "value": 1
+            },
+            {
+              "title": "high",
+              "value": 1.5
+            },
+            {
+              "title": "maximum",
+              "value": 2
+            }
+          ]
+        },
+        {
+          "name": "openAIApiKey",
+          "description": "How to get api key? [🔑here](https://platform.deepseek.com/api_keys)",
+          "type": "password",
+          "required": false,
+          "title": "API Key",
+          "default": "",
+          "defaultProxy": "KEY_DEEPSEEK_APIKEY",
+          "placeholder": "sk-********"
+        },
+        {
+          "name": "baseUrl",
+          "description": "OpenAI api base url",
+          "type": "textfield",
+          "required": false,
+          "title": "OpenAI Api Base Url",
+          "default": "https://api.deepseek.com",
+          "placeholder": "OpenAI Api Base Url",
+          "visibility": "hidden"
+        },
+        {
+          "name": "streaming",
+          "description": "Whether to stream output",
+          "type": "checkbox",
+          "required": false,
+          "title": "Streaming",
+          "default": true,
+          "label": "Streaming",
+          "visibility": "hidden"
+        }
+      ]
+    },
+    {
+      "name": "chat_groq",
+      "title": "Groq AI",
+      "description": "Chat with Groq ai, learn more : [groq.com/](https://groq.com/)",
+      "icon": "groq.png",
+      "mode": "provider",
+      "targetCommand": "llm|chat_open_ai",
+      "preferences": [
+        {
+          "name": "modelName",
+          "description": "The model to generate the completion.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Model Name",
+          "default": "gemma2-9b-it",
+          "dataProxy": "llm|groq_models"
+        },
+        {
+          "name": "openAIApiKey",
+          "description": "How to get api key? [🔑here](https://console.groq.com/keys)",
+          "type": "password",
+          "required": false,
+          "title": "API Key",
+          "default": "",
+          "defaultProxy": "KEY_GROQ_APIKEY",
+          "placeholder": "gsk_********"
+        },
+        {
+          "name": "temperature",
+          "description": "What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Temperature",
+          "default": 1,
+          "data": [
+            {
+              "title": "none",
+              "value": 0
+            },
+            {
+              "title": "low",
+              "value": 0.5
+            },
+            {
+              "title": "medium",
+              "value": 1
+            },
+            {
+              "title": "high",
+              "value": 1.5
+            },
+            {
+              "title": "maximum",
+              "value": 2
+            }
+          ]
+        },
+        {
+          "name": "baseUrl",
+          "description": "Groq api base url",
+          "type": "textfield",
+          "required": false,
+          "title": "Groq Api Base Url",
+          "default": "https://api.groq.com/openai/v1",
+          "placeholder": "Groq Api Base Url",
+          "visibility": "hidden"
+        }
+      ]
+    },
+    {
       "name": "azure_openai",
       "title": "Azure OpenAI",
       "description": "Azure OpenAI , learn more : [azure openai](https://learn.microsoft.com/en-us/azure/ai-services/openai/overview)",
@@ -419,75 +583,6 @@
           "title": "Streaming",
           "default": true,
           "label": "Streaming",
-          "visibility": "hidden"
-        }
-      ]
-    },
-    {
-      "name": "chat_groq",
-      "title": "Groq AI",
-      "description": "Chat with Groq ai, learn more : [groq.com/](https://groq.com/)",
-      "icon": "groq.png",
-      "mode": "provider",
-      "targetCommand": "llm|chat_open_ai",
-      "preferences": [
-        {
-          "name": "modelName",
-          "description": "The model to generate the completion.",
-          "type": "dropdown",
-          "required": false,
-          "title": "Model Name",
-          "default": "gemma2-9b-it",
-          "dataProxy": "llm|groq_models"
-        },
-        {
-          "name": "openAIApiKey",
-          "description": "How to get api key? [🔑here](https://console.groq.com/keys)",
-          "type": "password",
-          "required": false,
-          "title": "API Key",
-          "default": "",
-          "defaultProxy": "KEY_GROQ_APIKEY",
-          "placeholder": "gsk_********"
-        },
-        {
-          "name": "temperature",
-          "description": "What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.",
-          "type": "dropdown",
-          "required": false,
-          "title": "Temperature",
-          "default": 1,
-          "data": [
-            {
-              "title": "none",
-              "value": 0
-            },
-            {
-              "title": "low",
-              "value": 0.5
-            },
-            {
-              "title": "medium",
-              "value": 1
-            },
-            {
-              "title": "high",
-              "value": 1.5
-            },
-            {
-              "title": "maximum",
-              "value": 2
-            }
-          ]
-        },
-        {
-          "name": "baseUrl",
-          "description": "Groq api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "Groq Api Base Url",
-          "default": "https://api.groq.com/openai/v1",
-          "placeholder": "Groq Api Base Url",
           "visibility": "hidden"
         }
       ]
@@ -830,101 +925,6 @@
           "title": "Perplexity Api Base Url",
           "default": "https://api.perplexity.ai",
           "placeholder": "Perplexity Api Base Url",
-          "visibility": "hidden"
-        },
-        {
-          "name": "streaming",
-          "description": "Whether to stream output",
-          "type": "checkbox",
-          "required": false,
-          "title": "Streaming",
-          "default": true,
-          "label": "Streaming",
-          "visibility": "hidden"
-        }
-      ]
-    },
-    {
-      "name": "deepseek",
-      "title": "Deep Seek",
-      "description": "Chat with DeepSeek , learn more : [DeepSeek developers](https://platform.deepseek.com/)",
-      "icon": "deepseek.png",
-      "mode": "provider",
-      "targetCommand": "llm|chat_open_ai",
-      "preferences": [
-        {
-          "name": "modelName",
-          "description": "The model to generate the completion.",
-          "type": "dropdown",
-          "required": false,
-          "title": "Model Name",
-          "default": "deepseek-chat",
-          "data": [
-            {
-              "title": "Deepseek Chat",
-              "value": "deepseek-chat",
-              "context": 64000,
-              "inputPrice": 0.00014,
-              "outputPrice": 0.00028,
-              "toolUse": true
-            },
-            {
-              "title": "Deepseek Reasoner",
-              "value": "deepseek-reasoner",
-              "context": 64000,
-              "inputPrice": 0.00014,
-              "outputPrice": 0.00028
-            }
-          ]
-        },
-        {
-          "name": "temperature",
-          "description": "What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.",
-          "type": "dropdown",
-          "required": false,
-          "title": "Temperature",
-          "default": 1,
-          "data": [
-            {
-              "title": "none",
-              "value": 0
-            },
-            {
-              "title": "low",
-              "value": 0.5
-            },
-            {
-              "title": "medium",
-              "value": 1
-            },
-            {
-              "title": "high",
-              "value": 1.5
-            },
-            {
-              "title": "maximum",
-              "value": 2
-            }
-          ]
-        },
-        {
-          "name": "openAIApiKey",
-          "description": "How to get api key? [🔑here](https://platform.deepseek.com/api_keys)",
-          "type": "password",
-          "required": false,
-          "title": "API Key",
-          "default": "",
-          "defaultProxy": "KEY_DEEPSEEK_APIKEY",
-          "placeholder": "sk-********"
-        },
-        {
-          "name": "baseUrl",
-          "description": "OpenAI api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "OpenAI Api Base Url",
-          "default": "https://api.deepseek.com",
-          "placeholder": "OpenAI Api Base Url",
           "visibility": "hidden"
         },
         {

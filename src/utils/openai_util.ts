@@ -34,38 +34,46 @@ export namespace OpenAIUtil {
                 }
             ]
         } else {
+            const newMessages: OpenAI.Chat.ChatCompletionMessageParam[] = []
+            let messageContents: OpenAI.Chat.ChatCompletionContentPart[] = []
 
-            const content: OpenAI.Chat.ChatCompletionMessageParam[][] = message.content.map((item) => {
+            for (const item of message.content) {
                 let role = message.role as 'user' | 'assistant'
                 if (item.type === "image_url") {
                     const url = item.image_url.url
 
-                    let parts: OpenAI.Chat.ChatCompletionContentPart[] = []
                     if (role === "user" && url.startsWith("file://") && options.modelName.visionEnable === true) {
                         const base64 = FileUtil.convertFileUrlToBase64(url)
                         const mimeType = url.split(".").pop()
-                        parts.push({
+                        messageContents.push({
                             type: "image_url",
                             image_url: {
                                 url: `data:image/${mimeType};base64,${base64}`
                             }
                         })
-                    } else {
                     }
-                    parts.push({
+                    messageContents.push({
                         type: "text",
                         text: "This is a image file , url is " + url
                     })
 
-                    return [{
-                        role: role,
-                        content: parts
-                    }]
                 } else if (item.type === "flow_step") {
+                    if (messageContents.length > 0) {
+                        //@ts-ignore
+                        newMessages.push({
+                            role: role,
+                            content: messageContents
+                        })
+                        messageContents = []
+                    }
+
+
+
                     const results = item.flowResults.map((message) => {
                         return message.content
                     }).flat()
-    
+
+
                     const msgs: OpenAI.Chat.ChatCompletionMessageParam[] = [
                         {
                             role: "assistant",
@@ -87,14 +95,15 @@ export namespace OpenAIUtil {
                             content: JSON.stringify(results)
                         }]
 
-                    return msgs
+                    newMessages.push(...msgs)
 
                 } else if (item.type === "text") {
-                    const content: OpenAI.Chat.ChatCompletionMessageParam[] = [{
-                        role: role,
-                        content: item.text
-                    }]
-                    return content
+
+                    messageContents.push({
+                        type: "text",
+                        text: item.text
+                    })
+
                 } else if (item.type === "audio") {
                     function isSupportAudioType(mimeType: string): boolean {
                         return mimeType === "mp3" || mimeType === "wav"
@@ -102,10 +111,9 @@ export namespace OpenAIUtil {
                     const url = item.file_url.url
                     const mimeType = path.extname(url).slice(1)
                     const isSupport = isSupportAudioType(mimeType)
-                    let parts: OpenAI.Chat.ChatCompletionContentPart[] = []
                     if (role === "user" && url.startsWith("file://") && options.modelName.audioEnable === true && isSupport) {
                         const base64 = FileUtil.convertFileUrlToBase64(url)
-                        parts.push({
+                        messageContents.push({
                             type: "input_audio",
                             input_audio: {
                                 data: base64,
@@ -113,46 +121,45 @@ export namespace OpenAIUtil {
                             }
                         })
                     } else {
-                        parts.push({
+                        messageContents.push({
                             type: "text",
                             text: "This is a audio file , url is " + url || ""
                         })
                     }
 
-                    return [{
-                        role: role,
-                        content: parts
-                    }]
                 } else if (item.type === "video") {
                     const url = item.file_url.url
-                    const parts: OpenAI.Chat.ChatCompletionContentPart[] = [{
+                    messageContents.push({
                         type: "text",
                         text: "This is a video file , url is " + url || ""
-                    }]
-                    return [{
-                        role: role,
-                        content: parts
-                    }]
+                    })
                 } else if (item.type === "file") {
                     const url = item.file_url.url
-                    const parts: OpenAI.Chat.ChatCompletionContentPart[] = [{
+                    messageContents.push({
                         type: "text",
                         text: "This is a file , url is " + url || ""
-                    }]
-                    return [{
-                        role: role,
-                        content: parts
-                    }]
+                    })
+                } else if (item.type === "thinking") {
+                    // do nothing
+
+                } else {
+                    messageContents.push({
+                        type: "text",
+                        text: JSON.stringify(item)
+                    })
                 }
 
-                return [{
+            }
+
+            if (messageContents.length > 0) {
+                //@ts-ignore
+                newMessages.push({
                     role: role,
-                    content: JSON.stringify(item)
-                }]
-            })
+                    content: messageContents
+                })
+            }
 
-
-            return content.flat()
+            return newMessages
         }
     }
 
@@ -220,7 +227,14 @@ export namespace OpenAIUtil {
             } else {
                 return message.content?.length !== 0
             }
+        }).map((message) => {
+            // If content is an array with single text item, convert it to string
+            if (message.content && Array.isArray(message.content) && message.content.length === 1 && message.content[0].type === "text") {
+                message.content = message.content[0].text
+            }
+            return message
         })
+
         // console.log("newMessages", JSON.stringify(newMessages, null, 2))
 
         return newMessages

@@ -130,11 +130,12 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
         }
         return [content]
     } else {
-        const content: Google.Content[][] = message.content.map((item) => {
+        let parts: Google.Part[] = []
+        const contents: Google.Content[] = []
+        for (const item of message.content) {
             if (item.type === "image_url") {
                 const url = item.image_url.url
                 const mimeType = path.extname(url).slice(1)
-                let parts: Google.Part[] = []
                 if (message.role === "user" && url.startsWith("file://") && options.modelName.visionEnable === true) {
                     const base64 = FileUtil.convertFileUrlToBase64(url)
                     const image: Google.Part = {
@@ -151,12 +152,14 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
 
                 parts.push(text)
 
-                const content: Google.Content = {
-                    role: convertRole(message.role),
-                    parts: parts
-                }
-                return [content]
             } else if (item.type === "flow_step") {
+                if (parts.length > 0) {
+                    contents.push({
+                        role: convertRole(message.role),
+                        parts: parts
+                    })
+                    parts = []
+                }
 
                 let args = {}
                 try {
@@ -165,48 +168,55 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
                     console.log("flowParams error", item.flowParams)
                 }
 
-                const functionCall: Google.Content = {
-                    role: convertRole(message.role),
-                    parts: [
-                        {
-                            functionCall: {
-                                name: item.flowName,
-                                args: args
-                            }
-                        }
-                    ]
-                }
 
                 const results = item.flowResults.map((message) => {
                     return message.content
                 }).flat()
 
-                const functionResponse: Google.Content = {
-                    role: "function",
-                    parts: [
-                        {
-                            functionResponse: {
-                                name: item.flowName,
-                                response: {
-                                    content: {
-                                        content: results
+
+
+                if (options.modelName.toolUse === true) {
+
+                    const functionCall: Google.Content = {
+                        role: convertRole(message.role),
+                        parts: [
+                            {
+                                functionCall: {
+                                    name: item.flowName,
+                                    args: args
+                                }
+                            }
+                        ]
+                    }
+
+                    const functionResponse: Google.Content = {
+                        role: "function",
+                        parts: [
+                            {
+                                functionResponse: {
+                                    name: item.flowName,
+                                    response: {
+                                        content: {
+                                            content: results
+                                        }
                                     }
                                 }
                             }
-                        }
-                    ]
-                }
+                        ]
+                    }
 
-                return [functionCall, functionResponse]
+                    contents.push(functionCall)
+                    contents.push(functionResponse)
+                } else {
+                    parts.push({
+                        text: "This is a function call , name is " + item.flowName + " , args is " + JSON.stringify(args) + " , results is " + JSON.stringify(results)
+                    })
+                }
 
             } else if (item.type === "text") {
-                const text: Google.Content = {
-                    role: convertRole(message.role),
-                    parts: [{
-                        text: item.text
-                    }]
-                }
-                return [text]
+                parts.push({
+                    text: item.text
+                })
             } else if (item.type === "audio") {
                 const url = item.file_url.url
                 const mimeType = path.extname(url).slice(1)
@@ -216,7 +226,6 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
                     return supportedFormats.includes(mimeType)
                 }
                 const isSupport = isSupportAudioType(mimeType)
-                let parts: Google.Part[] = []
                 if (message.role === "user" && url.startsWith("file://") && options.modelName.audioEnable === true && isSupport) {
                     const base64 = FileUtil.convertFileUrlToBase64(url)
                     const audio: Google.Part = {
@@ -228,16 +237,10 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
                     parts.push(audio)
                 }
 
-                const text: Google.Part = {
+                parts.push({
                     text: "This is a audio file , url is " + url
-                }
-                parts.push(text)
+                })
 
-                const content: Google.Content = {
-                    role: convertRole(message.role),
-                    parts: parts
-                }
-                return [content]
             } else if (item.type === "video") {
                 const url = item.file_url.url
                 const mimeType = path.extname(url).slice(1)
@@ -247,7 +250,6 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
                     return supportedFormats.includes(mimeType)
                 }
                 const isSupport = isSupportAudioType(mimeType)
-                let parts: Google.Part[] = []
                 if (message.role === "user" && url.startsWith("file://") && options.modelName.videoEnable === true && isSupport) {
                     const base64 = FileUtil.convertFileUrlToBase64(url)
                     const video: Google.Part = {
@@ -264,46 +266,40 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
                 }
                 parts.push(text)
 
-                const content: Google.Content = {
-                    role: convertRole(message.role),
-                    parts: parts
-                }
-                return [content]
-            }
-            else if (item.type === "file") {
+            } else if (item.type === "file") {
                 const url = item.file_url.url
-                let parts: Google.Part[] = []
 
-                const text: Google.Part = {
+                parts.push({
                     text: "This is a file , url is " + url
-                }
-                parts.push(text)
-
-                const content: Google.Content = {
+                })
+            } else if (item.type === "thinking") {
+                // do nothing
+            } else {
+                const text: Google.Content = {
                     role: convertRole(message.role),
-                    parts: parts
+                    parts: [{
+                        text: JSON.stringify(item)
+                    }]
                 }
-                return [content]
+                contents.push(text)
             }
+        }
 
-            const text: Google.Content = {
+        if (parts.length > 0) {
+            contents.push({
                 role: convertRole(message.role),
-                parts: [{
-                    text: JSON.stringify(item)
-                }]
-            }
-            return [text]
-        })
+                parts: parts
+            })
+            parts = []
+        }
 
-        return content.flat()
+        return contents
     }
 }
 
 export const convertMessagesToGoogleMessages = (messages: BaseChatMessageLike[], options: LLMProvider.LLMOptions): Google.Content[] => {
-    // console.log("messages", JSON.stringify(messages, null, 2))
-
     const newMessages = messages.map((message) => convertMessageToGoogleMessage(message, options)).flat()
-    // console.log("newMessages", JSON.stringify(newMessages, null, 2))
+    console.log("newMessages", JSON.stringify(newMessages, null, 2))
     return newMessages
 }
 

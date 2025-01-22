@@ -76,12 +76,14 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
         }]
     } else {
 
-        const content: Anthropic.MessageParam[][] = message.content.map((item) => {
+        const contents: Anthropic.MessageParam[] = []
+        let parts: MessageContentType[] = []
+
+        for (const item of message.content) {
             role = role as 'user' | 'assistant'
 
             if (item.type === "image_url") {
                 const url = item.image_url.url
-                let parts: MessageContentType[] = []
                 if (role === "user" && url.startsWith("file://")) {
                     const base64 = FileUtil.convertFileUrlToBase64(url)
                     const mimeType = `image/${url.split(".").pop()}` as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp'
@@ -100,12 +102,18 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
                     text: "This is a image file , url is " + url
                 })
 
-                return [{
-                    role: role,
-                    content: parts
-                }]
 
             } else if (item.type === "flow_step") {
+
+                if (parts.length > 0) {
+                    contents.push({
+                        role: role,
+                        content: parts
+                    })
+                    parts = []
+                }
+
+
                 const results = item.flowResults.map((message) => {
                     return message.content
                 }).flat()
@@ -117,7 +125,7 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
                     console.log("flowParams error", item.flowParams)
                 }
 
-                return [
+                const toolUseMessages: Anthropic.MessageParam[] = [
                     {
                         role: "assistant",
                         content: [
@@ -140,51 +148,52 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
                         ]
                     }]
 
+                contents.push(...toolUseMessages)
+
             } else if (item.type === "text") {
-                return [{
-                    role: role,
-                    content: [{
-                        type: "text",
-                        text: item.text
-                    }]
-                }]
+                parts.push({
+                    type: "text",
+                    text: item.text
+                })
+
             } else if (item.type === "audio") {
                 const url = item.file_url.url
-                return [{
-                    role: role,
-                    content: [{
-                        type: "text",
-                        text: "This is a audio file , url is " + url || ""
-                    }]
-                }]
+                parts.push({
+                    type: "text",
+                    text: "This is a audio file , url is " + url || ""
+                })
+
             } else if (item.type === "video") {
                 const url = item.file_url.url
-                return [{
-                    role: role,
-                    content: [{
-                        type: "text",
-                        text: "This is a video file , url is " + url || ""
-                    }]
-                }]
+                parts.push({
+                    type: "text",
+                    text: "This is a video file , url is " + url || ""
+                })
             } else if (item.type === "file") {
                 const url = item.file_url.url
-                return [{
-                    role: role,
-                    content: [{
-                        type: "text",
-                        text: "This is a file , url is " + url || ""
-                    }]
-                }]
+                parts.push({
+                    type: "text",
+                    text: "This is a file , url is " + url || ""
+                })
+            } else if (item.type === "thinking") {
+                // do nothing
+            } else {
+                parts.push({
+                    type: "text",
+                    text: JSON.stringify(item)
+                })
             }
+        }
 
-            return [{
-                role: role,
-                content: JSON.stringify(item)
-            }]
+        if (parts.length > 0) {
+            contents.push({
+                role: role as 'user' | 'assistant',
+                content: parts
+            })
+            parts = []
+        }
 
-        })
-
-        return content.flat()
+        return contents
     }
 }
 

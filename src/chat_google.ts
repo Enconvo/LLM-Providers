@@ -94,7 +94,7 @@ export class GoogleGeminiProvider extends LLMProvider {
 
         const fixedMessages = makeFirstMessageBeUserRole(messages)
 
-        let newMessages = convertMessagesToGoogleMessages(fixedMessages,this.options)
+        let newMessages = convertMessagesToGoogleMessages(fixedMessages, this.options)
 
 
 
@@ -102,7 +102,6 @@ export class GoogleGeminiProvider extends LLMProvider {
         let baseUrl = 'https://generativelanguage.googleapis.com'
 
         let model = this.options.modelName.value
-
 
         if (this.options.originCommandName === 'enconvo_ai') {
             headers = {
@@ -114,6 +113,7 @@ export class GoogleGeminiProvider extends LLMProvider {
             baseUrl = this.options.baseUrl
             model = model.split('/')[1]
         }
+
         const tools = GoogleUtil.convertToolsToGoogleTools(content.tools)
 
         return {
