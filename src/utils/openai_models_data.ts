@@ -14,7 +14,7 @@ export const openai_models_data = [
         "context": 128000,
         "inputPrice": 0.003,
         "outputPrice": 0.012,
-        "toolUse": true,
+        "toolUse": false,
         "visionEnable": true,
         "systemMessageEnable": false
     },
@@ -24,7 +24,7 @@ export const openai_models_data = [
         "context": 128000,
         "inputPrice": 0.015,
         "outputPrice": 0.06,
-        "toolUse": true,
+        "toolUse": false,
         "visionEnable": true,
         "systemMessageEnable": false
     },

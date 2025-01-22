@@ -65,7 +65,7 @@ class ChatOpenAIProvider extends LLMProvider {
                 ...params,
                 tools,
                 tool_choice: content.tool_choice,
-                parallel_tool_calls: false,
+                parallel_tool_calls: modelOptions.toolUse === true ? false : null,
             }
         }
 

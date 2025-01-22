@@ -95,7 +95,15 @@ export namespace OpenAIUtil {
                             content: JSON.stringify(results)
                         }]
 
-                    newMessages.push(...msgs)
+                    if (options.modelName.toolUse === true) {
+
+                        newMessages.push(...msgs)
+                    } else {
+                        messageContents.push({
+                            type: "text",
+                            text: "This is a tool call , name is " + item.flowName + " , args is " + JSON.stringify(item.flowParams) + " , results is " + JSON.stringify(results)
+                        })
+                    }
 
                 } else if (item.type === "text") {
 
@@ -185,6 +193,7 @@ export namespace OpenAIUtil {
     }
 
     export const convertMessagesToOpenAIMessages = (options: LLMProvider.LLMOptions, messages: BaseChatMessageLike[]): OpenAI.Chat.ChatCompletionMessageParam[] => {
+        console.log("options", JSON.stringify(options, null, 2))
 
         if (options.modelName.visionImageCountLimit !== undefined && options.modelName.visionImageCountLimit > 0 && options.modelName.visionEnable === true) {
             if (options.modelName.visionImageCountLimit !== undefined && options.modelName.visionEnable === true) {

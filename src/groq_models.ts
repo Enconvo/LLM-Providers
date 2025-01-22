@@ -25,6 +25,8 @@ async function fetchModels(url: string, api_key: string, type: string): Promise<
         const result = data.data.filter((item: any) => !item.id.includes('whisper')).map((item: any) => {
             const context = item.context_window || 8000
             const visionEnable = item.id.includes('vision')
+            // Check if model supports tool use based on model ID
+            // llama-3.3-70b-versatile and llama-3.1-8b-instant support tool use
             const toolUse = item.id.includes('tool-use')
             return {
                 title: item.title || item.id,
