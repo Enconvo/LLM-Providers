@@ -113,7 +113,6 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
                     parts = []
                 }
 
-
                 const results = item.flowResults.map((message) => {
                     return message.content
                 }).flat()

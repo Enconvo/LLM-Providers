@@ -34,7 +34,7 @@ export namespace OpenAIUtil {
                 }
             ]
         } else {
-            const newMessages: OpenAI.Chat.ChatCompletionMessageParam[] = []
+            let newMessages: OpenAI.Chat.ChatCompletionMessageParam[] = []
             let messageContents: OpenAI.Chat.ChatCompletionContentPart[] = []
 
             for (const item of message.content) {
@@ -158,7 +158,6 @@ export namespace OpenAIUtil {
                         text: JSON.stringify(item)
                     })
                 }
-
             }
 
             if (messageContents.length > 0) {
@@ -166,6 +165,22 @@ export namespace OpenAIUtil {
                 newMessages.push({
                     role: role,
                     content: messageContents
+                })
+            }
+
+            if (options.modelName.sequenceContentDisable) {
+                newMessages = newMessages.map((message) => {
+                    if (typeof message.content === "string") {
+                        return message
+                    } else {
+                        message.content = message.content?.map((item) => {
+                            if (item.type === "text") {
+                                return item.text
+                            }
+                            return JSON.stringify(item)
+                        }).join("\n")
+                    }
+                    return message
                 })
             }
 
@@ -195,7 +210,6 @@ export namespace OpenAIUtil {
     }
 
     export const convertMessagesToOpenAIMessages = (options: LLMProvider.LLMOptions, messages: BaseChatMessageLike[]): OpenAI.Chat.ChatCompletionMessageParam[] => {
-        console.log("options", JSON.stringify(options, null, 2))
 
         if (options.modelName.visionImageCountLimit !== undefined && options.modelName.visionImageCountLimit > 0 && options.modelName.visionEnable === true) {
             if (options.modelName.visionImageCountLimit !== undefined && options.modelName.visionEnable === true) {

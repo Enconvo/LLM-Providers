@@ -300,7 +300,7 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
 
 export const convertMessagesToGoogleMessages = (messages: BaseChatMessageLike[], options: LLMProvider.LLMOptions): Google.Content[] => {
     const newMessages = messages.map((message) => convertMessageToGoogleMessage(message, options)).flat()
-    console.log("newMessages", JSON.stringify(newMessages, null, 2))
+    // console.log("newMessages", JSON.stringify(newMessages, null, 2))
     return newMessages
 }
 
