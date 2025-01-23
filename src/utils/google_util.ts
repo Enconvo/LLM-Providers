@@ -6,10 +6,10 @@ import path from "path"
 export namespace GoogleUtil {
 
     export const convertToolsToGoogleTools = (tools?: LLMTool[]): FunctionDeclarationsTool[] | undefined => {
-        if (!tools) {
+        console.log("tools", JSON.stringify(tools, null, 2))
+        if (!tools || tools.length === 0) {
             return undefined
         }
-
 
         let functionDeclarations: FunctionDeclaration[] | undefined = tools?.map((tool) => {
 

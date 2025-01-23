@@ -74,7 +74,7 @@ export class AnthropicProvider extends LLMProvider {
             messages: newMessages,
         }
 
-        if (tools) {
+        if (tools && tools.length > 0) {
             params.tools = tools
             params.tool_choice = {
                 type: "auto",
