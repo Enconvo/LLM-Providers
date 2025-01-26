@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk"
-import { AssistantMessage, BaseChatMessageChunk, BaseChatMessageLike, FileUtil, LLMProvider, LLMTool, Stream, ToolMessage, uuid } from "@enconvo/api"
+import { AssistantMessage, BaseChatMessageChunk, BaseChatMessageLike, ChatMessageContent, FileUtil, LLMProvider, LLMTool, Stream, ToolMessage, uuid } from "@enconvo/api"
 
 export namespace AnthropicUtil {
     export const convertToolsToAnthropicTools = (tools?: LLMTool[]): Anthropic.Tool[] | undefined => {
@@ -23,12 +23,68 @@ export namespace AnthropicUtil {
 
 type MessageContentType = Anthropic.TextBlockParam | Anthropic.ImageBlockParam | Anthropic.ToolUseBlockParam | Anthropic.ToolResultBlockParam
 
+const convertToolResults = (results: (string | ChatMessageContent)[]) => {
+    return results.map((result) => {
+
+        if (typeof result === "string") {
+            const text: Anthropic.TextBlockParam = {
+                type: "text",
+                text: result
+            }
+            return [text]
+        } else if (result.type === "text") {
+            const text: Anthropic.TextBlockParam = {
+                type: "text",
+                text: result.text
+            }
+            return [text]
+        } else if (result.type === "image_url") {
+            const url = result.image_url.url
+            let parts: (Anthropic.ImageBlockParam | Anthropic.TextBlockParam)[] = []
+            if (url.startsWith("file://")) {
+                const base64 = FileUtil.convertFileUrlToBase64(url)
+                const mimeType = `image/${url.split(".").pop()}` as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp'
+                parts.push({
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": `${mimeType}`,
+                        "data": base64
+                    }
+                })
+            }
+
+            parts.push({
+                type: "text",
+                text: "This is a image file , url is " + result.image_url.url
+            })
+            return parts
+        } else {
+            const text: Anthropic.TextBlockParam = {
+                type: "text",
+                text: JSON.stringify(result)
+            }
+            return [text]
+        }
+    }).flat()
+}
+
 export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, options: LLMProvider.LLMOptions): Anthropic.Messages.MessageParam[] => {
 
     let role = message.role
 
     if (message.role === "tool") {
         const toolMessage = message as ToolMessage
+        // console.log("toolMessage", JSON.stringify(toolMessage, null, 2))
+        let content: (string | ChatMessageContent)[] = []
+        try {
+            content = JSON.parse(toolMessage.content as string)
+        } catch (e) {
+
+            console.log("toolMessage content error", toolMessage.content)
+        }
+
+        const toolResultMessages = convertToolResults(content)
         return [{
             role: "user",
             content: [
@@ -36,7 +92,7 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
                     type: "tool_result",
                     tool_use_id: toolMessage.tool_call_id,
                     //@ts-ignore
-                    content: toolMessage.content
+                    content: toolResultMessages
                 }
             ]
         }]
@@ -117,6 +173,11 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
                     return message.content
                 }).flat()
 
+
+                const toolResultMessages = convertToolResults(results)
+
+
+
                 let args = {}
                 try {
                     args = JSON.parse(item.flowParams || '{}')
@@ -142,7 +203,7 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
                             {
                                 type: "tool_result",
                                 tool_use_id: item.flowId,
-                                content: JSON.stringify(results)
+                                content: toolResultMessages
                             }
                         ]
                     }]
@@ -198,7 +259,7 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
 
 export const convertMessagesToAnthropicMessages = (messages: BaseChatMessageLike[], options: LLMProvider.LLMOptions): Anthropic.Messages.MessageParam[] => {
     const newMessages = messages.map((message) => convertMessageToAnthropicMessage(message, options)).flat()
-    // console.log("newMessages", JSON.stringify(newMessages, null, 2))
+    console.log("newMessages", JSON.stringify(newMessages, null, 2))
     return newMessages
 }
 
