@@ -1,20 +1,69 @@
-import { AssistantMessage, BaseChatMessageChunk, BaseChatMessageLike, FileUtil, LLMProvider, LLMTool, Stream } from "@enconvo/api"
+import { AssistantMessage, BaseChatMessageChunk, BaseChatMessageLike, ChatMessageContent, FileUtil, LLMProvider, LLMTool, Stream } from "@enconvo/api"
 import OpenAI from "openai"
 import path from "path"
 
-
-
 export namespace OpenAIUtil {
+
+    const convertToolResults = (results: (string | ChatMessageContent)[], options: LLMProvider.LLMOptions) => {
+        if (typeof results !== "string") {
+            const contents = results as ChatMessageContent[]
+            // Convert array content to messages, extracting images into separate message
+            let messageContents: OpenAI.Chat.ChatCompletionContentPart[] = []
+
+            // Process each content item
+            for (const item of contents) {
+                if (item.type === 'image_url') {
+                    // Handle image content
+                    const url = item.image_url.url
+                    if (url.startsWith("file://") && options.modelName.visionEnable) {
+                        const base64 = FileUtil.convertFileUrlToBase64(url)
+                        const mimeType = url.split(".").pop()
+                        messageContents.push({
+                            type: "image_url",
+                            image_url: {
+                                url: `data:image/${mimeType};base64,${base64}`
+                            }
+                        })
+                    }
+                    messageContents.push({
+                        type: "text",
+                        text: "This is a image file , url is " + url
+                    })
+                }
+            }
+
+            const imageMessage: OpenAI.Chat.ChatCompletionMessageParam = {
+                role: "user",
+                content: messageContents
+            }
+
+            return [imageMessage]
+
+        }
+        return []
+    }
+
     export const convertMessageToOpenAIMessage = (options: LLMProvider.LLMOptions, message: BaseChatMessageLike): OpenAI.Chat.ChatCompletionMessageParam[] => {
         let role = message.role
         if (options.modelName.systemMessageEnable === false && message.role === "system") {
             role = "user"
         }
 
+
         if (message.role === "tool") {
+            let content: (string | ChatMessageContent)[] = []
+            try {
+                content = JSON.parse(message.content as string)
+            } catch (e) {
+                console.log("toolMessage content error", message.content)
+            }
+
+            const toolAdditionalMessages = convertToolResults(content, options)
+
             //@ts-ignore
-            return [message]
+            return [message, ...toolAdditionalMessages]
         }
+
 
         if (message.role === "assistant") {
             const aiMessage = message as AssistantMessage
@@ -52,6 +101,7 @@ export namespace OpenAIUtil {
                             }
                         })
                     }
+
                     messageContents.push({
                         type: "text",
                         text: "This is a image file , url is " + url
@@ -260,8 +310,7 @@ export namespace OpenAIUtil {
             return message
         })
 
-        console.log("newMessages", JSON.stringify(newMessages, null, 2))
-
+        // console.log("newMessages", JSON.stringify(newMessages, null, 2))
         return newMessages
     }
 
