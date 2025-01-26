@@ -1,12 +1,11 @@
 import Google, { FunctionDeclaration, FunctionDeclarationsTool } from "@google/generative-ai"
-import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, BaseChatMessageLike, FileUtil, LLMProvider, LLMTool, Stream, ToolMessage, uuid } from "@enconvo/api"
+import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, BaseChatMessageLike, ChatMessageContent, FileUtil, LLMProvider, LLMTool, Stream, ToolMessage, uuid } from "@enconvo/api"
 import path from "path"
 
 
 export namespace GoogleUtil {
 
     export const convertToolsToGoogleTools = (tools?: LLMTool[]): FunctionDeclarationsTool[] | undefined => {
-        console.log("tools", JSON.stringify(tools, null, 2))
         if (!tools || tools.length === 0) {
             return undefined
         }
@@ -66,17 +65,58 @@ function convertRole(role: BaseChatMessage["role"]) {
 }
 
 
+const convertToolResults = (results: (string | ChatMessageContent)[], options: LLMProvider.LLMOptions) => {
+    if (typeof results !== "string") {
+        const contents = results as ChatMessageContent[]
+        // Convert array content to messages, extracting images into separate message
+        let messageContents: Google.Part[] = []
+
+        // Process each content item
+        for (const item of contents) {
+            if (item.type === 'image_url') {
+                // Handle image content
+                const url = item.image_url.url
+                if (url.startsWith("file://") && options.modelName.visionEnable) {
+                    const base64 = FileUtil.convertFileUrlToBase64(url)
+                    const mimeType = url.split(".").pop()
+                    messageContents.push({
+                        inlineData: {
+                            data: base64,
+                            mimeType: `image/${mimeType}`
+                        },
+                    })
+                }
+                messageContents.push({
+                    text: "This is a image file , url is " + url
+                })
+            }
+        }
+
+        if (messageContents.length > 0) {
+            const imageMessage: Google.Content = {
+                role: "user",
+                parts: messageContents
+            }
+
+            return [imageMessage]
+        }
+        return []
+    }
+    return []
+}
 
 export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, options: LLMProvider.LLMOptions): Google.Content[] => {
 
     if (message.role === "tool") {
         const toolMessage = message as ToolMessage
-        let response = {}
+        let response: (string | ChatMessageContent)[] = []
         try {
-            response = JSON.parse(toolMessage.content as string)
+            response = JSON.parse(message.content as string)
         } catch (e) {
-            console.error(e)
+            console.log("toolMessage content error", message.content)
         }
+
+        const toolAdditionalMessages = convertToolResults(response, options)
 
         const content: Google.Content = {
             role: "function",
@@ -91,7 +131,7 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
                 }
             ]
         }
-        return [content]
+        return [content, ...toolAdditionalMessages]
     }
 
     if (message.role === "assistant") {
@@ -208,6 +248,9 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
 
                     contents.push(functionCall)
                     contents.push(functionResponse)
+
+                    const toolAdditionalMessages = convertToolResults(results, options)
+                    contents.push(...toolAdditionalMessages)
                 } else {
                     parts.push({
                         text: "This is a function call , name is " + item.flowName + " , args is " + JSON.stringify(args) + " , results is " + JSON.stringify(results)
@@ -300,7 +343,7 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
 
 export const convertMessagesToGoogleMessages = (messages: BaseChatMessageLike[], options: LLMProvider.LLMOptions): Google.Content[] => {
     const newMessages = messages.map((message) => convertMessageToGoogleMessage(message, options)).flat()
-    // console.log("newMessages", JSON.stringify(newMessages, null, 2))
+    console.log("newMessages", JSON.stringify(newMessages, null, 2))
     return newMessages
 }
 

@@ -32,13 +32,15 @@ export namespace OpenAIUtil {
                 }
             }
 
-            const imageMessage: OpenAI.Chat.ChatCompletionMessageParam = {
-                role: "user",
-                content: messageContents
+            if (messageContents.length > 0) {
+                const imageMessage: OpenAI.Chat.ChatCompletionMessageParam = {
+                    role: "user",
+                    content: messageContents
+                }
+
+                return [imageMessage]
             }
-
-            return [imageMessage]
-
+            return []
         }
         return []
     }
@@ -149,7 +151,9 @@ export namespace OpenAIUtil {
                             messageContents = []
                         }
 
-                        newMessages.push(...msgs)
+                        const toolAdditionalMessages = convertToolResults(results, options)
+
+                        newMessages.push(...msgs, ...toolAdditionalMessages)
                     } else {
                         messageContents.push({
                             type: "text",
