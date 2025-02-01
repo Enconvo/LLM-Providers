@@ -1,5 +1,5 @@
 import { DropdownListCache } from "@enconvo/api"
-
+import axios from 'axios';
 
 const models: DropdownListCache.ModelOutput[] = [
     {
@@ -31,17 +31,22 @@ const models: DropdownListCache.ModelOutput[] = [
 async function fetchModels(url: string, api_key: string, type: string): Promise<DropdownListCache.ModelOutput[]> {
     // console.log("fetchModels", url, api_key, type)
     try {
-        const resp = await fetch(url, {
+        // Using axios to make the API request
+        const resp = await axios.get(url, {
             headers: {
                 'Authorization': `Bearer ${api_key}`
             }
-        })
+        });
 
-        if (!resp.ok) {
-            throw new Error(`API request failed with status ${resp.status}`)
+        if (resp.status !== 200) {
+            throw new Error(`
+                url: ${url}
+                api_key: ${api_key}
+                type: ${type}
+                API request failed with status ${resp.data}`)
         }
 
-        const data = await resp.json()
+        const data = resp.data
         const result = data.data.map((item: any) => {
             const model = models.find((m) => {
                 return m.value === item.id

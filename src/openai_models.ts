@@ -1,5 +1,6 @@
 import { DropdownListCache } from '@enconvo/api'
 import { openai_models_data } from './utils/openai_models_data.ts'
+import axios from 'axios'
 
 
 
@@ -13,17 +14,18 @@ import { openai_models_data } from './utils/openai_models_data.ts'
 async function fetchModels(url: string, api_key: string, type: string): Promise<DropdownListCache.ModelOutput[]> {
     // console.log("fetchModels", url, api_key, type)
     try {
-        const resp = await fetch(url, {
+        // Using axios to fetch data from the API
+        const resp = await axios.get(url, {
             headers: {
                 'Authorization': `Bearer ${api_key}`
             }
         })
 
-        if (!resp.ok) {
+        if (resp.status !== 200) {
             throw new Error(`API request failed with status ${resp.status}`)
         }
 
-        const data = await resp.json()
+        const data = resp.data
         const result = data.data.map((item: any) => {
             if (item.value) {
                 return item
