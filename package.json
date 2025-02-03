@@ -1041,10 +1041,8 @@
           "name": "modelName",
           "description": "The model to generate the completion.",
           "type": "dropdown",
-          "required": false,
           "title": "Model Name",
-          "default": "default",
-          "visibility": "hidden"
+          "dataProxy": "llm|lmstudio_models"
         },
         {
           "name": "temperature",
@@ -2347,6 +2345,28 @@
           "defaultProxy": "llm|chat_open_ai",
           "default": "https://api.openai.com/v1",
           "placeholder": "OpenAI Api Base Url"
+        }
+      ]
+    },
+    {
+      "name": "lmstudio_models",
+      "title": "lmstudio Models",
+      "description": "get lmstudio model list",
+      "icon": "lmstudio.png",
+      "showInCommandList": false,
+      "commandType": "function_command",
+      "targetCommand": "llm|openai_models",
+      "mode": "no-view",
+      "preferences": [
+        {
+          "name": "baseUrl",
+          "description": "lmstudio api base url",
+          "type": "textfield",
+          "required": false,
+          "title": "lmstudio Api Base Url",
+          "default": "http://127.0.0.1:1234/v1",
+          "defaultProxy": "KEY_LMSTUDIO_BASEURL",
+          "placeholder": "LM Studio Api Base Url"
         }
       ]
     },
