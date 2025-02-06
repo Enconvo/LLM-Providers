@@ -291,7 +291,7 @@
           "type": "dropdown",
           "required": false,
           "title": "Model Name",
-          "default": "gemini-2.0-flash-exp",
+          "default": "gemini-2.0-flash-001",
           "dataProxy": "llm|gemini_models"
         },
         {

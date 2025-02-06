@@ -2,12 +2,28 @@ import { DropdownListCache } from "@enconvo/api"
 
 const models: DropdownListCache.ModelOutput[] = [
     {
-        "title": "Gemini 2.0 Flash Exp",
-        "value": "gemini-2.0-flash-exp",
+        "title": "Gemini 2.0 Flash",
+        "value": "gemini-2.0-flash-001",
         "context": 1048576,
         "visionEnable": true,
         "audioEnable": true,
         "toolUse": true
+    },
+    {
+        "title": "Gemini 2.0 Flash Lite",
+        "value": "gemini-2.0-flash-lite-preview-02-05",
+        "context": 1048576,
+        "visionEnable": true,
+        "audioEnable": true,
+        "toolUse": false
+    },
+    {
+        "title": "Gemini 2.0 Pro Exp",
+        "value": "gemini-2.0-pro-exp-02-05",
+        "context": 1048576,
+        "visionEnable": true,
+        "audioEnable": true,
+        "toolUse": false
     },
     {
         "title": "Gemini 2.0 Flash Thinking",
@@ -83,6 +99,6 @@ export default async function main(req: Request): Promise<string> {
         ...options,
         input_text: 'refresh'
     })
-    
+
     return JSON.stringify(models)
 }
