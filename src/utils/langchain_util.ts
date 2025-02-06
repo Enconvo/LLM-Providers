@@ -1,6 +1,6 @@
 import { BaseChatMessage, BaseChatMessageChunk, FileUtil, Stream, uuid } from "@enconvo/api"
 import { AIMessageChunk, BaseMessageLike } from "@langchain/core/messages"
-
+import fs from "fs"
 export namespace LangchainUtil {
 
 
@@ -17,7 +17,9 @@ export namespace LangchainUtil {
             const content = message.content.filter((item) => item.type === "text" || item.type === "image_url").map((item) => {
                 if (item.type === "image_url") {
                     const url = item.image_url.url
-                    if (url.startsWith("file://")) {
+                    const fileExists = url.startsWith("file://") && fs.existsSync(url.replace("file://", ""))
+
+                    if (url.startsWith("file://") && fileExists) {
                         const base64 = FileUtil.convertFileUrlToBase64(url)
                         const mimeType = url.split(".").pop()
                         return {

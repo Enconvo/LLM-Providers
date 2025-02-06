@@ -1,7 +1,7 @@
 import Google, { FunctionDeclaration, FunctionDeclarationsTool } from "@google/generative-ai"
 import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, BaseChatMessageLike, ChatMessageContent, FileUtil, LLMProvider, LLMTool, Stream, ToolMessage, uuid } from "@enconvo/api"
 import path from "path"
-
+import fs from "fs"
 
 export namespace GoogleUtil {
 
@@ -176,7 +176,9 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
             if (item.type === "image_url") {
                 const url = item.image_url.url
                 const mimeType = path.extname(url).slice(1)
-                if (message.role === "user" && url.startsWith("file://") && options.modelName.visionEnable === true) {
+                const fileExists = url.startsWith("file://") && fs.existsSync(url.replace("file://", ""))
+
+                if (message.role === "user" && url.startsWith("file://") && options.modelName.visionEnable === true && fileExists) {
                     const base64 = FileUtil.convertFileUrlToBase64(url)
                     const image: Google.Part = {
                         inlineData: {

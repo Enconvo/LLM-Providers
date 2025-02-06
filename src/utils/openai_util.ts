@@ -1,7 +1,7 @@
 import { AssistantMessage, BaseChatMessageChunk, BaseChatMessageLike, ChatMessageContent, FileUtil, LLMProvider, LLMTool, Stream } from "@enconvo/api"
 import OpenAI from "openai"
 import path from "path"
-
+import fs from "fs"
 export namespace OpenAIUtil {
 
     const convertToolResults = (results: (string | ChatMessageContent)[], options: LLMProvider.LLMOptions) => {
@@ -93,7 +93,9 @@ export namespace OpenAIUtil {
                 if (item.type === "image_url") {
                     const url = item.image_url.url
 
-                    if (role === "user" && url.startsWith("file://") && options.modelName.visionEnable === true) {
+                    const fileExists = url.startsWith("file://") && fs.existsSync(url.replace("file://", ""))
+
+                    if (role === "user" && url.startsWith("file://") && options.modelName.visionEnable === true && fileExists) {
                         const base64 = FileUtil.convertFileUrlToBase64(url)
                         const mimeType = url.split(".").pop()
                         messageContents.push({

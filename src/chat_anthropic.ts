@@ -66,6 +66,7 @@ export class AnthropicProvider extends LLMProvider {
 
         const newMessages = convertMessagesToAnthropicMessages(messages,this.options)
 
+        console.log("system", system)
         const params: Anthropic.Messages.MessageStreamParams = {
             system,
             model: this.options.modelName.value,

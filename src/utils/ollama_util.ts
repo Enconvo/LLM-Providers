@@ -1,4 +1,5 @@
 import { BaseChatMessageLike, FileUtil } from "@enconvo/api"
+import fs from "fs"
 
 export namespace OllamaUtil {
 
@@ -16,7 +17,9 @@ export namespace OllamaUtil {
             const images = message.content.filter((item) => item.type === "image_url").map((item) => {
                 if (item.type === "image_url") {
                     const url = item.image_url.url
-                    if (url.startsWith("file://")) {
+                    const fileExists = url.startsWith("file://") && fs.existsSync(url.replace("file://", ""))
+
+                    if (url.startsWith("file://") && fileExists) {
                         const base64 = FileUtil.convertFileUrlToBase64(url)
                         return base64
                     }

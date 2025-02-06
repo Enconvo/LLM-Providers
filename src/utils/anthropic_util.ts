@@ -1,6 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk"
 import { AssistantMessage, BaseChatMessageChunk, BaseChatMessageLike, ChatMessageContent, FileUtil, LLMProvider, LLMTool, Stream, ToolMessage, uuid } from "@enconvo/api"
-
+import fs from "fs"
 export namespace AnthropicUtil {
     export const convertToolsToAnthropicTools = (tools?: LLMTool[]): Anthropic.Tool[] | undefined => {
         if (!tools) {
@@ -140,7 +140,11 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
 
             if (item.type === "image_url") {
                 const url = item.image_url.url
-                if (role === "user" && url.startsWith("file://")) {
+                // fs exists
+                const fileExists = url.startsWith("file://") && fs.existsSync(url.replace("file://", ""))
+                console.log("fileExists", fileExists)
+
+                if (role === "user" && url.startsWith("file://") && fileExists) {
                     const base64 = FileUtil.convertFileUrlToBase64(url)
                     const mimeType = `image/${url.split(".").pop()}` as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp'
                     parts.push({
