@@ -115,7 +115,8 @@
           "required": false,
           "title": "Model Name",
           "default": "gpt-4o-mini",
-          "dataProxy": "llm|openai_models"
+          "dataProxy": "llm|openai_models",
+          "dataCustomTitle": "Add Custom Model"
         },
         {
           "name": "temperature",
@@ -1179,7 +1180,8 @@
           "required": false,
           "title": "Model Name",
           "default": "accounts/fireworks/models/llama-v3p2-11b-vision-instruct",
-          "dataProxy": "llm|fireworks_models"
+          "dataProxy": "llm|fireworks_models",
+          "dataCustomTitle": "Add Custom Model"
         },
         {
           "name": "temperature",

@@ -107,7 +107,8 @@ class ChatOpenAIProvider extends LLMProvider {
 
         const client = new OpenAI({
             apiKey: options.openAIApiKey, // This is the default and can be omitted
-            baseURL: options.baseUrl || "https://api.openai.com/v1",
+            baseURL: "http://127.0.0.1:8181/v1",
+            // baseURL: options.baseUrl || "https://api.openai.com/v1",
             defaultHeaders: headers,
         });
 
