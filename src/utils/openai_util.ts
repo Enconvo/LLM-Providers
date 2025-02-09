@@ -4,6 +4,12 @@ import path from "path"
 import fs from "fs"
 export namespace OpenAIUtil {
 
+    function isSupportedImageType(url: string) {
+        const supportedTypes = ["jpeg", "jpg", "png", "webp"]
+        const mimeType = path.extname(url).slice(1)
+        return supportedTypes.includes(mimeType)
+    }
+
     const convertToolResults = (results: (string | ChatMessageContent)[], options: LLMProvider.LLMOptions) => {
         if (typeof results !== "string") {
             const contents = results as ChatMessageContent[]
@@ -15,7 +21,7 @@ export namespace OpenAIUtil {
                 if (item.type === 'image_url') {
                     // Handle image content
                     const url = item.image_url.url
-                    if (url.startsWith("file://") && options.modelName.visionEnable) {
+                    if (url.startsWith("file://") && options.modelName.visionEnable && isSupportedImageType(url)) {
                         const base64 = FileUtil.convertFileUrlToBase64(url)
                         const mimeType = url.split(".").pop()
                         messageContents.push({
@@ -25,6 +31,7 @@ export namespace OpenAIUtil {
                             }
                         })
                     }
+
                     messageContents.push({
                         type: "text",
                         text: "This is a image file , url is " + url
@@ -95,7 +102,7 @@ export namespace OpenAIUtil {
 
                     const fileExists = url.startsWith("file://") && fs.existsSync(url.replace("file://", ""))
 
-                    if (role === "user" && url.startsWith("file://") && options.modelName.visionEnable === true && fileExists) {
+                    if (role === "user" && url.startsWith("file://") && options.modelName.visionEnable === true && fileExists && isSupportedImageType(url)) {
                         const base64 = FileUtil.convertFileUrlToBase64(url)
                         const mimeType = url.split(".").pop()
                         messageContents.push({

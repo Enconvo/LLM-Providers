@@ -5,6 +5,7 @@ import fs from "fs"
 
 export namespace GoogleUtil {
 
+
     export const convertToolsToGoogleTools = (tools?: LLMTool[]): FunctionDeclarationsTool[] | undefined => {
         if (!tools || tools.length === 0) {
             return undefined
@@ -64,6 +65,11 @@ function convertRole(role: BaseChatMessage["role"]) {
     return "user"
 }
 
+function isSupportedImageType(url: string) {
+    const supportedTypes = ["jpeg", 'jpg', "png", "webp"]
+    const mimeType = path.extname(url).slice(1)
+    return supportedTypes.includes(mimeType)
+}
 
 const convertToolResults = (results: (string | ChatMessageContent)[], options: LLMProvider.LLMOptions) => {
     if (typeof results !== "string") {
@@ -76,7 +82,7 @@ const convertToolResults = (results: (string | ChatMessageContent)[], options: L
             if (item.type === 'image_url') {
                 // Handle image content
                 const url = item.image_url.url
-                if (url.startsWith("file://") && options.modelName.visionEnable) {
+                if (url.startsWith("file://") && options.modelName.visionEnable && isSupportedImageType(url)) {
                     const base64 = FileUtil.convertFileUrlToBase64(url)
                     const mimeType = url.split(".").pop()
                     messageContents.push({
@@ -178,7 +184,7 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
                 const mimeType = path.extname(url).slice(1)
                 const fileExists = url.startsWith("file://") && fs.existsSync(url.replace("file://", ""))
 
-                if (message.role === "user" && url.startsWith("file://") && options.modelName.visionEnable === true && fileExists) {
+                if (message.role === "user" && url.startsWith("file://") && options.modelName.visionEnable === true && fileExists && isSupportedImageType(url)) {
                     const base64 = FileUtil.convertFileUrlToBase64(url)
                     const image: Google.Part = {
                         inlineData: {

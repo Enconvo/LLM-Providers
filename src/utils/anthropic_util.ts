@@ -1,6 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk"
 import { AssistantMessage, BaseChatMessageChunk, BaseChatMessageLike, ChatMessageContent, FileUtil, LLMProvider, LLMTool, Stream, ToolMessage, uuid } from "@enconvo/api"
 import fs from "fs"
+import { homedir } from "os"
+import path from "path"
 export namespace AnthropicUtil {
     export const convertToolsToAnthropicTools = (tools?: LLMTool[]): Anthropic.Tool[] | undefined => {
         if (!tools) {
@@ -41,7 +43,7 @@ const convertToolResults = (results: (string | ChatMessageContent)[]) => {
         } else if (result.type === "image_url") {
             const url = result.image_url.url
             let parts: (Anthropic.ImageBlockParam | Anthropic.TextBlockParam)[] = []
-            if (url.startsWith("file://")) {
+            if (url.startsWith("file://") && isSupportedImageType(url)) {
                 const base64 = FileUtil.convertFileUrlToBase64(url)
                 const mimeType = `image/${url.split(".").pop()}` as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp'
                 parts.push({
@@ -67,6 +69,12 @@ const convertToolResults = (results: (string | ChatMessageContent)[]) => {
             return [text]
         }
     }).flat()
+}
+
+function isSupportedImageType(url: string) {
+    const supportedTypes = ["jpeg", "png", "jpg", "webp"]
+    const mimeType = path.extname(url).slice(1)
+    return supportedTypes.includes(mimeType)
 }
 
 export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, options: LLMProvider.LLMOptions): Anthropic.Messages.MessageParam[] => {
@@ -144,7 +152,7 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
                 const fileExists = url.startsWith("file://") && fs.existsSync(url.replace("file://", ""))
                 console.log("fileExists", fileExists)
 
-                if (role === "user" && url.startsWith("file://") && fileExists) {
+                if (role === "user" && url.startsWith("file://") && fileExists && isSupportedImageType(url)) {
                     const base64 = FileUtil.convertFileUrlToBase64(url)
                     const mimeType = `image/${url.split(".").pop()}` as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp'
                     parts.push({
@@ -263,7 +271,8 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
 
 export const convertMessagesToAnthropicMessages = (messages: BaseChatMessageLike[], options: LLMProvider.LLMOptions): Anthropic.Messages.MessageParam[] => {
     const newMessages = messages.map((message) => convertMessageToAnthropicMessage(message, options)).flat()
-    console.log("newMessages", JSON.stringify(newMessages, null, 2))
+    // console.log("newMessages", JSON.stringify(newMessages))
+    fs.writeFileSync(`${homedir()}/Desktop/newMessages.json`, JSON.stringify(newMessages, null, 2))
     return newMessages
 }
 
