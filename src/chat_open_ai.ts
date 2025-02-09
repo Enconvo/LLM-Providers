@@ -103,6 +103,7 @@ class ChatOpenAIProvider extends LLMProvider {
             options.frequencyPenalty = 0.0001
         }
 
+        console.log("options.baseUrl", options.baseUrl)
 
         const client = new OpenAI({
             apiKey: options.openAIApiKey, // This is the default and can be omitted
