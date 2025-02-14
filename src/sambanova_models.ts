@@ -3,6 +3,20 @@ import { DropdownListCache } from "@enconvo/api"
 
 const models: DropdownListCache.ModelOutput[] = [
     {
+        title: "DeepSeek-R1-Distill-Llama-70B",
+        value: "DeepSeek-R1-Distill-Llama-70B",
+        context: 64000,
+    },    {
+        title: "DeepSeek-R1",
+        value: "DeepSeek-R1",
+        context: 64000,
+    },
+    {
+        title: "Llama-3.1-Tulu-3-405B",
+        value: "Llama-3.1-Tulu-3-405B",
+        context: 16384,
+    },
+    {
         title: "Qwen2.5 Coder 32B",
         value: "Qwen2.5-Coder-32B-Instruct",
         context: 8192,
