@@ -223,10 +223,12 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
                 contents.push(...toolUseMessages)
 
             } else if (item.type === "text") {
-                parts.push({
-                    type: "text",
-                    text: item.text
-                })
+                if (item.text.trim() !== "") {
+                    parts.push({
+                        type: "text",
+                        text: item.text
+                    })
+                }
 
             } else if (item.type === "audio") {
                 const url = item.file_url.url
@@ -270,9 +272,23 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
 }
 
 export const convertMessagesToAnthropicMessages = (messages: BaseChatMessageLike[], options: LLMProvider.LLMOptions): Anthropic.Messages.MessageParam[] => {
-    const newMessages = messages.map((message) => convertMessageToAnthropicMessage(message, options)).flat()
-    // console.log("newMessages", JSON.stringify(newMessages))
-    fs.writeFileSync(`${homedir()}/Desktop/newMessages.json`, JSON.stringify(newMessages, null, 2))
+    let newMessages = messages.map((message) => convertMessageToAnthropicMessage(message, options)).flat().filter((message) => {
+        if (typeof message.content === "string" && message.content.trim() === "") {
+            console.log("message.content is empty", message)
+            return false
+        } else {
+            return message.content?.length !== 0
+        }
+    }).map((message) => {
+        // If content is an array with single text item, convert it to string
+        if (message.content && Array.isArray(message.content) && message.content.length === 1 && message.content[0].type === "text") {
+            message.content = message.content[0].text
+        }
+        return message
+    })
+
+    console.log("newMessages", JSON.stringify(newMessages))
+    // fs.writeFileSync(`${homedir()}/Desktop/newMessages.json`, JSON.stringify(newMessages, null, 2))
     return newMessages
 }
 

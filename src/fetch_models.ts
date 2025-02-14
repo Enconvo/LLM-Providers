@@ -1,4 +1,4 @@
-import { environment } from "@enconvo/api"
+import { DropdownListCache, environment } from "@enconvo/api"
 import fs from 'fs'
 
 
@@ -46,71 +46,8 @@ async function fetchModels(url: string, api_key: string, type: string): Promise<
 
 /**
  * Updates the local cache with fresh model data
- * @param modelCachePath - Path to cache file
- * @param url - API endpoint URL
- * @param api_key - API authentication key
- * @returns Promise<ModelOutput[]> - Array of cached model data
- */
 
-async function updateModelsCache(modelCachePath: string, url: string, api_key: string, type: string): Promise<ModelOutput[]> {
-    try {
-        const models = await fetchModels(url, api_key, type)
-        if (models.length > 0) {
-            fs.writeFileSync(modelCachePath, JSON.stringify(models, null, 2))
-        }
-        return models
-    } catch (err) {
-        console.error('Error updating models cache:', err)
-        return []
-    }
-}
 
-/**
- * Retrieves model data from cache or fetches fresh data if needed
- * @param options - Object containing input_text, url and api_key
- * @returns Promise<ModelOutput[]> - Array of model data
- */
-async function getModelsCache({ input_text, url, api_key, type }: { input_text: string, url: string, api_key: string, type: string }): Promise<ModelOutput[]> {
-    const modelCachePath = getModelCachePath()
-
-    // Force refresh or create new cache if it doesn't exist
-    if (!fs.existsSync(modelCachePath) || input_text === 'refresh') {
-        return await updateModelsCache(modelCachePath, url, api_key, type)
-    }
-
-    try {
-        // Return cached data and update cache in background
-        const modelContent = fs.readFileSync(modelCachePath, 'utf8')
-        const models = JSON.parse(modelContent)
-        // Async cache update without blocking
-        const stats = fs.statSync(modelCachePath);
-        // console.log("stats", stats.mtimeMs)
-        const thirtyMinutesAgo = Date.now() - 30 * 60 * 1000;
-        const shouldUpdate = stats.mtimeMs < thirtyMinutesAgo;
-
-        if (shouldUpdate) {
-            updateModelsCache(modelCachePath, url, api_key, type).catch(err =>
-                console.error('Background cache update failed:', err)
-            );
-        }
-        return models
-    } catch (error) {
-        console.error('Error reading cache:', error)
-        return await updateModelsCache(modelCachePath, url, api_key, type)
-    }
-}
-
-/**
- * Gets the path for the model cache file
- * @returns string - Full path to cache file
- */
-function getModelCachePath(): string {
-    const modelCacheDir = `${environment.cachePath}/models`
-    if (!fs.existsSync(modelCacheDir)) {
-        fs.mkdirSync(modelCacheDir, { recursive: true })
-    }
-    return `${modelCacheDir}/${environment.commandName}.json`
-}
 
 /**
  * Main handler function for the API endpoint
@@ -118,8 +55,11 @@ function getModelCachePath(): string {
  * @returns Promise<string> - JSON string of model data
  */
 export default async function main(req: Request): Promise<string> {
-    const  options  = await req.json()
-    // console.log("options", options)
-    const models = await getModelsCache(options)
+    const options = await req.json()
+
+    const modelCache = new DropdownListCache(fetchModels)
+
+    const models = await modelCache.getModelsCache(options)
+
     return JSON.stringify(models)
 }

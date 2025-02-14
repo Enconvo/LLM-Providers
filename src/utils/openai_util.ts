@@ -172,10 +172,12 @@ export namespace OpenAIUtil {
 
                 } else if (item.type === "text") {
 
-                    messageContents.push({
-                        type: "text",
-                        text: item.text
-                    })
+                    if (item.text.trim() !== "") {
+                        messageContents.push({
+                            type: "text",
+                            text: item.text
+                        })
+                    }
 
                 } else if (item.type === "audio") {
                     function isSupportAudioType(mimeType: string): boolean {

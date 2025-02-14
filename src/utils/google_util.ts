@@ -266,9 +266,11 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
                 }
 
             } else if (item.type === "text") {
-                parts.push({
-                    text: item.text
-                })
+                if (item.text.trim() !== "") {
+                    parts.push({
+                        text: item.text
+                    })
+                }
             } else if (item.type === "audio") {
                 const url = item.file_url.url
                 const mimeType = path.extname(url).slice(1)
