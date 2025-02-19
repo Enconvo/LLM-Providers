@@ -99,7 +99,7 @@ export class GoogleGeminiProvider extends LLMProvider {
 
 
         let headers = {}
-        let baseUrl = 'https://generativelanguage.googleapis.com'
+        let baseUrl = this.options.baseUrl
 
         let model = this.options.modelName.value
 

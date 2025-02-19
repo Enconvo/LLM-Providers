@@ -1,4 +1,4 @@
-import { AssistantMessage, BaseChatMessageChunk, BaseChatMessageLike, ChatMessageContent, FileUtil, LLMProvider, LLMTool, Stream } from "@enconvo/api"
+import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, BaseChatMessageLike, ChatMessageContent, FileUtil, LLMProvider, LLMTool, Stream } from "@enconvo/api"
 import OpenAI from "openai"
 import path from "path"
 import fs from "fs"
@@ -55,9 +55,12 @@ export namespace OpenAIUtil {
     export const convertMessageToOpenAIMessage = (options: LLMProvider.LLMOptions, message: BaseChatMessageLike): OpenAI.Chat.ChatCompletionMessageParam[] => {
         let role = message.role
         if (options.modelName.systemMessageEnable === false && message.role === "system") {
-            role = "user"
-        }
+            message.role = "user"
+            const assistantMessage: AssistantMessage = BaseChatMessage.assistant('Got it , I will follow your instructions')
 
+            //@ts-ignore
+            return [message, assistantMessage]
+        }
 
         if (message.role === "tool") {
             let content: (string | ChatMessageContent)[] = []
@@ -233,7 +236,10 @@ export namespace OpenAIUtil {
                 })
             }
 
-            if (options.modelName.sequenceContentDisable) {
+            const modelName = options.modelName.value.toLowerCase()
+            const isDeepSeekR1 = modelName.includes("deepseek") && modelName.includes("r1")
+
+            if (options.modelName.sequenceContentDisable || isDeepSeekR1) {
                 newMessages = newMessages.map((message) => {
                     if (typeof message.content === "string") {
                         return message
@@ -322,8 +328,33 @@ export namespace OpenAIUtil {
             if (message.content && Array.isArray(message.content) && message.content.length === 1 && message.content[0].type === "text") {
                 message.content = message.content[0].text
             }
+
+
             return message
         })
+
+
+        // ensure first message is user
+        function ensureFirstMessageIsUser(messages: OpenAI.Chat.ChatCompletionMessageParam[]) {
+            // ensure first message is user
+            let checked = false
+            if (messages[0].role === "assistant") {
+                messages.shift()
+                checked = true
+            } else if (messages[0].role === "system" && messages[1].role === "assistant") {
+                // remove the second message
+                messages.splice(1, 1)
+                checked = true
+            }
+
+            if (checked) {
+                return ensureFirstMessageIsUser(messages)
+            }
+            return messages
+        }
+
+        newMessages = ensureFirstMessageIsUser(newMessages)
+
 
         console.log("newMessages", JSON.stringify(newMessages, null, 2))
         return newMessages
