@@ -2,7 +2,7 @@ import Google, { FunctionDeclaration, FunctionDeclarationsTool } from "@google/g
 import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, BaseChatMessageLike, ChatMessageContent, FileUtil, LLMProvider, LLMTool, Stream, ToolMessage, uuid } from "@enconvo/api"
 import path from "path"
 import fs from "fs"
-
+import mime from "mime"
 export namespace GoogleUtil {
 
 
@@ -84,11 +84,11 @@ const convertToolResults = (results: (string | ChatMessageContent)[], options: L
                 const url = item.image_url.url
                 if (url.startsWith("file://") && options.modelName.visionEnable && isSupportedImageType(url)) {
                     const base64 = FileUtil.convertFileUrlToBase64(url)
-                    const mimeType = url.split(".").pop()
+                    const mimeType = mime.getType(url)
                     messageContents.push({
                         inlineData: {
                             data: base64,
-                            mimeType: `image/${mimeType}`
+                            mimeType: mimeType as string
                         },
                     })
                 }
@@ -181,7 +181,7 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
         for (const item of message.content) {
             if (item.type === "image_url") {
                 const url = item.image_url.url
-                const mimeType = path.extname(url).slice(1)
+                const mimeType = mime.getType(url)
                 const fileExists = url.startsWith("file://") && fs.existsSync(url.replace("file://", ""))
 
                 if (message.role === "user" && url.startsWith("file://") && options.modelName.visionEnable === true && fileExists && isSupportedImageType(url)) {
@@ -189,7 +189,7 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
                     const image: Google.Part = {
                         inlineData: {
                             data: base64,
-                            mimeType: `image/${mimeType}`
+                            mimeType: mimeType as string
                         },
                     }
                     parts.push(image)

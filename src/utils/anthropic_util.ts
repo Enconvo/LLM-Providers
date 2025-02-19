@@ -1,8 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk"
 import { AssistantMessage, BaseChatMessageChunk, BaseChatMessageLike, ChatMessageContent, FileUtil, LLMProvider, LLMTool, Stream, ToolMessage, uuid } from "@enconvo/api"
 import fs from "fs"
-import { homedir } from "os"
 import path from "path"
+import mime from "mime"
 export namespace AnthropicUtil {
     export const convertToolsToAnthropicTools = (tools?: LLMTool[]): Anthropic.Tool[] | undefined => {
         if (!tools) {
@@ -45,7 +45,8 @@ const convertToolResults = (results: (string | ChatMessageContent)[]) => {
             let parts: (Anthropic.ImageBlockParam | Anthropic.TextBlockParam)[] = []
             if (url.startsWith("file://") && isSupportedImageType(url)) {
                 const base64 = FileUtil.convertFileUrlToBase64(url)
-                const mimeType = `image/${url.split(".").pop()}` as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp'
+                const mimeType = mime.getType(url) as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp'
+
                 parts.push({
                     "type": "image",
                     "source": {
@@ -76,6 +77,8 @@ function isSupportedImageType(url: string) {
     const mimeType = path.extname(url).slice(1)
     return supportedTypes.includes(mimeType)
 }
+
+
 
 export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, options: LLMProvider.LLMOptions): Anthropic.Messages.MessageParam[] => {
 
@@ -154,7 +157,7 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
 
                 if (role === "user" && url.startsWith("file://") && fileExists && isSupportedImageType(url)) {
                     const base64 = FileUtil.convertFileUrlToBase64(url)
-                    const mimeType = `image/${url.split(".").pop()}` as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp'
+                    const mimeType = mime.getType(url) as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp'
                     parts.push({
                         "type": "image",
                         "source": {
