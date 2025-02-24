@@ -22,6 +22,7 @@ class ChatOpenAIProvider extends LLMProvider {
 
 
         const ac = new AbortController()
+        //@ts-ignore
         const stream = OpenAIUtil.streamFromOpenAI(chatCompletion, ac)
         return stream
 
@@ -39,7 +40,7 @@ class ChatOpenAIProvider extends LLMProvider {
         const params = this.initParams(content)
 
         const chatCompletion = await this.client.chat.completions.create({
-            ...params
+            ...params,
         });
 
         const result = chatCompletion.choices[0]
@@ -110,6 +111,7 @@ class ChatOpenAIProvider extends LLMProvider {
             // baseURL: "http://127.0.0.1:8181/v1",
             baseURL: options.baseUrl || "https://api.openai.com/v1",
             defaultHeaders: headers,
+
         });
 
 
