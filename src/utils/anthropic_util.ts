@@ -310,6 +310,7 @@ export function streamFromAnthropic(response: AsyncIterable<Anthropic.Messages.M
 
             let message: Anthropic.Message
             for await (const chunk of response) {
+                console.log("chunk", chunk)
                 if (chunk.type === "message_start") {
                     message = chunk.message
                 }
@@ -360,6 +361,22 @@ export function streamFromAnthropic(response: AsyncIterable<Anthropic.Messages.M
                             choices: [{
                                 delta: {
                                     content: chunk.delta.text,
+                                    role: "assistant"
+                                },
+                                finish_reason: null,
+                                index: 0
+                            }],
+                            created: Date.now(),
+                            object: "chat.completion.chunk"
+                        }
+                    } else if (chunk.delta.type === "thinking_delta") {
+                        yield {
+                            model: "Anthropic",
+                            id: uuid(),
+                            choices: [{
+                                delta: {
+                                    //@ts-ignore
+                                    reasoning_content: chunk.delta.thinking,
                                     role: "assistant"
                                 },
                                 finish_reason: null,

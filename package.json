@@ -226,7 +226,7 @@
           "type": "dropdown",
           "required": false,
           "title": "Model Name",
-          "default": "claude-3-5-sonnet-latest",
+          "default": "claude-3-7-sonnet-latest",
           "dataProxy": "llm|anthropic_models"
         },
         {
@@ -2487,7 +2487,7 @@
     }
   ],
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.32.1",
+    "@anthropic-ai/sdk": "^0.37.0",
     "@enconvo/api": "link:/Users/ysnows/Documents/Project/enconvo.nodejs/enconvo_api",
     "@google/generative-ai": "^0.21.0",
     "@langchain/cloudflare": "^0.1.0",

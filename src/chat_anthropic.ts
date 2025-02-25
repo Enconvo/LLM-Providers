@@ -34,10 +34,19 @@ export class AnthropicProvider extends LLMProvider {
     protected async _call(content: LLMProvider.Params): Promise<BaseChatMessage> {
 
         const params = this.initParams(content)
-        const msg = await this.anthropic.messages.create({
-            ...params,
-            stream: false
-        });
+        let msg: any
+        const model = this.options.modelName.value
+        if (model === "claude-3-7-sonnet-latest-thinking") {
+            msg = await this.anthropic.beta.messages.create({
+                ...params,
+                stream: false
+            });
+        } else {
+            msg = await this.anthropic.messages.create({
+                ...params,
+                stream: false
+            });
+        }
 
         if (msg.content[0]?.type === "text") {
             return new AssistantMessage(msg.content[0].text)
@@ -51,40 +60,60 @@ export class AnthropicProvider extends LLMProvider {
 
         const params = this.initParams(content)
 
-        const stream = this.anthropic.messages.stream({
-            ...params
-        });
+        let stream: any
+        const model = this.options.modelName.value
+        if (model === "claude-3-7-sonnet-latest-thinking") {
+            stream = this.anthropic.beta.messages.stream(params)
+        } else {
+            stream = this.anthropic.messages.stream(params)
+        }
 
         return streamFromAnthropic(stream, stream.controller)
     }
 
-    initParams(content: LLMProvider.Params): Anthropic.MessageStreamParams {
+    initParams(content: LLMProvider.Params): any {
         const messages = content.messages
         const systemMessage = messages[0]?.role === 'system' ? messages.shift() : undefined
         const system = typeof systemMessage?.content === 'string' ? systemMessage.content : ''
         const tools = AnthropicUtil.convertToolsToAnthropicTools(content.tools)
 
-        const newMessages = convertMessagesToAnthropicMessages(messages,this.options)
+        const newMessages = convertMessagesToAnthropicMessages(messages, this.options)
 
+        const model = this.options.modelName.value
         console.log("system", system)
-        const params: Anthropic.Messages.MessageStreamParams = {
-            system,
-            model: this.options.modelName.value,
-            temperature: this.options.temperature.value,
-            max_tokens: 1024,
-            messages: newMessages,
-        }
+        let params: any = {}
+        if (model === "claude-3-7-sonnet-latest-thinking") {
+            params = {
+                system,
+                model: "claude-3-7-sonnet-20250219",
+                max_tokens: 128000,
+                thinking: {
+                  type: "enabled",
+                  budget_tokens: 32000
+                },
+                messages: newMessages,
+                temperature: this.options.temperature.value,
+                betas: ["output-128k-2025-02-19"]
+              }
+        } else {
+            params = {
+                system,
+                model: model,
+                temperature: this.options.temperature.value,
+                max_tokens: this.options.modelName.maxTokens || 8192,
+                messages: newMessages,
+            }
 
-        if (tools && tools.length > 0) {
-            params.tools = tools
-            params.tool_choice = {
-                type: "auto",
-                disable_parallel_tool_use: true
+            if (tools && tools.length > 0) {
+                params.tools = tools
+                params.tool_choice = {
+                    type: "auto",
+                    disable_parallel_tool_use: true
+                }
             }
         }
 
+
         return params
-
-
     }
 }
