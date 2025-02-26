@@ -310,7 +310,6 @@ export function streamFromAnthropic(response: AsyncIterable<Anthropic.Messages.M
 
             let message: Anthropic.Message
             for await (const chunk of response) {
-                console.log("chunk", chunk)
                 if (chunk.type === "message_start") {
                     message = chunk.message
                 }

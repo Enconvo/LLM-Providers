@@ -1,6 +1,5 @@
-import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, LLMProvider, res, Stream, uuid } from "@enconvo/api";
-import Anthropic from '@anthropic-ai/sdk';
-import ollama from 'ollama'
+import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, LLMProvider, Stream, uuid } from "@enconvo/api";
+import { Ollama } from 'ollama'
 import { OllamaUtil } from "./utils/ollama_util.ts";
 
 
@@ -9,15 +8,11 @@ export default function main(options: any) {
 }
 
 export class OllamaProvider extends LLMProvider {
-    anthropic: Anthropic
+    ollama: Ollama
 
     constructor(options: LLMProvider.LLMOptions) {
         super(options)
-
-        this.anthropic = new Anthropic({
-            apiKey: options.anthropicApiKey, // defaults to process.env["ANTHROPIC_API_KEY"]
-        });
-
+        this.ollama = new Ollama({ host: options.baseUrl })
 
     }
 
@@ -26,7 +21,7 @@ export class OllamaProvider extends LLMProvider {
 
         const params = this.initParams()
 
-        const response = await ollama.chat({ ...params, messages: newMessages })
+        const response = await this.ollama.chat({ ...params, messages: newMessages })
 
         return new AssistantMessage(response.message.content)
     }
@@ -36,7 +31,7 @@ export class OllamaProvider extends LLMProvider {
 
         const params = this.initParams()
 
-        const response = await ollama.chat({ ...params, messages: newMessages, stream: true })
+        const response = await this.ollama.chat({ ...params, messages: newMessages, stream: true })
 
         let consumed = false;
 

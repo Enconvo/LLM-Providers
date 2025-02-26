@@ -36,7 +36,7 @@ export class AnthropicProvider extends LLMProvider {
         const params = this.initParams(content)
         let msg: any
         const model = this.options.modelName.value
-        if (model === "claude-3-7-sonnet-latest-thinking") {
+        if (model.includes("claude-3-7-sonnet-latest-thinking")) {
             msg = await this.anthropic.beta.messages.create({
                 ...params,
                 stream: false
@@ -62,7 +62,7 @@ export class AnthropicProvider extends LLMProvider {
 
         let stream: any
         const model = this.options.modelName.value
-        if (model === "claude-3-7-sonnet-latest-thinking") {
+        if (model.includes("claude-3-7-sonnet-latest-thinking")) {
             stream = this.anthropic.beta.messages.stream(params)
         } else {
             stream = this.anthropic.messages.stream(params)
@@ -80,21 +80,23 @@ export class AnthropicProvider extends LLMProvider {
         const newMessages = convertMessagesToAnthropicMessages(messages, this.options)
 
         const model = this.options.modelName.value
-        console.log("system", system)
+        console.log("system", model)
         let params: any = {}
-        if (model === "claude-3-7-sonnet-latest-thinking") {
+        if (model.includes("claude-3-7-sonnet-latest-thinking")) {
+            const modelName = model.includes("anthropic/") ? "anthropic/claude-3-7-sonnet-20250219" : "claude-3-7-sonnet-20250219"
+
             params = {
                 system,
-                model: "claude-3-7-sonnet-20250219",
+                model: modelName,
                 max_tokens: 128000,
                 thinking: {
-                  type: "enabled",
-                  budget_tokens: 32000
+                    type: "enabled",
+                    budget_tokens: 32000
                 },
                 messages: newMessages,
                 temperature: this.options.temperature.value,
                 betas: ["output-128k-2025-02-19"]
-              }
+            }
         } else {
             params = {
                 system,
