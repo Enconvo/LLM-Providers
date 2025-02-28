@@ -13,13 +13,13 @@ export default function main(options: any) {
 class ChatOpenAIProvider extends LLMProvider {
 
     protected async _stream(content: LLMProvider.Params): Promise<Stream<BaseChatMessageChunk>> {
+
         const params = this.initParams(content)
 
         const chatCompletion = await this.client.chat.completions.create({
             ...params,
-            stream: true,
+            stream: true
         });
-
 
         const ac = new AbortController()
         //@ts-ignore
@@ -34,7 +34,6 @@ class ChatOpenAIProvider extends LLMProvider {
         super(options)
         this.client = this._createOpenaiClient(this.options)
     }
-
 
     protected async _call(content: { messages: BaseChatMessage[]; }): Promise<BaseChatMessage> {
         const params = this.initParams(content)
@@ -58,6 +57,7 @@ class ChatOpenAIProvider extends LLMProvider {
         let params: any = {
             model: modelOptions.value,
             temperature: this.options.temperature.value,
+            reasoning_effort: this.options.reasoning_effort.value === "off" ? null : this.options.reasoning_effort.value,
             messages
         }
 
