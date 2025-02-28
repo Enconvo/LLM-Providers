@@ -15,6 +15,7 @@ class ChatOpenAIProvider extends LLMProvider {
     protected async _stream(content: LLMProvider.Params): Promise<Stream<BaseChatMessageChunk>> {
 
         const params = this.initParams(content)
+        console.log("params", params)
 
         const chatCompletion = await this.client.chat.completions.create({
             ...params,
@@ -54,11 +55,20 @@ class ChatOpenAIProvider extends LLMProvider {
 
         const tools = OpenAIUtil.convertToolsToOpenAITools(content.tools)
 
+        let reasoning_effort = this.options.reasoning_effort.value === "off" ? null : this.options.reasoning_effort.value
+
+        if (!modelOptions.title.toLowerCase().includes("r1")) {
+            reasoning_effort = null
+        }
+
         let params: any = {
             model: modelOptions.value,
             temperature: this.options.temperature.value,
-            reasoning_effort: this.options.reasoning_effort.value === "off" ? null : this.options.reasoning_effort.value,
             messages
+        }
+
+        if (reasoning_effort) {
+            params.reasoning_effort = reasoning_effort
         }
 
         if (tools && tools.length > 0 && modelOptions.toolUse === true) {
