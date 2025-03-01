@@ -3,7 +3,7 @@ import { DropdownListCache } from "@enconvo/api"
 const models: DropdownListCache.ModelOutput[] = [
     {
         "title": "Gemini 2.0 Flash",
-        "value": "gemini-2.0-flash-001",
+        "value": "gemini-2.0-flash",
         "context": 1048576,
         "visionEnable": true,
         "audioEnable": true,
@@ -11,7 +11,7 @@ const models: DropdownListCache.ModelOutput[] = [
     },
     {
         "title": "Gemini 2.0 Flash Lite",
-        "value": "gemini-2.0-flash-lite-preview-02-05",
+        "value": "gemini-2.0-flash-lite",
         "context": 1048576,
         "visionEnable": true,
         "audioEnable": true,

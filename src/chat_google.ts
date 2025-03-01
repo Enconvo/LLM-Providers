@@ -12,6 +12,7 @@ export class GoogleGeminiProvider extends LLMProvider {
 
     constructor(options: LLMProvider.LLMOptions) {
         super(options)
+        console.log("options google", options)
         this.genAI = new GoogleGenerativeAI(options.apiKey);
     }
 
@@ -42,6 +43,14 @@ export class GoogleGeminiProvider extends LLMProvider {
     protected async _stream(content: LLMProvider.Params): Promise<Stream<BaseChatMessageChunk>> {
 
         const params = this.initParams(content)
+
+        console.log("params", params)
+        // for await (const chunk of result.stream) {
+        //     const chunkText = chunk.text();
+        //     process.stdout.write(chunkText);
+        // }
+
+
 
         const model = this.genAI.getGenerativeModel(
             {
