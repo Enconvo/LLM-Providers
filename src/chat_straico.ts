@@ -85,7 +85,7 @@ export class StraicoProvider extends LLMProvider {
             "temperature": this.options.temperature.value
         });
 
-        console.log("data", data)
+        console.log("data", this.options)
 
         var config = {
             method: 'post',

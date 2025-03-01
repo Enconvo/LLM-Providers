@@ -55,7 +55,7 @@ class ChatOpenAIProvider extends LLMProvider {
 
         const tools = OpenAIUtil.convertToolsToOpenAITools(content.tools)
 
-        let reasoning_effort = this.options.reasoning_effort.value === "off" ? null : this.options.reasoning_effort.value
+        let reasoning_effort = this.options?.reasoning_effort?.value === "off" ? null : this.options?.reasoning_effort?.value
 
         if (!modelOptions.title.toLowerCase().includes("r1")) {
             reasoning_effort = null
