@@ -100,7 +100,9 @@ class ChatOpenAIProvider extends LLMProvider {
             headers = {
                 "accessToken": `${env['accessToken']}`,
                 "client_id": `${env['client_id']}`,
-                "commandKey": `${env['commandKey']}`
+                "commandKey": `${env['commandKey']}`,
+                "commandTitle": `${env['commandTitle']}`,
+                "modelName": options.modelName.value
             }
         }
 

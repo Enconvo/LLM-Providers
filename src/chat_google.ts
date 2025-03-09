@@ -117,6 +117,7 @@ export class GoogleGeminiProvider extends LLMProvider {
                 "accessToken": `${env['accessToken']}`,
                 "client_id": `${env['client_id']}`,
                 "commandKey": `${env['commandKey']}`,
+                "commandTitle": `${env['commandTitle']}`,
                 "modelName": model
             }
             baseUrl = this.options.baseUrl
