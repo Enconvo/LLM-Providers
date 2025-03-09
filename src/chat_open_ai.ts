@@ -61,9 +61,16 @@ class ChatOpenAIProvider extends LLMProvider {
             reasoning_effort = null
         }
 
+        let temperature = this.options.temperature.value
+        try {
+            temperature = typeof temperature === "string" ? parseFloat(temperature) : temperature
+        } catch (e) {
+            temperature = 0.5
+        }
+
         let params: any = {
             model: modelOptions.value,
-            temperature: this.options.temperature.value,
+            temperature: temperature,
             messages
         }
 
