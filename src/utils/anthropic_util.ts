@@ -158,7 +158,10 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
                     type: "tool_result",
                     tool_use_id: toolMessage.tool_call_id,
                     //@ts-ignore
-                    content: toolResultMessages
+                    content: toolResultMessages,
+                    cache_control: {
+                        type: "ephemeral"
+                    }
                 }
             ]
         }]
@@ -183,10 +186,7 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
                         type: "tool_use",
                         name: aiMessage.tool_calls[0].function.name,
                         id: aiMessage.tool_calls[0].id!,
-                        input: args,
-                        cache_control: {
-                            type: "ephemeral"
-                        }
+                        input: args
                     }
                 ]
             }]
@@ -267,10 +267,7 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
                                 type: "tool_use",
                                 name: item.flowName.replace("|", "-"),
                                 id: item.flowId,
-                                input: args,
-                                cache_control: {
-                                    type: "ephemeral"
-                                }
+                                input: args
                             }
                         ]
                     },
@@ -280,7 +277,10 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
                             {
                                 type: "tool_result",
                                 tool_use_id: item.flowId,
-                                content: toolResultMessages
+                                content: toolResultMessages,
+                                cache_control: {
+                                    type: "ephemeral"
+                                }
                             }
                         ]
                     }]
@@ -368,7 +368,7 @@ export const convertMessagesToAnthropicMessages = async (messages: BaseChatMessa
         newMessages = newMessages.map((message) => {
             if (message.content && Array.isArray(message.content)) {
                 message.content = message.content.map((content) => {
-                    if (content.type === "tool_use") {
+                    if (content.type === "tool_result") {
                         index++
                         if (index <= toBeDeleted) {
                             content.cache_control = undefined
@@ -406,7 +406,6 @@ export function streamFromAnthropic(response: AsyncIterable<Anthropic.Messages.M
 
             let message: Anthropic.Message
             for await (const chunk of response) {
-                // console.log("chunk", JSON.stringify(chunk, null, 2))
                 if (chunk.type === "message_start") {
                     message = chunk.message
                     console.log("input usage", JSON.stringify(chunk.message.usage, null, 2))

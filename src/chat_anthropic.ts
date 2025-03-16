@@ -89,6 +89,7 @@ export class AnthropicProvider extends LLMProvider {
         const system = typeof systemMessage?.content === 'string' ? systemMessage.content : ''
         const tools = AnthropicUtil.convertToolsToAnthropicTools(content.tools)
 
+        fs.writeFileSync(path.join(homedir(), 'Desktop', "messages.json"), JSON.stringify(messages, null, 2))
         const newMessages = await convertMessagesToAnthropicMessages(messages, this.options)
         fs.writeFileSync(path.join(homedir(), 'Desktop', "newMessages.json"), JSON.stringify(newMessages, null, 2))
 
