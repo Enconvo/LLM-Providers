@@ -2,6 +2,9 @@ import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, LLMProvider, S
 import Anthropic from '@anthropic-ai/sdk';
 import { AnthropicUtil, convertMessagesToAnthropicMessages, streamFromAnthropic } from "./utils/anthropic_util.ts";
 import { env } from "process";
+import fs from "fs";
+import path from "path";
+import { homedir } from "os";
 
 export default function main(options: any) {
     return new AnthropicProvider(options)
@@ -12,6 +15,7 @@ export class AnthropicProvider extends LLMProvider {
 
     constructor(options: LLMProvider.LLMOptions) {
         super(options)
+
 
         let headers = {
         }
@@ -35,14 +39,20 @@ export class AnthropicProvider extends LLMProvider {
 
     protected async _call(content: LLMProvider.Params): Promise<BaseChatMessage> {
 
-        const params = this.initParams(content)
+        const params = await this.initParams(content)
         let msg: any
         const model = this.options.modelName.value
         if (model.includes("claude-3-7-sonnet-latest-thinking")) {
-            msg = await this.anthropic.beta.messages.create({
-                ...params,
-                stream: false
-            });
+            const stream = this.anthropic.beta.messages.stream(params);
+            let text = ""
+            for await (const chunk of stream) {
+                if (chunk.type === "content_block_delta") {
+                    if (chunk.delta.type === "text_delta") {
+                        text += chunk.delta.text
+                    }
+                }
+            }
+            return new AssistantMessage(text)
         } else {
             msg = await this.anthropic.messages.create({
                 ...params,
@@ -60,29 +70,44 @@ export class AnthropicProvider extends LLMProvider {
 
     protected async _stream(content: LLMProvider.Params): Promise<Stream<BaseChatMessageChunk>> {
 
-        const params = this.initParams(content)
+        const params = await this.initParams(content)
 
         let stream: any
         const model = this.options.modelName.value
         if (model.includes("claude-3-7-sonnet-latest-thinking")) {
             stream = this.anthropic.beta.messages.stream(params)
         } else {
-            stream = this.anthropic.messages.stream(params)
+            stream = this.anthropic.beta.messages.stream(params)
         }
 
         return streamFromAnthropic(stream, stream.controller)
     }
 
-    initParams(content: LLMProvider.Params): any {
+    async initParams(content: LLMProvider.Params): Promise<any> {
         const messages = content.messages
         const systemMessage = messages[0]?.role === 'system' ? messages.shift() : undefined
         const system = typeof systemMessage?.content === 'string' ? systemMessage.content : ''
         const tools = AnthropicUtil.convertToolsToAnthropicTools(content.tools)
 
-        const newMessages = convertMessagesToAnthropicMessages(messages, this.options)
+        const newMessages = await convertMessagesToAnthropicMessages(messages, this.options)
+        fs.writeFileSync(path.join(homedir(), 'Desktop', "newMessages.json"), JSON.stringify(newMessages, null, 2))
+
+        console.time("getNumTokens")
+        let totalTokens = 0
+        totalTokens += await AnthropicUtil.getNumTokens(system)
+        const tokens = await AnthropicUtil.getNumTokensFromMessages(newMessages)
+        totalTokens += tokens.totalCount
+
+        for (const tool of tools || []) {
+            const toolContent = tool.name + tool.description + JSON.stringify(tool.input_schema)
+            const toolTokens = await AnthropicUtil.getNumTokens(toolContent)
+            totalTokens += toolTokens
+        }
+
+        console.log("totalTokens", totalTokens, tools?.length)
+        console.timeEnd("getNumTokens")
 
         const model = this.options.modelName.value
-        console.log("system", model)
         let params: any = {}
         if (model.includes("claude-3-7-sonnet-latest-thinking")) {
             const modelName = model.includes("anthropic/") ? "anthropic/claude-3-7-sonnet-20250219" : "claude-3-7-sonnet-20250219"
@@ -104,8 +129,10 @@ export class AnthropicProvider extends LLMProvider {
                 system,
                 model: model,
                 temperature: this.options.temperature.value,
-                max_tokens: this.options.modelName.maxTokens || 8192,
+                max_tokens: 128000,
+                // max_tokens: this.options.modelName.maxTokens || 8192,
                 messages: newMessages,
+                betas: ["output-128k-2025-02-19"]
             }
 
             if (tools && tools.length > 0) {
@@ -116,7 +143,6 @@ export class AnthropicProvider extends LLMProvider {
                 }
             }
         }
-
 
         return params
     }

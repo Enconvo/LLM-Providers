@@ -15,11 +15,67 @@ export namespace AnthropicUtil {
                 name: tool.name,
                 description: tool.description,
                 input_schema: tool.parameters,
-                strict: tool.strict
+                strict: tool.strict,
             }
         })
 
         return newTools
+    }
+
+    export const getNumTokens = async (text: string): Promise<number> => {
+        const tokens = text.length / 4
+        return tokens
+    }
+
+    export const getNumTokensFromMessages = async (messages: Anthropic.Messages.MessageParam[]): Promise<{
+        totalCount: number;
+        countPerMessage: number[];
+    }> => {
+        let totalCount = 0;
+
+        const tokensPerMessage = 7;
+
+        let allContent = ''
+
+        messages.map(async (message) => {
+            // 如果是message.content 是 string
+            if (typeof message.content === 'string') {
+                allContent += (message.content + message.role)
+                totalCount += tokensPerMessage;
+            } else {
+                message.content.map((content) => {
+                    if (content.type === 'text') {
+                        allContent += content.text
+                    } else if (content.type === 'tool_use') {
+                        allContent += content.name
+                        allContent += JSON.stringify(content.input)
+                    } else if (content.type === 'tool_result') {
+                        allContent += content.tool_use_id
+                        if (typeof content.content === 'string') {
+                            allContent += content.content
+                        } else {
+                            content.content?.map((item) => {
+                                if (item.type === 'text') {
+                                    allContent += item.text
+                                } else if (item.type === 'image') {
+                                    totalCount += 1500;
+                                }
+                            })
+                        }
+                    } else if (content.type === 'image') {
+                        totalCount += 1500;
+                    }
+                })
+                totalCount += tokensPerMessage;
+            }
+            return message;
+        })
+
+        const contentTokens = await getNumTokens(allContent)
+
+        totalCount += contentTokens;
+
+        return { totalCount, countPerMessage: [] };
     }
 }
 
@@ -91,7 +147,6 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
         try {
             content = JSON.parse(toolMessage.content as string)
         } catch (e) {
-
             console.log("toolMessage content error", toolMessage.content)
         }
 
@@ -114,12 +169,13 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
 
         if (aiMessage.tool_calls && aiMessage.tool_calls.length > 0) {
 
-            let args = {}
+            let args: any = {}
             try {
                 args = JSON.parse(aiMessage.tool_calls[0].function.arguments || '{}')
             } catch (e) {
                 console.log("flowParams error", aiMessage.tool_calls[0].function.arguments)
             }
+
             return [{
                 role: "assistant",
                 content: [
@@ -127,7 +183,10 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
                         type: "tool_use",
                         name: aiMessage.tool_calls[0].function.name,
                         id: aiMessage.tool_calls[0].id!,
-                        input: args
+                        input: args,
+                        cache_control: {
+                            type: "ephemeral"
+                        }
                     }
                 ]
             }]
@@ -208,7 +267,10 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
                                 type: "tool_use",
                                 name: item.flowName.replace("|", "-"),
                                 id: item.flowId,
-                                input: args
+                                input: args,
+                                cache_control: {
+                                    type: "ephemeral"
+                                }
                             }
                         ]
                     },
@@ -274,7 +336,7 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
     }
 }
 
-export const convertMessagesToAnthropicMessages = (messages: BaseChatMessageLike[], options: LLMProvider.LLMOptions): Anthropic.Messages.MessageParam[] => {
+export const convertMessagesToAnthropicMessages = async (messages: BaseChatMessageLike[], options: LLMProvider.LLMOptions): Promise<Anthropic.Messages.MessageParam[]> => {
     let newMessages = messages.map((message) => convertMessageToAnthropicMessage(message, options)).flat().filter((message) => {
         if (typeof message.content === "string" && message.content.trim() === "") {
             console.log("message.content is empty", message)
@@ -287,13 +349,47 @@ export const convertMessagesToAnthropicMessages = (messages: BaseChatMessageLike
         if (message.content && Array.isArray(message.content) && message.content.length === 1 && message.content[0].type === "text") {
             message.content = message.content[0].text
         }
+
         return message
     })
 
-    console.log("newMessages", JSON.stringify(newMessages))
+    // count of tool_use
+    const toolUseCount = newMessages.filter((message) => {
+        if (message.content && Array.isArray(message.content)) {
+            return message.content.some((content) => content.type === "tool_use")
+        }
+        return false
+    }).length
+    console.log("cache control count", toolUseCount)
+    // 如果超过4个，则删除前面的的tool_use的content中的cache_control，保留4个
+    if (toolUseCount > 4) {
+        let toBeDeleted = toolUseCount - 4
+        let index = 0
+        newMessages = newMessages.map((message) => {
+            if (message.content && Array.isArray(message.content)) {
+                message.content = message.content.map((content) => {
+                    if (content.type === "tool_use") {
+                        index++
+                        if (index <= toBeDeleted) {
+                            content.cache_control = undefined
+                        }
+                    }
+                    return content
+                })
+            }
+            return message
+        })
+    }
+
+
+    // console.log("newMessages", JSON.stringify(newMessages, null, 2))
     // fs.writeFileSync(`${homedir()}/Desktop/newMessages.json`, JSON.stringify(newMessages, null, 2))
+
+
+
     return newMessages
 }
+
 
 
 
@@ -310,16 +406,50 @@ export function streamFromAnthropic(response: AsyncIterable<Anthropic.Messages.M
 
             let message: Anthropic.Message
             for await (const chunk of response) {
+                // console.log("chunk", JSON.stringify(chunk, null, 2))
                 if (chunk.type === "message_start") {
                     message = chunk.message
+                    console.log("input usage", JSON.stringify(chunk.message.usage, null, 2))
                 }
 
                 if (done) continue;
 
-                if (chunk.type === "message_stop") {
-                    done = true;
-                    continue
+                if (chunk.type === "message_delta") {
+                    if (chunk.delta.stop_reason) {
+                        let finish_reason: "stop" | "length" | "tool_calls" | "content_filter" | "function_call" | null = null
+                        if (chunk.delta.stop_reason === "max_tokens") {
+                            finish_reason = "length"
+                        } else if (chunk.delta.stop_reason === "stop_sequence") {
+                            finish_reason = "stop"
+                        } else if (chunk.delta.stop_reason === "tool_use") {
+                            finish_reason = "tool_calls"
+                        } else if (chunk.delta.stop_reason === "end_turn") {
+                            finish_reason = "stop"
+                        }
+                        // console.log("finish_reason", JSON.stringify(chunk.usage, null, 2))
+
+                        yield {
+                            model: "Anthropic",
+                            id: uuid(),
+                            choices: [{
+                                delta: {
+                                    role: "assistant"
+                                },
+                                finish_reason: finish_reason,
+                                index: 0
+                            }],
+                            created: Date.now(),
+                            object: "chat.completion.chunk"
+                        }
+                        done = true;
+                        continue
+                    }
                 }
+
+                // if (chunk.type === "message_stop") {
+                //     done = true;
+                //     continue
+                // }
 
                 if (chunk.type === "content_block_start") {
                     if (chunk.content_block.type === "tool_use") {
@@ -349,8 +479,6 @@ export function streamFromAnthropic(response: AsyncIterable<Anthropic.Messages.M
 
                     }
                 }
-
-
 
                 if (chunk.type === "content_block_delta") {
                     if (chunk.delta.type === "text_delta") {

@@ -15,7 +15,7 @@ class ChatOpenAIProvider extends LLMProvider {
     protected async _stream(content: LLMProvider.Params): Promise<Stream<BaseChatMessageChunk>> {
 
         const params = this.initParams(content)
-        console.log("params", params)
+        // console.log("params", params)
 
         const chatCompletion = await this.client.chat.completions.create({
             ...params,
