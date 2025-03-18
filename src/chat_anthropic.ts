@@ -85,28 +85,31 @@ export class AnthropicProvider extends LLMProvider {
 
     async initParams(content: LLMProvider.Params): Promise<any> {
         const messages = content.messages
-        const systemMessage = messages[0]?.role === 'system' ? messages.shift() : undefined
-        const system = typeof systemMessage?.content === 'string' ? systemMessage.content : ''
+        const systemMessages = messages.filter((message) => message.role === "system")
+        const system = systemMessages.map((message) => {
+            if (typeof message.content === "string") {
+                return {
+                    type: "text",
+                    text: message.content
+                }
+            } else {
+                return message.content.map((content) => {
+                    if (content.type === "text") {
+                        return {
+                            type: "text",
+                            text: content.text
+                        }
+                    }
+                })
+            }
+        })
+
+        const conversationMessages = messages.filter((message) => message.role !== "system")
+
         const tools = AnthropicUtil.convertToolsToAnthropicTools(content.tools)
 
-        fs.writeFileSync(path.join(homedir(), 'Desktop', "messages.json"), JSON.stringify(messages, null, 2))
-        const newMessages = await convertMessagesToAnthropicMessages(messages, this.options)
-        fs.writeFileSync(path.join(homedir(), 'Desktop', "newMessages.json"), JSON.stringify(newMessages, null, 2))
+        const newMessages = await convertMessagesToAnthropicMessages(conversationMessages, this.options)
 
-        console.time("getNumTokens")
-        let totalTokens = 0
-        totalTokens += await AnthropicUtil.getNumTokens(system)
-        const tokens = await AnthropicUtil.getNumTokensFromMessages(newMessages)
-        totalTokens += tokens.totalCount
-
-        for (const tool of tools || []) {
-            const toolContent = tool.name + tool.description + JSON.stringify(tool.input_schema)
-            const toolTokens = await AnthropicUtil.getNumTokens(toolContent)
-            totalTokens += toolTokens
-        }
-
-        console.log("totalTokens", totalTokens, tools?.length)
-        console.timeEnd("getNumTokens")
 
         const model = this.options.modelName.value
         let params: any = {}
@@ -138,9 +141,19 @@ export class AnthropicProvider extends LLMProvider {
 
             if (tools && tools.length > 0) {
                 params.tools = tools
-                params.tool_choice = {
-                    type: "auto",
-                    disable_parallel_tool_use: true
+                if (content.tool_choice && typeof content.tool_choice !== "string") {
+                    params.tool_choice = {
+                        type: "tool",
+                        name: content.tool_choice.function.name,
+                        disable_parallel_tool_use: true
+                    }
+
+                } else {
+
+                    params.tool_choice = {
+                        type: "auto",
+                        disable_parallel_tool_use: true
+                    }
                 }
             }
         }

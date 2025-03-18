@@ -144,25 +144,33 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
         const toolMessage = message as ToolMessage
         // console.log("toolMessage", JSON.stringify(toolMessage, null, 2))
         let content: (string | ChatMessageContent)[] = []
+
+        let contentLength = 0
         try {
-            content = JSON.parse(toolMessage.content as string)
+            const contentString = toolMessage.content as string
+            content = JSON.parse(contentString)
+            contentLength = contentString.length
         } catch (e) {
             console.log("toolMessage content error", toolMessage.content)
         }
 
         const toolResultMessages = convertToolResults(content)
+
+        let toolResultMessage: Anthropic.ToolResultBlockParam = {
+            type: "tool_result",
+            tool_use_id: toolMessage.tool_call_id,
+            //@ts-ignore
+            content: toolResultMessages,
+        }
+        if (contentLength > 1000) {
+            toolResultMessage.cache_control = {
+                type: "ephemeral"
+            }
+        }
         return [{
             role: "user",
             content: [
-                {
-                    type: "tool_result",
-                    tool_use_id: toolMessage.tool_call_id,
-                    //@ts-ignore
-                    content: toolResultMessages,
-                    cache_control: {
-                        type: "ephemeral"
-                    }
-                }
+                toolResultMessage
             ]
         }]
     }
@@ -173,21 +181,33 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
         if (aiMessage.tool_calls && aiMessage.tool_calls.length > 0) {
 
             let args: any = {}
+            let contentLength = 0
             try {
-                args = JSON.parse(aiMessage.tool_calls[0].function.arguments || '{}')
+                const contentString = aiMessage.tool_calls[0].function.arguments || '{}'
+                args = JSON.parse(contentString)
+                contentLength = contentString.length
             } catch (e) {
                 console.log("flowParams error", aiMessage.tool_calls[0].function.arguments)
+            }
+
+
+            const toolUseMessage: Anthropic.ToolUseBlockParam = {
+                type: "tool_use",
+                name: aiMessage.tool_calls[0].function.name,
+                id: aiMessage.tool_calls[0].id!,
+                input: args,
+            }
+
+            if (contentLength > 1000) {
+                toolUseMessage.cache_control = {
+                    type: "ephemeral"
+                }
             }
 
             return [{
                 role: "assistant",
                 content: [
-                    {
-                        type: "tool_use",
-                        name: aiMessage.tool_calls[0].function.name,
-                        id: aiMessage.tool_calls[0].id!,
-                        input: args
-                    }
+                    toolUseMessage
                 ]
             }]
         }
@@ -253,35 +273,50 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
 
 
                 let args = {}
+                let toolUseContentLength = item.flowParams?.length || 0
                 try {
                     args = JSON.parse(item.flowParams || '{}')
                 } catch (e) {
                     console.log("flowParams error", item.flowParams)
                 }
 
+                const toolUseMessage: Anthropic.ToolUseBlockParam = {
+                    type: "tool_use",
+                    name: item.flowName.replace("|", "-"),
+                    id: item.flowId,
+                    input: args,
+                }
+
+                if (toolUseContentLength > 1000) {
+                    toolUseMessage.cache_control = {
+                        type: "ephemeral"
+                    }
+
+                }
+
+                const toolResultMessage: Anthropic.ToolResultBlockParam = {
+                    type: "tool_result",
+                    tool_use_id: item.flowId,
+                    content: toolResultMessages,
+                }
+
+                if (JSON.stringify(toolResultMessages).length > 1000) {
+                    toolResultMessage.cache_control = {
+                        type: "ephemeral"
+                    }
+                }
+
                 const toolUseMessages: Anthropic.MessageParam[] = [
                     {
                         role: "assistant",
                         content: [
-                            {
-                                type: "tool_use",
-                                name: item.flowName.replace("|", "-"),
-                                id: item.flowId,
-                                input: args
-                            }
+                            toolUseMessage
                         ]
                     },
                     {
                         role: "user",
                         content: [
-                            {
-                                type: "tool_result",
-                                tool_use_id: item.flowId,
-                                content: toolResultMessages,
-                                cache_control: {
-                                    type: "ephemeral"
-                                }
-                            }
+                            toolResultMessage
                         ]
                     }]
 
@@ -356,21 +391,30 @@ export const convertMessagesToAnthropicMessages = async (messages: BaseChatMessa
     // count of tool_use
     const toolUseCount = newMessages.filter((message) => {
         if (message.content && Array.isArray(message.content)) {
-            return message.content.some((content) => content.type === "tool_use")
+            return message.content.some((content) => {
+                const isToolUse = content.type === "tool_use"
+                const isToolResult = content.type === "tool_result"
+                if (isToolUse || isToolResult) {
+                    if (content.cache_control !== undefined) {
+                        return true
+                    }
+                }
+                return false
+            })
         }
         return false
     }).length
     console.log("cache control count", toolUseCount)
     // 如果超过4个，则删除前面的的tool_use的content中的cache_control，保留4个
-    if (toolUseCount > 4) {
-        let toBeDeleted = toolUseCount - 4
+    if (toolUseCount > 2) {
+        let toBeDeleted = toolUseCount - 2
         let index = 0
         newMessages = newMessages.map((message) => {
             if (message.content && Array.isArray(message.content)) {
                 message.content = message.content.map((content) => {
-                    if (content.type === "tool_result") {
-                        index++
-                        if (index <= toBeDeleted) {
+                    if ((content.type === "tool_result" || content.type === "tool_use") && content.cache_control !== undefined) {
+                        if (index < (toBeDeleted)) {
+                            index++
                             content.cache_control = undefined
                         }
                     }
@@ -381,10 +425,31 @@ export const convertMessagesToAnthropicMessages = async (messages: BaseChatMessa
         })
     }
 
+    const newToolUseCount = newMessages.filter((message) => {
+        if (message.content && Array.isArray(message.content)) {
+            return message.content.some((content) => {
+                const isToolUse = content.type === "tool_use"
+                const isToolResult = content.type === "tool_result"
+                if (isToolUse || isToolResult) {
+                    if (content.cache_control !== undefined) {
+                        return true
+                    }
+                }
+                return false
+            })
+        }
+        return false
+    }).length
+    console.log("newToolUseCount", newToolUseCount)
 
     // console.log("newMessages", JSON.stringify(newMessages, null, 2))
     // fs.writeFileSync(`${homedir()}/Desktop/newMessages.json`, JSON.stringify(newMessages, null, 2))
 
+    newMessages = newMessages.slice(-20)
+
+    if (newMessages[0].role === "user" && newMessages[0].content && Array.isArray(newMessages[0].content) && newMessages[0].content.length > 0 && newMessages[0].content[0].type === "tool_result") {
+        newMessages = newMessages.slice(1)
+    }
 
 
     return newMessages
@@ -406,6 +471,7 @@ export function streamFromAnthropic(response: AsyncIterable<Anthropic.Messages.M
 
             let message: Anthropic.Message
             for await (const chunk of response) {
+                // console.log("chunk", JSON.stringify(chunk, null, 2))
                 if (chunk.type === "message_start") {
                     message = chunk.message
                     console.log("input usage", JSON.stringify(chunk.message.usage, null, 2))
@@ -415,6 +481,7 @@ export function streamFromAnthropic(response: AsyncIterable<Anthropic.Messages.M
 
                 if (chunk.type === "message_delta") {
                     if (chunk.delta.stop_reason) {
+                        console.log("stop_reason", chunk.delta.stop_reason)
                         let finish_reason: "stop" | "length" | "tool_calls" | "content_filter" | "function_call" | null = null
                         if (chunk.delta.stop_reason === "max_tokens") {
                             finish_reason = "length"
