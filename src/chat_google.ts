@@ -1,5 +1,5 @@
 import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, BaseChatMessageLike, LLMProvider, Stream } from "@enconvo/api";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { FunctionCallingMode, GoogleGenerativeAI } from "@google/generative-ai";
 import { convertMessagesToGoogleMessages, GoogleUtil, streamFromGoogle } from "./utils/google_util.ts";
 import { env } from "process";
 
@@ -57,6 +57,7 @@ export class GoogleGeminiProvider extends LLMProvider {
                 systemInstruction: params.system,
                 model: params.model,
                 tools: params.tools,
+                toolConfig: params.toolConfig,
                 generationConfig: {
                     temperature: params.temperature,
                 }
@@ -82,11 +83,21 @@ export class GoogleGeminiProvider extends LLMProvider {
 
 
     initParams(content: LLMProvider.Params) {
-        const messages = content.messages
+        const userMessages = content.messages.filter((message) => message.role !== 'system')
+        const systemMessages = content.messages.filter((message) => message.role === 'system')
 
-        const systemMessage = messages[0]?.role === 'system' ? messages.shift() : undefined
+        const system = systemMessages.length > 0 ? systemMessages.map((message) => {
+            if (typeof message.content === "string") {
+                return message.content
+            } else {
+                return message.content.map((item) => {
+                    if (item.type === "text") {
+                        return item.text
+                    }
+                }).join("\n\n")
+            }
+        }).join("\n\n") : undefined
 
-        const system = typeof systemMessage?.content === 'string' ? systemMessage.content : ''
 
         function makeFirstMessageBeUserRole(messages: BaseChatMessageLike[]) {
             if (messages.length > 0 && messages[0].role !== 'user') {
@@ -100,8 +111,7 @@ export class GoogleGeminiProvider extends LLMProvider {
             return messages
         }
 
-
-        const fixedMessages = makeFirstMessageBeUserRole(messages)
+        const fixedMessages = makeFirstMessageBeUserRole(userMessages)
 
         let newMessages = convertMessagesToGoogleMessages(fixedMessages, this.options)
 
@@ -123,8 +133,24 @@ export class GoogleGeminiProvider extends LLMProvider {
             baseUrl = this.options.baseUrl
             model = model.split('/')[1]
         }
+        console.log("tools", content.tools)
 
         const tools = GoogleUtil.convertToolsToGoogleTools(content.tools)
+        let toolConfig = {}
+        if (typeof content.tool_choice === "object") {
+            toolConfig = {
+                functionCallingConfig: {
+                    mode: FunctionCallingMode.ANY,
+                    allowedFunctionNames: [content.tool_choice.function.name]
+                }
+            }
+        } else {
+            toolConfig = {
+                functionCallingConfig: {
+                    mode: FunctionCallingMode.AUTO
+                }
+            }
+        }
 
         return {
             system,
@@ -134,7 +160,8 @@ export class GoogleGeminiProvider extends LLMProvider {
             messages: newMessages,
             headers,
             baseUrl,
-            tools
+            tools,
+            toolConfig
         }
 
     }

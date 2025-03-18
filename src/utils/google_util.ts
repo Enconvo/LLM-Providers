@@ -3,6 +3,7 @@ import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, BaseChatMessag
 import path from "path"
 import fs from "fs"
 import mime from "mime"
+import { homedir } from "os"
 export namespace GoogleUtil {
 
 
@@ -20,7 +21,8 @@ export namespace GoogleUtil {
 
                     // Delete additionalProperties if present
                     delete obj.default;
-
+                    delete obj.additionalProperties;
+                    delete obj['$schema'];
                     // Recursively process nested properties
                     Object.values(obj).forEach(val => {
                         if (typeof val === 'object') {
@@ -31,6 +33,9 @@ export namespace GoogleUtil {
 
                 removeAdditionalProps(value);
             });
+
+            delete tool.parameters?.additionalProperties;
+            delete tool.parameters?.$schema
 
             if (Object.keys(tool.parameters?.properties || {}).length === 0) {
                 delete tool.parameters
@@ -43,6 +48,8 @@ export namespace GoogleUtil {
             }
             return functionDeclarationTool
         })
+
+        fs.writeFileSync(`${homedir()}/Desktop/tool.json`, JSON.stringify(functionDeclarations, null, 2))
 
         const functionDeclarationTool = {
             functionDeclarations: functionDeclarations

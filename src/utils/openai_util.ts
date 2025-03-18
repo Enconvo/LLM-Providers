@@ -333,7 +333,26 @@ export namespace OpenAIUtil {
             return message
         })
 
+        const allSystemMessages = newMessages.filter((message) => message.role === "system")
+        const allUserMessages = newMessages.filter((message) => message.role !== "system")
 
+        const systemMessage = allSystemMessages.length > 1 ? {
+            role: "system",
+            content: allSystemMessages.map((message) => {
+                if (typeof message.content === "string") {
+                    return message.content
+                } else {
+                    return message.content.map((item) => {
+                        if (item.type === "text") {
+                            return item.text
+                        }
+                    }).join("\n\n")
+                }
+            }).join("\n\n")
+        } : allSystemMessages.length > 0 ? allSystemMessages[0] : undefined
+
+        //@ts-ignore
+        newMessages = [...(systemMessage ? [systemMessage] : []), ...allUserMessages]
         // ensure first message is user
         function ensureFirstMessageIsUser(messages: OpenAI.Chat.ChatCompletionMessageParam[]) {
             // ensure first message is user
@@ -354,7 +373,6 @@ export namespace OpenAIUtil {
         }
 
         newMessages = ensureFirstMessageIsUser(newMessages)
-
 
         console.log("newMessages", JSON.stringify(newMessages, null, 2))
         return newMessages
