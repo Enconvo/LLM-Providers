@@ -125,14 +125,14 @@ export class AnthropicProvider extends LLMProvider {
                     budget_tokens: 32000
                 },
                 messages: newMessages,
-                temperature: this.options.temperature.value,
+                temperature: Number(this.options.temperature.value),
                 betas: ["output-128k-2025-02-19"]
             }
         } else {
             params = {
                 system,
                 model: model,
-                temperature: this.options.temperature.value,
+                temperature: Number(this.options.temperature.value),
                 max_tokens: 128000,
                 // max_tokens: this.options.modelName.maxTokens || 8192,
                 messages: newMessages,
