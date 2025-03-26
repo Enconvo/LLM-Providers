@@ -2,9 +2,6 @@ import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, LLMProvider, S
 import Anthropic from '@anthropic-ai/sdk';
 import { AnthropicUtil, convertMessagesToAnthropicMessages, streamFromAnthropic } from "./utils/anthropic_util.ts";
 import { env } from "process";
-import fs from "fs";
-import path from "path";
-import { homedir } from "os";
 
 export default function main(options: any) {
     return new AnthropicProvider(options)
@@ -84,6 +81,7 @@ export class AnthropicProvider extends LLMProvider {
     }
 
     async initParams(content: LLMProvider.Params): Promise<any> {
+        console.log("initParams---", this.options)
         const messages = content.messages
         const systemMessages = messages.filter((message) => message.role === "system")
         const system = systemMessages.map((message) => {
@@ -103,6 +101,7 @@ export class AnthropicProvider extends LLMProvider {
                 })
             }
         })
+        console.log("system---", system)
 
         const conversationMessages = messages.filter((message) => message.role !== "system")
 
@@ -119,7 +118,7 @@ export class AnthropicProvider extends LLMProvider {
             params = {
                 system,
                 model: modelName,
-                max_tokens: 128000,
+                max_tokens: 64000,
                 thinking: {
                     type: "enabled",
                     budget_tokens: 32000
@@ -129,12 +128,13 @@ export class AnthropicProvider extends LLMProvider {
                 betas: ["output-128k-2025-02-19"]
             }
         } else {
+            const defaultMaxTokens = model.includes("claude-3-7-sonnet") ? 64000 : this.options.modelName.maxTokens || 8192
+
             params = {
                 system,
                 model: model,
                 temperature: Number(this.options.temperature.value),
-                max_tokens: 128000,
-                // max_tokens: this.options.modelName.maxTokens || 8192,
+                max_tokens: defaultMaxTokens,
                 messages: newMessages,
                 betas: ["output-128k-2025-02-19"]
             }

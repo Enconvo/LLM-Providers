@@ -49,7 +49,7 @@ export namespace GoogleUtil {
             return functionDeclarationTool
         })
 
-        fs.writeFileSync(`${homedir()}/Desktop/tool.json`, JSON.stringify(functionDeclarations, null, 2))
+        // fs.writeFileSync(`${homedir()}/Desktop/tool.json`, JSON.stringify(functionDeclarations, null, 2))
 
         const functionDeclarationTool = {
             functionDeclarations: functionDeclarations

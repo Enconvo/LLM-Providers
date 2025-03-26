@@ -49,6 +49,7 @@ class ChatOpenAIProvider extends LLMProvider {
     }
 
     private initParams(content: LLMProvider.Params) {
+        console.log("initParams___", this.options)
         const modelOptions = this.options.modelName
 
         const messages = OpenAIUtil.convertMessagesToOpenAIMessages(this.options, content.messages)

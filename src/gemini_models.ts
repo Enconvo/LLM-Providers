@@ -18,6 +18,14 @@ const models: DropdownListCache.ModelOutput[] = [
         "toolUse": true
     },
     {
+        "title": "Gemini 2.5 Pro Exp",
+        "value": "gemini-2.5-pro-exp-03-25",
+        "context": 1048576,
+        "visionEnable": true,
+        "audioEnable": true,
+        "toolUse": true
+    },
+    {
         "title": "Gemini 2.0 Flash Lite",
         "value": "gemini-2.0-flash-lite",
         "context": 1048576,
