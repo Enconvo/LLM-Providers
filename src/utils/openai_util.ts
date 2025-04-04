@@ -237,7 +237,7 @@ export namespace OpenAIUtil {
             }
 
             const modelName = options.modelName.value.toLowerCase()
-            const isDeepSeekR1 = modelName.includes("deepseek") && modelName.includes("r1")
+            const isDeepSeekR1 = modelName.includes("deepseek")
 
             if (options.modelName.sequenceContentDisable || isDeepSeekR1) {
                 newMessages = newMessages.map((message) => {
