@@ -10,7 +10,7 @@ const models: DropdownListCache.ModelOutput[] = [
         "toolUse": true
     },
     {
-        "title": "Gemini 2.5 Pro Preview",
+        "title": "Gemini 2.5 Pro Preview 03-25",
         "value": "gemini-2.5-pro-preview-03-25",
         "context": 1048576,
         "visionEnable": true,
