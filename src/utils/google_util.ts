@@ -23,6 +23,10 @@ export namespace GoogleUtil {
                     delete obj.default;
                     delete obj.additionalProperties;
                     delete obj['$schema'];
+                    delete obj.exclusiveMaximum;
+                    delete obj.exclusiveMinimum;
+
+                    delete obj.format;
                     // Recursively process nested properties
                     Object.values(obj).forEach(val => {
                         if (typeof val === 'object') {
@@ -48,8 +52,6 @@ export namespace GoogleUtil {
             }
             return functionDeclarationTool
         })
-
-        // fs.writeFileSync(`${homedir()}/Desktop/tool.json`, JSON.stringify(functionDeclarations, null, 2))
 
         const functionDeclarationTool = {
             functionDeclarations: functionDeclarations
