@@ -2544,7 +2544,7 @@
     "langsmith": "^0.2.13",
     "mime": "^4.0.6",
     "ollama": "^0.5.11",
-    "openai": "^4.86.1"
+    "openai": "^4.95.1"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

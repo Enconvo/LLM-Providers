@@ -18,6 +18,14 @@ const models: DropdownListCache.ModelOutput[] = [
         "toolUse": true
     },
     {
+        "title": "Gemini 2.0 Flash Exp With Image Generation",
+        "value": "gemini-2.0-flash-exp-image-generation",
+        "context": 1048576,
+        "visionEnable": true,
+        "audioEnable": true,
+        "toolUse": false
+    },
+    {
         "title": "Gemini 2.0 Flash",
         "value": "gemini-2.0-flash",
         "context": 1048576,

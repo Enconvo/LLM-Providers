@@ -1,6 +1,8 @@
-import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, BaseChatMessageLike, ChatMessageContent, FileUtil, LLMProvider, LLMTool, Stream, ToolMessage, uuid } from "@enconvo/api"
+import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, BaseChatMessageLike, ChatMessageContent, environment, FileUtil, LLMProvider, LLMTool, Runtime, Stream, ToolMessage, uuid } from "@enconvo/api"
 import path from "path"
+import { writeFile } from "fs/promises"
 import fs from "fs"
+
 import mime from "mime"
 import { Content, Part, FunctionDeclaration, Tool, GenerateContentResponse } from "@google/genai"
 export namespace GoogleUtil {
@@ -186,13 +188,14 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
     } else {
         let parts: Part[] = []
         const contents: Content[] = []
+        const isAgentMode = Runtime.isAgentMode() && options.modelName.toolUse === true
         for (const item of message.content) {
             if (item.type === "image_url") {
                 const url = item.image_url.url
                 const mimeType = mime.getType(url)
                 const fileExists = url.startsWith("file://") && fs.existsSync(url.replace("file://", ""))
 
-                if (message.role === "user" && url.startsWith("file://") && options.modelName.visionEnable === true && fileExists && isSupportedImageType(url)) {
+                if (url.startsWith("file://") && options.modelName.visionEnable === true && fileExists && isSupportedImageType(url)) {
                     const base64 = FileUtil.convertFileUrlToBase64(url)
                     const image: Part = {
                         inlineData: {
@@ -202,11 +205,15 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
                     }
                     parts.push(image)
                 }
-                const text: Part = {
-                    text: "This is a image file , url is " + url
-                }
 
-                parts.push(text)
+
+                if (isAgentMode) {
+                    const text: Part = {
+                        text: "This is a image file , url is " + url
+                    }
+
+                    parts.push(text)
+                }
 
             } else if (item.type === "flow_step") {
 
@@ -365,6 +372,9 @@ export const convertMessagesToGoogleMessages = (messages: BaseChatMessageLike[],
     return newMessages
 }
 
+async function saveBinaryFile(fileName: string, content: Buffer) {
+    await writeFile(fileName, content);
+}
 
 
 export function streamFromGoogle(response: AsyncGenerator<GenerateContentResponse, any, any>, controller: AbortController): Stream<BaseChatMessageChunk> {
@@ -378,13 +388,12 @@ export function streamFromGoogle(response: AsyncGenerator<GenerateContentRespons
         let done = false;
         try {
             for await (const chunk of response) {
-                console.log("google chunk", JSON.stringify(chunk, null, 2))
+                // console.log("google chunk", JSON.stringify(chunk, null, 2))
                 if (done) continue;
                 const candidate = chunk.candidates?.[0]
                 if (candidate?.finishReason === "STOP") {
                     done = true;
                 }
-
 
                 const functionCalls = chunk.functionCalls
 
@@ -417,19 +426,47 @@ export function streamFromGoogle(response: AsyncGenerator<GenerateContentRespons
 
                 } else {
 
-                    yield {
-                        model: "Google",
-                        id: uuid(),
-                        choices: [{
-                            delta: {
-                                content: chunk.text,
-                                role: "assistant"
-                            },
-                            finish_reason: null,
-                            index: 0
-                        }],
-                        created: Date.now(),
-                        object: "chat.completion.chunk"
+                    if (chunk.candidates?.[0]?.content?.parts?.[0]?.inlineData) {
+                        const fileName = uuid();
+                        const inlineData = chunk.candidates[0].content.parts[0].inlineData;
+                        let fileExtension = mime.getExtension(inlineData.mimeType || '');
+                        let buffer = Buffer.from(inlineData.data || '', 'base64');
+
+                        const cachePath = environment.cachePath
+                        const filePath = path.join(cachePath, `${fileName}.${fileExtension}`)
+                        await saveBinaryFile(filePath, buffer);
+
+                        yield {
+                            model: "Google",
+                            id: uuid(),
+                            choices: [{
+                                delta: {
+                                    message_content: ChatMessageContent.imageUrl({ url: "file://" + filePath }),
+                                    role: "assistant"
+                                },
+                                finish_reason: null,
+                                index: 0
+                            }],
+                            created: Date.now(),
+                            object: "chat.completion.chunk"
+                        }
+
+                    } else {
+
+                        yield {
+                            model: "Google",
+                            id: uuid(),
+                            choices: [{
+                                delta: {
+                                    content: chunk.text,
+                                    role: "assistant"
+                                },
+                                finish_reason: null,
+                                index: 0
+                            }],
+                            created: Date.now(),
+                            object: "chat.completion.chunk"
+                        }
                     }
                 }
 
