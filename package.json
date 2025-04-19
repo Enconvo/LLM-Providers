@@ -332,7 +332,7 @@
           "type": "dropdown",
           "required": false,
           "title": "Model Name",
-          "default": "gemini-2.0-flash-001",
+          "default": "gemini-2.5-flash-preview-04-17",
           "dataProxy": "llm|gemini_models"
         },
         {
@@ -2531,6 +2531,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
     "@enconvo/api": "link:/Users/ysnows/Documents/Project/enconvo.nodejs/enconvo_api",
+    "@google/genai": "^0.9.0",
     "@google/generative-ai": "^0.22.0",
     "@langchain/cloudflare": "^0.1.0",
     "@langchain/cohere": "^0.3.1",

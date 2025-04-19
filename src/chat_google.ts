@@ -1,83 +1,68 @@
 import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, BaseChatMessageLike, LLMProvider, Stream } from "@enconvo/api";
-import { FunctionCallingMode, GoogleGenerativeAI } from "@google/generative-ai";
 import { convertMessagesToGoogleMessages, GoogleUtil, streamFromGoogle } from "./utils/google_util.ts";
 import { env } from "process";
+import { FunctionCallingConfigMode, GoogleGenAI } from '@google/genai';
 
 export default function main(options: any) {
     return new GoogleGeminiProvider(options)
 }
 
 export class GoogleGeminiProvider extends LLMProvider {
-    genAI: GoogleGenerativeAI;
+    ai: GoogleGenAI;
 
     constructor(options: LLMProvider.LLMOptions) {
         super(options)
         console.log("options google", options)
-        this.genAI = new GoogleGenerativeAI(options.apiKey);
+        this.ai = new GoogleGenAI({ apiKey: options.apiKey });
+
     }
 
     protected async _call(content: LLMProvider.Params): Promise<BaseChatMessage> {
         const params = this.initParams(content)
 
-        const model = this.genAI.getGenerativeModel({
-            systemInstruction: params.system,
+
+        const result = await this.ai.models.generateContent({
             model: params.model,
-            generationConfig: {
+            contents: params.messages,
+            config: {
+                systemInstruction: params.system,
+                tools: params.tools,
+                toolConfig: params.toolConfig,
                 temperature: params.temperature,
+                httpOptions: {
+                    baseUrl: params.baseUrl,
+                    headers: params.headers
+                }
             }
-        });
+        })
 
-        const newMessages = params.messages
 
-        const lastMessage = newMessages.pop()
-
-        const chat = model.startChat({
-            history: newMessages
-        });
-
-        const result = await chat.sendMessage(lastMessage?.parts || []);
-
-        return new AssistantMessage(result.response.text())
+        return new AssistantMessage(result.text || '')
     }
 
     protected async _stream(content: LLMProvider.Params): Promise<Stream<BaseChatMessageChunk>> {
 
         const params = this.initParams(content)
 
-        console.log("params", params)
-        // for await (const chunk of result.stream) {
-        //     const chunkText = chunk.text();
-        //     process.stdout.write(chunkText);
-        // }
+        // console.log("params", params)
 
-
-
-        const model = this.genAI.getGenerativeModel(
-            {
+        const result = await this.ai.models.generateContentStream({
+            model: params.model,
+            contents: params.messages,
+            config: {
                 systemInstruction: params.system,
-                model: params.model,
                 tools: params.tools,
                 toolConfig: params.toolConfig,
-                generationConfig: {
-                    temperature: params.temperature,
+                temperature: params.temperature,
+                httpOptions: {
+                    baseUrl: params.baseUrl,
+                    headers: params.headers
                 }
-            },
-            {
-                baseUrl: params.baseUrl,
-                customHeaders: params.headers
-            });
+            }
+        })
 
-        const newMessages = params.messages
 
-        const lastMessage = newMessages.pop()
-
-        const chat = model.startChat({
-            history: newMessages
-        });
-
-        const result = await chat.sendMessageStream(lastMessage?.parts || []);
-
-        return streamFromGoogle(result.stream, new AbortController())
+        return streamFromGoogle(result, new AbortController())
     }
 
 
@@ -115,8 +100,6 @@ export class GoogleGeminiProvider extends LLMProvider {
 
         let newMessages = convertMessagesToGoogleMessages(fixedMessages, this.options)
 
-
-
         let headers = {}
         let baseUrl = this.options.baseUrl
 
@@ -133,21 +116,23 @@ export class GoogleGeminiProvider extends LLMProvider {
             baseUrl = this.options.baseUrl
             model = model.split('/')[1]
         }
-        console.log("tools", content.tools)
+
 
         const tools = GoogleUtil.convertToolsToGoogleTools(content.tools)
+        // console.log("tools", tools)
+
         let toolConfig = {}
         if (typeof content.tool_choice === "object") {
             toolConfig = {
                 functionCallingConfig: {
-                    mode: FunctionCallingMode.ANY,
+                    mode: FunctionCallingConfigMode.ANY,
                     allowedFunctionNames: [content.tool_choice.function.name]
                 }
             }
         } else {
             toolConfig = {
                 functionCallingConfig: {
-                    mode: FunctionCallingMode.AUTO
+                    mode: FunctionCallingConfigMode.AUTO
                 }
             }
         }

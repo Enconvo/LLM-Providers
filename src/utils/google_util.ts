@@ -1,13 +1,12 @@
-import Google, { FunctionDeclaration, FunctionDeclarationsTool } from "@google/generative-ai"
 import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, BaseChatMessageLike, ChatMessageContent, FileUtil, LLMProvider, LLMTool, Stream, ToolMessage, uuid } from "@enconvo/api"
 import path from "path"
 import fs from "fs"
 import mime from "mime"
-import { homedir } from "os"
+import { Content, Part, FunctionDeclaration, Tool, GenerateContentResponse } from "@google/genai"
 export namespace GoogleUtil {
 
 
-    export const convertToolsToGoogleTools = (tools?: LLMTool[]): FunctionDeclarationsTool[] | undefined => {
+    export const convertToolsToGoogleTools = (tools?: LLMTool[]): Tool[] | undefined => {
         if (!tools || tools.length === 0) {
             return undefined
         }
@@ -53,7 +52,7 @@ export namespace GoogleUtil {
             return functionDeclarationTool
         })
 
-        const functionDeclarationTool = {
+        const functionDeclarationTool: Tool = {
             functionDeclarations: functionDeclarations
         }
 
@@ -84,7 +83,7 @@ const convertToolResults = (results: (string | ChatMessageContent)[], options: L
     if (typeof results !== "string") {
         const contents = results as ChatMessageContent[]
         // Convert array content to messages, extracting images into separate message
-        let messageContents: Google.Part[] = []
+        let messageContents: Part[] = []
 
         // Process each content item
         for (const item of contents) {
@@ -108,7 +107,7 @@ const convertToolResults = (results: (string | ChatMessageContent)[], options: L
         }
 
         if (messageContents.length > 0) {
-            const imageMessage: Google.Content = {
+            const imageMessage: Content = {
                 role: "user",
                 parts: messageContents
             }
@@ -120,7 +119,7 @@ const convertToolResults = (results: (string | ChatMessageContent)[], options: L
     return []
 }
 
-export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, options: LLMProvider.LLMOptions): Google.Content[] => {
+export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, options: LLMProvider.LLMOptions): Content[] => {
 
     if (message.role === "tool") {
         const toolMessage = message as ToolMessage
@@ -133,7 +132,7 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
 
         const toolAdditionalMessages = convertToolResults(response, options)
 
-        const content: Google.Content = {
+        const content: Content = {
             role: "function",
             parts: [
                 {
@@ -161,7 +160,7 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
                 console.error(e)
             }
 
-            const content: Google.Content = {
+            const content: Content = {
                 role: convertRole(message.role),
                 parts: [
                     {
@@ -177,7 +176,7 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
     }
 
     if (typeof message.content === "string") {
-        const content: Google.Content = {
+        const content: Content = {
             role: convertRole(message.role),
             parts: [{
                 text: message.content
@@ -185,8 +184,8 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
         }
         return [content]
     } else {
-        let parts: Google.Part[] = []
-        const contents: Google.Content[] = []
+        let parts: Part[] = []
+        const contents: Content[] = []
         for (const item of message.content) {
             if (item.type === "image_url") {
                 const url = item.image_url.url
@@ -195,7 +194,7 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
 
                 if (message.role === "user" && url.startsWith("file://") && options.modelName.visionEnable === true && fileExists && isSupportedImageType(url)) {
                     const base64 = FileUtil.convertFileUrlToBase64(url)
-                    const image: Google.Part = {
+                    const image: Part = {
                         inlineData: {
                             data: base64,
                             mimeType: mimeType as string
@@ -203,7 +202,7 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
                     }
                     parts.push(image)
                 }
-                const text: Google.Part = {
+                const text: Part = {
                     text: "This is a image file , url is " + url
                 }
 
@@ -235,7 +234,7 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
                         parts = []
                     }
 
-                    const functionCall: Google.Content = {
+                    const functionCall: Content = {
                         role: convertRole(message.role),
                         parts: [
                             {
@@ -247,7 +246,7 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
                         ]
                     }
 
-                    const functionResponse: Google.Content = {
+                    const functionResponse: Content = {
                         role: "function",
                         parts: [
                             {
@@ -291,7 +290,7 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
                 const isSupport = isSupportAudioType(mimeType)
                 if (message.role === "user" && url.startsWith("file://") && options.modelName.audioEnable === true && isSupport) {
                     const base64 = FileUtil.convertFileUrlToBase64(url)
-                    const audio: Google.Part = {
+                    const audio: Part = {
                         inlineData: {
                             data: base64,
                             mimeType: `audio/${mimeType}`
@@ -315,7 +314,7 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
                 const isSupport = isSupportAudioType(mimeType)
                 if (message.role === "user" && url.startsWith("file://") && options.modelName.videoEnable === true && isSupport) {
                     const base64 = FileUtil.convertFileUrlToBase64(url)
-                    const video: Google.Part = {
+                    const video: Part = {
                         inlineData: {
                             data: base64,
                             mimeType: `video/${mimeType}`
@@ -324,7 +323,7 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
                     parts.push(video)
                 }
 
-                const text: Google.Part = {
+                const text: Part = {
                     text: "This is a video file , url is " + url
                 }
                 parts.push(text)
@@ -338,7 +337,7 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
             } else if (item.type === "thinking") {
                 // do nothing
             } else {
-                const text: Google.Content = {
+                const text: Content = {
                     role: convertRole(message.role),
                     parts: [{
                         text: JSON.stringify(item)
@@ -360,7 +359,7 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
     }
 }
 
-export const convertMessagesToGoogleMessages = (messages: BaseChatMessageLike[], options: LLMProvider.LLMOptions): Google.Content[] => {
+export const convertMessagesToGoogleMessages = (messages: BaseChatMessageLike[], options: LLMProvider.LLMOptions): Content[] => {
     const newMessages = messages.map((message) => convertMessageToGoogleMessage(message, options)).flat()
     console.log("newMessages", JSON.stringify(newMessages, null, 2))
     return newMessages
@@ -368,7 +367,7 @@ export const convertMessagesToGoogleMessages = (messages: BaseChatMessageLike[],
 
 
 
-export function streamFromGoogle(response: AsyncIterable<Google.EnhancedGenerateContentResponse>, controller: AbortController): Stream<BaseChatMessageChunk> {
+export function streamFromGoogle(response: AsyncGenerator<GenerateContentResponse, any, any>, controller: AbortController): Stream<BaseChatMessageChunk> {
     let consumed = false;
 
     async function* iterator(): AsyncIterator<BaseChatMessageChunk, any, undefined> {
@@ -379,7 +378,7 @@ export function streamFromGoogle(response: AsyncIterable<Google.EnhancedGenerate
         let done = false;
         try {
             for await (const chunk of response) {
-                // console.log("google chunk", JSON.stringify(chunk, null, 2))
+                console.log("google chunk", JSON.stringify(chunk, null, 2))
                 if (done) continue;
                 const candidate = chunk.candidates?.[0]
                 if (candidate?.finishReason === "STOP") {
@@ -387,7 +386,7 @@ export function streamFromGoogle(response: AsyncIterable<Google.EnhancedGenerate
                 }
 
 
-                const functionCalls = chunk.functionCalls()
+                const functionCalls = chunk.functionCalls
 
                 if (functionCalls && functionCalls.length > 0) {
                     const functionCall = functionCalls[0]
@@ -423,7 +422,7 @@ export function streamFromGoogle(response: AsyncIterable<Google.EnhancedGenerate
                         id: uuid(),
                         choices: [{
                             delta: {
-                                content: chunk.text(),
+                                content: chunk.text,
                                 role: "assistant"
                             },
                             finish_reason: null,
