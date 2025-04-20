@@ -21,8 +21,7 @@ export class GoogleGeminiProvider extends LLMProvider {
     protected async _call(content: LLMProvider.Params): Promise<BaseChatMessage> {
         const params = this.initParams(content)
 
-
-        console.log("params", params)
+        // console.log("params", params)
         const result = await this.ai.models.generateContent({
             model: params.model,
             contents: params.messages,
