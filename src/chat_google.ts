@@ -58,10 +58,7 @@ export class GoogleGeminiProvider extends LLMProvider {
                     headers: params.headers
                 },
                 responseModalities: params.responseModalities,
-                responseMimeType: 'text/plain',
-                thinkingConfig: {
-                    includeThoughts: true
-                }
+                responseMimeType: 'text/plain'
             }
         })
 
