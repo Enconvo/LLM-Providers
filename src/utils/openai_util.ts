@@ -357,10 +357,13 @@ export namespace OpenAIUtil {
         function ensureFirstMessageIsUser(messages: OpenAI.Chat.ChatCompletionMessageParam[]) {
             // ensure first message is user
             let checked = false
-            if (messages[0].role === "assistant") {
+            const firstMessageRole = messages[0]?.role
+            const secondMessageRole = messages[1]?.role
+
+            if (firstMessageRole === "assistant" || firstMessageRole === "tool") {
                 messages.shift()
                 checked = true
-            } else if (messages[0].role === "system" && messages[1].role === "assistant") {
+            } else if (firstMessageRole === "system" && (secondMessageRole === "assistant" || secondMessageRole === "tool")) {
                 // remove the second message
                 messages.splice(1, 1)
                 checked = true
