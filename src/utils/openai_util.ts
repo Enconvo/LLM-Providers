@@ -266,6 +266,14 @@ export namespace OpenAIUtil {
         }
 
         let newTools: OpenAI.Chat.ChatCompletionTool[] | undefined = tools?.map((tool) => {
+            if (tool.parameters === undefined || tool.parameters?.type === undefined || tool.parameters?.properties === undefined) {
+                tool.parameters = {
+                    type: "object",
+                    properties: {},
+                    required: []
+                }
+            }
+
             return {
                 type: "function",
                 function: {
@@ -276,6 +284,8 @@ export namespace OpenAIUtil {
                 }
             }
         })
+
+        // console.log("newTools", JSON.stringify(newTools, null, 2))
 
         return newTools
     }
@@ -377,7 +387,7 @@ export namespace OpenAIUtil {
 
         newMessages = ensureFirstMessageIsUser(newMessages)
 
-        console.log("newMessages", JSON.stringify(newMessages, null, 2))
+        // console.log("newMessages", JSON.stringify(newMessages, null, 2))
         return newMessages
     }
 

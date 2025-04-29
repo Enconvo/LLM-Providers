@@ -1,5 +1,47 @@
 export const openai_models_data = [
     {
+        "title": "gpt-4.1",
+        "value": "gpt-4.1",
+        "context": 1047576,
+        "toolUse": true,
+        "visionEnable": true
+    },
+    {
+        "title": "gpt-4.1-2025-04-14",
+        "value": "gpt-4.1-2025-04-14",
+        "context": 1047576,
+        "toolUse": true,
+        "visionEnable": true
+    },
+    {
+        "title": "gpt-4.1-nano",
+        "value": "gpt-4.1-nano",
+        "context": 1047576,
+        "toolUse": true,
+        "visionEnable": true
+    },
+    {
+        "title": "gpt-4.1-nano-2025-04-14",
+        "value": "gpt-4.1-nano-2025-04-14",
+        "context": 1047576,
+        "toolUse": true,
+        "visionEnable": true
+    },
+    {
+        "title": "gpt-4.1-mini",
+        "value": "gpt-4.1-mini",
+        "context": 1047576,
+        "toolUse": true,
+        "visionEnable": true
+    },
+    {
+        "title": "gpt-4.1-mini-2025-04-14",
+        "value": "gpt-4.1-mini-2025-04-14",
+        "context": 1047576,
+        "toolUse": true,
+        "visionEnable": true
+    },
+    {
         "title": "gpt-4o-mini",
         "value": "gpt-4o-mini",
         "context": 128000,
