@@ -77,7 +77,7 @@ function convertRole(role: BaseChatMessage["role"]) {
 
 function isSupportedImageType(url: string) {
     const supportedTypes = ["jpeg", 'jpg', "png", "webp"]
-    const mimeType = path.extname(url).slice(1)
+    const mimeType = path.extname(url).toLowerCase().slice(1)
     return supportedTypes.includes(mimeType)
 }
 

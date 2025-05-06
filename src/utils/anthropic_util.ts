@@ -130,7 +130,7 @@ const convertToolResults = (results: (string | ChatMessageContent)[]) => {
 
 function isSupportedImageType(url: string) {
     const supportedTypes = ["jpeg", "png", "jpg", "webp"]
-    const mimeType = path.extname(url).slice(1)
+    const mimeType = path.extname(url).toLowerCase().slice(1)
     return supportedTypes.includes(mimeType)
 }
 
@@ -232,7 +232,6 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
                 const url = item.image_url.url
                 // fs exists
                 const fileExists = url.startsWith("file://") && fs.existsSync(url.replace("file://", ""))
-                console.log("fileExists", fileExists)
 
                 if (role === "user" && url.startsWith("file://") && fileExists && isSupportedImageType(url)) {
                     const base64 = FileUtil.convertFileUrlToBase64(url)
@@ -404,7 +403,6 @@ export const convertMessagesToAnthropicMessages = async (messages: BaseChatMessa
         }
         return false
     }).length
-    console.log("cache control count", toolUseCount)
     // 如果超过4个，则删除前面的的tool_use的content中的cache_control，保留4个
     if (toolUseCount > 2) {
         let toBeDeleted = toolUseCount - 2
@@ -440,7 +438,6 @@ export const convertMessagesToAnthropicMessages = async (messages: BaseChatMessa
         }
         return false
     }).length
-    console.log("newToolUseCount", newToolUseCount)
 
     // console.log("newMessages", JSON.stringify(newMessages, null, 2))
     // fs.writeFileSync(`${homedir()}/Desktop/newMessages.json`, JSON.stringify(newMessages, null, 2))

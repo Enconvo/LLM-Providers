@@ -8,6 +8,7 @@ export default async function main(options: LLMProvider.LLMOptions) {
 
 
 async function initLLMProvider(options: LLMProvider.LLMOptions) {
+    // console.log("initLLMProvider", options)
 
     const newLLMArr = options.modelName.value.split("/")
     const modelProvider = newLLMArr[0]
