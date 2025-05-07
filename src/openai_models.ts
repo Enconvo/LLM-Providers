@@ -11,8 +11,11 @@ import axios from 'axios'
  * @param api_key - API authentication key
  * @returns Promise<ModelOutput[]> - Array of processed model data
  */
-async function fetchModels(url: string, api_key: string, type: string): Promise<DropdownListCache.ModelOutput[]> {
+async function fetchModels(url?: string, api_key?: string, type?: string): Promise<DropdownListCache.ModelOutput[]> {
     // console.log("fetchModels", url, api_key, type)
+    if (!url || !api_key) {
+        return []
+    }
     try {
         // Using axios to fetch data from the API
         const resp = await axios.get(url, {
@@ -70,7 +73,7 @@ async function fetchModels(url: string, api_key: string, type: string): Promise<
         return result
 
     } catch (error) {
-        console.error('Error fetching models:', error)
+        // console.error('Error fetching models:', error)
         return []
     }
 }
@@ -83,6 +86,7 @@ async function fetchModels(url: string, api_key: string, type: string): Promise<
  */
 export default async function main(req: Request): Promise<string> {
     const options = await req.json()
+    console.log("options", options)
     options.api_key = options.openAIApiKey
 
     let url
