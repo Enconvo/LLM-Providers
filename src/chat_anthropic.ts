@@ -3,6 +3,8 @@ import Anthropic from '@anthropic-ai/sdk';
 import { AnthropicUtil, convertMessagesToAnthropicMessages, streamFromAnthropic } from "./utils/anthropic_util.ts";
 import { env } from "process";
 
+import { wrapSDK } from "langsmith/wrappers";
+
 export default function main(options: any) {
     return new AnthropicProvider(options)
 }

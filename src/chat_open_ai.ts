@@ -98,15 +98,17 @@ class ChatOpenAIProvider extends LLMProvider {
         }
 
         if (options.originCommandName === 'enconvo_ai') {
+            // Encode commandTitle to handle special characters in HTTP headers
+            const encodedTitle = encodeURIComponent(env['commandTitle'] || '')
+
             headers = {
                 "accessToken": `${env['accessToken']}`,
                 "client_id": `${env['client_id']}`,
                 "commandKey": `${env['commandKey']}`,
-                "commandTitle": `${env['commandTitle']}`,
+                "commandTitle": encodedTitle, // Use encoded title to avoid illegal header value
                 "modelName": options.modelName.value
             }
         }
-
 
         if (
             options.modelName.value === "openai/o1-mini"

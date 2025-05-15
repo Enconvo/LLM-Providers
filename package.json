@@ -37,7 +37,7 @@
           "type": "dropdown",
           "required": false,
           "title": "Model Name",
-          "default": "openai/gpt-4.1",
+          "default": "anthropic/claude-3-7-sonnet-latest",
           "dataProxy": "llm|enconvo_models"
         },
         {

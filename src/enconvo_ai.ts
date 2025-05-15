@@ -8,8 +8,6 @@ export default async function main(options: LLMProvider.LLMOptions) {
 
 
 async function initLLMProvider(options: LLMProvider.LLMOptions) {
-    // console.log("initLLMProvider", options)
-
     const newLLMArr = options.modelName.value.split("/")
     const modelProvider = newLLMArr[0]
 
@@ -34,7 +32,9 @@ async function initLLMProvider(options: LLMProvider.LLMOptions) {
             options.baseUrl = openAIBaseUrl
             break;
     }
+
     options.extensionName = "llm";
+    options.originCommandName = "enconvo_ai";
 
     const llmProvider: LLMProvider = await LLMProvider.fromOptions(options)
 
