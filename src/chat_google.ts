@@ -2,7 +2,7 @@ import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, BaseChatMessag
 import { convertMessagesToGoogleMessages, GoogleUtil, streamFromGoogle } from "./utils/google_util.ts";
 import { env } from "process";
 import { FunctionCallingConfigMode, GoogleGenAI, Modality } from '@google/genai';
-
+import { wrapSDK } from "langsmith/wrappers";
 export default function main(options: any) {
     return new GoogleGeminiProvider(options)
 }
@@ -12,8 +12,13 @@ export class GoogleGeminiProvider extends LLMProvider {
 
     constructor(options: LLMProvider.LLMOptions) {
         super(options)
-        console.log("options google", options)
-        this.ai = new GoogleGenAI({ apiKey: options.apiKey });
+        const google = new GoogleGenAI({ apiKey: options.apiKey });
+
+        if (env['LANGCHAIN_TRACING_V2'] === 'true') {
+            this.ai = wrapSDK(google)
+        } else {
+            this.ai = google
+        }
 
     }
 

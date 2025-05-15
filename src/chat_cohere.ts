@@ -48,8 +48,6 @@ export class CohereAIProvider extends LLMProvider {
         return model
     }
 
-
-
     convertMessageToLangchainMessage(message: BaseChatMessageLike): BaseMessageLike {
 
         if (typeof message.content === "string") {

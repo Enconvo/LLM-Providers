@@ -2541,7 +2541,7 @@
     "axios": "^1.7.9",
     "form-data": "^4.0.1",
     "langchain": "^0.3.7",
-    "langsmith": "^0.2.13",
+    "langsmith": "^0.3.28",
     "mime": "^4.0.6",
     "ollama": "^0.5.11",
     "openai": "^4.95.1"

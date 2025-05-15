@@ -45,8 +45,8 @@ importers:
         specifier: ^0.3.7
         version: 0.3.7(@langchain/anthropic@0.3.9(@langchain/core@0.3.23(openai@4.95.1(ws@8.18.1)(zod@3.24.1))))(@langchain/cohere@0.3.1(@aws-sdk/client-sso-oidc@3.712.0(@aws-sdk/client-sts@3.712.0))(@langchain/core@0.3.23(openai@4.95.1(ws@8.18.1)(zod@3.24.1))))(@langchain/core@0.3.23(openai@4.95.1(ws@8.18.1)(zod@3.24.1)))(@langchain/google-genai@0.1.5(@langchain/core@0.3.23(openai@4.95.1(ws@8.18.1)(zod@3.24.1)))(zod@3.24.1))(@langchain/google-vertexai@0.1.4(@langchain/core@0.3.23(openai@4.95.1(ws@8.18.1)(zod@3.24.1)))(zod@3.24.1))(@langchain/groq@0.1.2(@langchain/core@0.3.23(openai@4.95.1(ws@8.18.1)(zod@3.24.1)))(ws@8.18.1))(@langchain/mistralai@0.2.0(@langchain/core@0.3.23(openai@4.95.1(ws@8.18.1)(zod@3.24.1))))(axios@1.7.9)(openai@4.95.1(ws@8.18.1)(zod@3.24.1))(ws@8.18.1)
       langsmith:
-        specifier: ^0.2.13
-        version: 0.2.13(openai@4.95.1(ws@8.18.1)(zod@3.24.1))
+        specifier: ^0.3.28
+        version: 0.3.28(openai@4.95.1(ws@8.18.1)(zod@3.24.1))
       mime:
         specifier: ^4.0.6
         version: 4.0.6
@@ -2016,6 +2016,9 @@ packages:
     resolution: {integrity: sha512-I5qxpzLv+sJhTVEoLYNcTW+bThDCPsit0vLNKShZx6rLtpilNpmmeTPaeqJb9ZE9dV3DGaeby6Vuhrw38WjeyQ==}
     engines: {node: ^14.18.0 || >=16.10.0}
 
+  console-table-printer@2.12.1:
+    resolution: {integrity: sha512-wKGOQRRvdnd89pCeH96e2Fn4wkbenSP6LMHfjfyNLMbGuHEFbMqQNuxXqd0oXG9caIOQ1FTvc5Uijp9/4jujnQ==}
+
   convict@6.2.4:
     resolution: {integrity: sha512-qN60BAwdMVdofckX7AlohVJ2x9UvjTNoKVXCL2LxFk1l7757EJqf1nySdMkPQer0bt8kQ5lQiyZ9/2NvrFBuwQ==}
     engines: {node: '>=6'}
@@ -2557,6 +2560,14 @@ packages:
       openai:
         optional: true
 
+  langsmith@0.3.28:
+    resolution: {integrity: sha512-Vq8n0zJ9MhDMhwkOhmOEb/rl/8jpm0LnAF4dE5TEXMdLmhJ784gcrWOghnFh7Qs5B4DY2Bdz3OKxIevkGKn5xg==}
+    peerDependencies:
+      openai: '*'
+    peerDependenciesMeta:
+      openai:
+        optional: true
+
   levn@0.4.1:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}
     engines: {node: '>= 0.8.0'}
@@ -2961,6 +2972,9 @@ packages:
 
   simple-swizzle@0.2.2:
     resolution: {integrity: sha512-JA//kQgZtbuY83m+xT+tXJkmJncGMTFT+C+g2h2R9uxkYIrE2yy9sgmcLhCnw57/WSD+Eh3J97FPEDFnbXnDUg==}
+
+  simple-wcswidth@1.0.1:
+    resolution: {integrity: sha512-xMO/8eNREtaROt7tJvWJqHBDTMFN4eiQ5I4JRMuilwfnFcV5W9u7RUkueNkdw0jPqGMX36iCywelS5yilTuOxg==}
 
   source-map@0.8.0-beta.0:
     resolution: {integrity: sha512-2ymg6oRBpebeZi9UUNsgQ89bhx01TcTkmNTGnNO88imTmbSgy4nfujrgVEFKWpMTEGA11EDkTt7mqObTPdigIA==}
@@ -5373,6 +5387,10 @@ snapshots:
 
   consola@3.2.3: {}
 
+  console-table-printer@2.12.1:
+    dependencies:
+      simple-wcswidth: 1.0.1
+
   convict@6.2.4:
     dependencies:
       lodash.clonedeep: 4.5.0
@@ -6050,6 +6068,18 @@ snapshots:
     optionalDependencies:
       openai: 4.95.1(ws@8.18.1)(zod@3.24.1)
 
+  langsmith@0.3.28(openai@4.95.1(ws@8.18.1)(zod@3.24.1)):
+    dependencies:
+      '@types/uuid': 10.0.0
+      chalk: 4.1.2
+      console-table-printer: 2.12.1
+      p-queue: 6.6.2
+      p-retry: 4.6.2
+      semver: 7.7.1
+      uuid: 10.0.0
+    optionalDependencies:
+      openai: 4.95.1(ws@8.18.1)(zod@3.24.1)
+
   levn@0.4.1:
     dependencies:
       prelude-ls: 1.2.1
@@ -6443,6 +6473,8 @@ snapshots:
   simple-swizzle@0.2.2:
     dependencies:
       is-arrayish: 0.3.2
+
+  simple-wcswidth@1.0.1: {}
 
   source-map@0.8.0-beta.0:
     dependencies:

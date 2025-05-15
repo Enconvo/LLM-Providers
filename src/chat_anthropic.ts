@@ -15,9 +15,7 @@ export class AnthropicProvider extends LLMProvider {
     constructor(options: LLMProvider.LLMOptions) {
         super(options)
 
-
-        let headers = {
-        }
+        let headers = {}
 
         if (options.originCommandName === 'enconvo_ai') {
             headers = {
@@ -29,11 +27,18 @@ export class AnthropicProvider extends LLMProvider {
             }
         }
 
-        this.anthropic = new Anthropic({
+        const anthropic = new Anthropic({
             apiKey: options.anthropicApiKey, // defaults to process.env["ANTHROPIC_API_KEY"]
             baseURL: options.anthropicApiUrl,
             defaultHeaders: headers
         });
+
+
+        if (env['LANGCHAIN_TRACING_V2'] === 'true') {
+            this.anthropic = wrapSDK(anthropic)
+        } else {
+            this.anthropic = anthropic
+        }
     }
 
     protected async _call(content: LLMProvider.Params): Promise<BaseChatMessage> {

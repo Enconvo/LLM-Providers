@@ -94,8 +94,7 @@ class ChatOpenAIProvider extends LLMProvider {
 
     private _createOpenaiClient(options: LLMProvider.LLMOptions): OpenAI {
 
-        let headers = {
-        }
+        let headers = {}
 
         if (options.originCommandName === 'enconvo_ai') {
             // Encode commandTitle to handle special characters in HTTP headers
@@ -126,8 +125,6 @@ class ChatOpenAIProvider extends LLMProvider {
             options.frequencyPenalty = 0.0001
         }
 
-        console.log("options.baseUrl", options.baseUrl)
-
         const client = new OpenAI({
             apiKey: options.openAIApiKey, // This is the default and can be omitted
             // baseURL: "http://127.0.0.1:8181/v1",
@@ -136,8 +133,11 @@ class ChatOpenAIProvider extends LLMProvider {
 
         });
 
+        if (env['LANGCHAIN_TRACING_V2'] === 'true') {
+            return wrapOpenAI(client)
+        }
 
-        return wrapOpenAI(client)
+        return client
     }
 }
 
