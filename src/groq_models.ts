@@ -8,9 +8,12 @@ import { DropdownListCache } from "@enconvo/api"
  * @param api_key - API authentication key
  * @returns Promise<ModelOutput[]> - Array of processed model data
  */
-async function fetchModels(url: string, api_key: string, type: string): Promise<DropdownListCache.ModelOutput[]> {
+async function fetchModels(url?: string, api_key?: string, type?: string): Promise<DropdownListCache.ModelOutput[]> {
     // console.log("fetchModels", url, api_key, type)
     try {
+        if (!url || !api_key) {
+            throw new Error("URL and API key are required")
+        }
         const resp = await fetch(url, {
             headers: {
                 'Authorization': `Bearer ${api_key}`
@@ -57,6 +60,7 @@ async function fetchModels(url: string, api_key: string, type: string): Promise<
  */
 export default async function main(req: Request): Promise<string> {
     const options = await req.json()
+    // console.log("groq_models options", options)
     options.api_key = options.openAIApiKey
 
 

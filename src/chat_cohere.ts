@@ -34,8 +34,6 @@ export class CohereAIProvider extends LLMProvider {
 
 
     protected _initLCChatModel(options: LLMProvider.LLMOptions) {
-
-
         const modelOptions = options.model
         const modelName = modelOptions.value
         options.model = modelName;

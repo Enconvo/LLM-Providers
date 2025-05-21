@@ -1,7 +1,5 @@
-import { env } from 'process';
 import { BaseChatMessage, BaseChatMessageChunk, LLMProvider, Stream, UserMessage } from '@enconvo/api';
-import OpenAI from 'openai';
-import { wrapOpenAI } from "langsmith/wrappers";
+import { AzureOpenAI } from 'openai';
 import { OpenAIUtil } from './utils/openai_util.ts';
 
 
@@ -30,7 +28,7 @@ class ChatOpenAIProvider extends LLMProvider {
     }
 
 
-    client: OpenAI
+    client: AzureOpenAI
     constructor(options: LLMProvider.LLMOptions) {
         super(options)
         this.client = this._createOpenaiClient(this.options)
@@ -49,10 +47,18 @@ class ChatOpenAIProvider extends LLMProvider {
     }
 
     private initParams(content: LLMProvider.Params) {
-        console.log("initParams___", this.options)
-        if (!this.options.openAIApiKey) {
+        if (!this.options.azureOpenAIApiKey) {
             throw new Error("API key is required")
         }
+
+        if (!this.options.azureOpenAIApiEndpoint) {
+            throw new Error("Endpoint is required")
+        }
+
+        if (!this.options.azureOpenAIApiVersion) {
+            throw new Error("API version is required")
+        }
+
         const modelOptions = this.options.modelName
         if (!modelOptions) {
             throw new Error("Model name is required")
@@ -64,9 +70,6 @@ class ChatOpenAIProvider extends LLMProvider {
 
         let reasoning_effort = this.options?.reasoning_effort?.value === "off" ? null : this.options?.reasoning_effort?.value
 
-        if (!modelOptions.title.toLowerCase().includes("r1")) {
-            reasoning_effort = null
-        }
 
         let temperature = this.options.temperature.value
         try {
@@ -76,7 +79,6 @@ class ChatOpenAIProvider extends LLMProvider {
         }
 
         let params: any = {
-            model: modelOptions.value,
             temperature: temperature,
             messages
         }
@@ -98,49 +100,18 @@ class ChatOpenAIProvider extends LLMProvider {
         return params
     }
 
-    private _createOpenaiClient(options: LLMProvider.LLMOptions): OpenAI {
+    private _createOpenaiClient(options: LLMProvider.LLMOptions): AzureOpenAI {
 
-        let headers = {}
-
-        if (options.originCommandName === 'enconvo_ai') {
-            // Encode commandTitle to handle special characters in HTTP headers
-
-            headers = {
-                "accessToken": `${env['accessToken']}`,
-                "client_id": `${env['client_id']}`,
-                "commandKey": `${env['commandKey']}`,
-                "commandTitle": `${env['commandTitle']}`,
-                "modelName": options.modelName.value
-            }
-        }
-
-        if (
-            options.modelName &&
-            (options.modelName.value === "openai/o1-mini"
-                || options.modelName.value === "openai/o1-preview"
-                || options.modelName.value === "o1-mini"
-                || options.modelName.value === "o1-preview")
-        ) {
-            options.max_completion_tokens = options.maxTokens;
-            delete options.maxTokens;
-        }
-
-
-        if (options.baseUrl === 'http://127.0.0.1:5001') {
-            options.frequencyPenalty = 0.0001
-        }
-
-        const client = new OpenAI({
-            apiKey: options.openAIApiKey, // This is the default and can be omitted
-            // baseURL: "http://127.0.0.1:8181/v1",
-            baseURL: options.baseUrl || "https://api.openai.com/v1",
-            defaultHeaders: headers,
-
+        const client = new AzureOpenAI({
+            apiKey: options.azureOpenAIApiKey,
+            apiVersion: options.azureOpenAIApiVersion,
+            endpoint: options.azureOpenAIApiEndpoint,
+            deployment: options.modelName.value,
         });
 
-        if (env['LANGCHAIN_TRACING_V2'] === 'true') {
-            return wrapOpenAI(client)
-        }
+        // if (env['LANGCHAIN_TRACING_V2'] === 'true') {
+        //     return wrapOpenAI(client)
+        // }
 
         return client
     }

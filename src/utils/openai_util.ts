@@ -54,7 +54,7 @@ export namespace OpenAIUtil {
 
     export const convertMessageToOpenAIMessage = (options: LLMProvider.LLMOptions, message: BaseChatMessageLike): OpenAI.Chat.ChatCompletionMessageParam[] => {
         let role = message.role
-        if (options.modelName.systemMessageEnable === false && message.role === "system") {
+        if (options.modelName && options.modelName.systemMessageEnable === false && message.role === "system") {
             message.role = "user"
             const assistantMessage: AssistantMessage = BaseChatMessage.assistant('Got it , I will follow your instructions')
 
@@ -292,7 +292,7 @@ export namespace OpenAIUtil {
 
     export const convertMessagesToOpenAIMessages = (options: LLMProvider.LLMOptions, messages: BaseChatMessageLike[]): OpenAI.Chat.ChatCompletionMessageParam[] => {
 
-        if (options.modelName.visionImageCountLimit !== undefined && options.modelName.visionImageCountLimit > 0 && options.modelName.visionEnable === true) {
+        if (options.modelName && (options.modelName.visionImageCountLimit !== undefined && options.modelName.visionImageCountLimit > 0 && options.modelName.visionEnable === true)) {
             if (options.modelName.visionImageCountLimit !== undefined && options.modelName.visionEnable === true) {
                 const countLimit = options.modelName.visionImageCountLimit;
                 let imageCount = 0;
@@ -387,7 +387,7 @@ export namespace OpenAIUtil {
 
         newMessages = ensureFirstMessageIsUser(newMessages)
 
-        console.log("newMessages", JSON.stringify(newMessages, null, 2))
+        // console.log("newMessages", JSON.stringify(newMessages, null, 2))
         return newMessages
     }
 

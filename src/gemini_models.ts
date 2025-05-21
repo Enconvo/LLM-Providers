@@ -1,4 +1,5 @@
 import { DropdownListCache } from "@enconvo/api"
+import { GoogleGenAI } from "@google/genai";
 
 const models: DropdownListCache.ModelOutput[] = [
     {
@@ -124,6 +125,13 @@ const models: DropdownListCache.ModelOutput[] = [
 async function fetchModels(url: string, api_key: string, type: string): Promise<DropdownListCache.ModelOutput[]> {
     // console.log("fetchModels", url, api_key, type)
     try {
+
+        const google = new GoogleGenAI({ apiKey: api_key });
+        const pager = await google.models.list()
+        for await (const model of pager) {
+            console.log(model)
+        }
+
 
         return models
 
