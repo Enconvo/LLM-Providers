@@ -50,13 +50,10 @@ class ChatOpenAIProvider extends LLMProvider {
 
     private initParams(content: LLMProvider.Params) {
         console.log("initParams___", this.options)
-        if (!this.options.openAIApiKey) {
+        if (!this.options.apiKey) {
             throw new Error("API key is required")
         }
         const modelOptions = this.options.modelName
-        if (!modelOptions) {
-            throw new Error("Model name is required")
-        }
 
         const messages = OpenAIUtil.convertMessagesToOpenAIMessages(this.options, content.messages)
 
@@ -64,7 +61,7 @@ class ChatOpenAIProvider extends LLMProvider {
 
         let reasoning_effort = this.options?.reasoning_effort?.value === "off" ? null : this.options?.reasoning_effort?.value
 
-        if (!modelOptions.title.toLowerCase().includes("r1")) {
+        if (!modelOptions?.title?.toLowerCase().includes("r1")) {
             reasoning_effort = null
         }
 
@@ -76,7 +73,7 @@ class ChatOpenAIProvider extends LLMProvider {
         }
 
         let params: any = {
-            model: modelOptions.value,
+            model: modelOptions?.value,
             temperature: temperature,
             messages
         }
@@ -85,12 +82,12 @@ class ChatOpenAIProvider extends LLMProvider {
             params.reasoning_effort = reasoning_effort
         }
 
-        if (tools && tools.length > 0 && modelOptions.toolUse === true) {
+        if (tools && tools.length > 0 && modelOptions?.toolUse === true) {
             params = {
                 ...params,
                 tools,
                 tool_choice: content.tool_choice,
-                parallel_tool_calls: modelOptions.toolUse === true ? false : null,
+                parallel_tool_calls: modelOptions?.toolUse === true ? false : null,
             }
         }
 
@@ -131,7 +128,7 @@ class ChatOpenAIProvider extends LLMProvider {
         }
 
         const client = new OpenAI({
-            apiKey: options.openAIApiKey, // This is the default and can be omitted
+            apiKey: options.apiKey, // This is the default and can be omitted
             // baseURL: "http://127.0.0.1:8181/v1",
             baseURL: options.baseUrl || "https://api.openai.com/v1",
             defaultHeaders: headers,

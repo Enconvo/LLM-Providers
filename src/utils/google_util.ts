@@ -2,6 +2,7 @@ import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, BaseChatMessag
 import path from "path"
 import { writeFile } from "fs/promises"
 import fs from "fs"
+import wav from 'wav';
 
 import mime from "mime"
 import { Content, Part, FunctionDeclaration, Tool, GenerateContentResponse } from "@google/genai"
@@ -377,6 +378,30 @@ async function saveBinaryFile(fileName: string, content: Buffer) {
 }
 
 
+
+async function saveWaveFile(
+    filename: string,
+    pcmData: Buffer,
+    channels = 1,
+    rate = 24000,
+    sampleWidth = 2,
+) {
+    return new Promise((resolve, reject) => {
+        const writer = new wav.FileWriter(filename, {
+            channels,
+            sampleRate: rate,
+            bitDepth: sampleWidth * 8,
+        });
+
+        writer.on('finish', resolve);
+        writer.on('error', reject);
+
+        writer.write(pcmData);
+        writer.end();
+    });
+}
+
+
 export function streamFromGoogle(response: AsyncGenerator<GenerateContentResponse, any, any>, controller: AbortController): Stream<BaseChatMessageChunk> {
     let consumed = false;
 
@@ -388,7 +413,7 @@ export function streamFromGoogle(response: AsyncGenerator<GenerateContentRespons
         let done = false;
         try {
             for await (const chunk of response) {
-                console.log("google chunk", JSON.stringify(chunk, null, 2))
+                // console.log("google chunk", JSON.stringify(chunk, null, 2))
                 if (done) continue;
                 const candidate = chunk.candidates?.[0]
                 if (candidate?.finishReason === "STOP") {
@@ -426,31 +451,59 @@ export function streamFromGoogle(response: AsyncGenerator<GenerateContentRespons
 
                 } else {
 
-                    if (chunk.candidates?.[0]?.content?.parts?.[0]?.inlineData) {
-                        const fileName = uuid();
-                        const inlineData = chunk.candidates[0].content.parts[0].inlineData;
-                        let fileExtension = mime.getExtension(inlineData.mimeType || '');
-                        let buffer = Buffer.from(inlineData.data || '', 'base64');
+                    console.log("chunk", JSON.stringify(chunk, null, 2))
+                    const inlineData = chunk.candidates?.[0]?.content?.parts?.[0]?.inlineData
+                    if (inlineData) {
+                        const isImage = chunk.usageMetadata?.candidatesTokensDetails?.some(detail => detail.modality === "IMAGE")
+                        const isAudio = chunk.usageMetadata?.candidatesTokensDetails?.some(detail => detail.modality === "AUDIO")
+                        if (isImage) {
+                            const fileName = uuid();
+                            let fileExtension = mime.getExtension(inlineData.mimeType || '');
+                            let buffer = Buffer.from(inlineData.data || '', 'base64');
 
-                        const cachePath = environment.cachePath
-                        const filePath = path.join(cachePath, `${fileName}.${fileExtension}`)
-                        await saveBinaryFile(filePath, buffer);
+                            const cachePath = environment.cachePath
+                            const filePath = path.join(cachePath, `${fileName}.${fileExtension}`)
+                            await saveBinaryFile(filePath, buffer);
 
-                        yield {
-                            model: "Google",
-                            id: uuid(),
-                            choices: [{
-                                delta: {
-                                    message_content: ChatMessageContent.imageUrl({ url: "file://" + filePath }),
-                                    role: "assistant"
-                                },
-                                finish_reason: null,
-                                index: 0
-                            }],
-                            created: Date.now(),
-                            object: "chat.completion.chunk"
+                            yield {
+                                model: "Google",
+                                id: uuid(),
+                                choices: [{
+                                    delta: {
+                                        message_content: ChatMessageContent.imageUrl({ url: "file://" + filePath }),
+                                        role: "assistant"
+                                    },
+                                    finish_reason: null,
+                                    index: 0
+                                }],
+                                created: Date.now(),
+                                object: "chat.completion.chunk"
+                            }
+                        } else if (isAudio) {
+
+                            const fileName = uuid();
+                            let fileExtension = 'wav';
+                            let buffer = Buffer.from(inlineData.data || '', 'base64');
+
+                            const cachePath = environment.cachePath
+                            const filePath = path.join(cachePath, `${fileName}.${fileExtension}`)
+                            await saveWaveFile(filePath, buffer);
+
+                            yield {
+                                model: "Google",
+                                id: uuid(),
+                                choices: [{
+                                    delta: {
+                                        message_content: ChatMessageContent.audio({ url: "file://" + filePath }),
+                                        role: "assistant"
+                                    },
+                                    finish_reason: null,
+                                    index: 0
+                                }],
+                                created: Date.now(),
+                                object: "chat.completion.chunk"
+                            }
                         }
-
                     } else {
 
                         yield {

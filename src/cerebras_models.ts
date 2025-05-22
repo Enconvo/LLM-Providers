@@ -86,7 +86,7 @@ async function fetchModels(url: string, api_key: string, type: string): Promise<
  */
 export default async function main(req: Request): Promise<string> {
     const options = await req.json()
-    options.api_key = options.openAIApiKey
+    options.api_key = options.apiKey
 
 
     let url

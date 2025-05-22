@@ -22,7 +22,7 @@
       "commandType": "provider",
       "preferences": [
         {
-          "name": "openAIApiKey",
+          "name": "apiKey",
           "description": "OpenAI api key",
           "type": "password",
           "required": false,
@@ -137,7 +137,7 @@
       "commandType": "provider",
       "preferences": [
         {
-          "name": "openAIApiKey",
+          "name": "apiKey",
           "description": "OpenAI api key",
           "type": "password",
           "required": false,
@@ -200,7 +200,6 @@
     },
     {
       "name": "anthropic_models",
-      "targetCommand": "llm|fetch_models",
       "title": "Anthropic Models",
       "description": "get anthropic model list",
       "commandType": "function_command",
@@ -209,12 +208,25 @@
       "mode": "no-view",
       "preferences": [
         {
-          "name": "url",
+          "name": "anthropicApiKey",
+          "description": "Anthropic api key",
+          "type": "password",
+          "required": false,
+          "title": "Claude Api Key",
+          "default": "",
+          "defaultProxy": "key_management|anthropic",
+          "placeholder": "sk-ant-********"
+        },
+        {
+          "name": "anthropicApiUrl",
+          "description": "Anthropic api base url",
           "type": "textfield",
-          "description": "Anthropic models Api Url",
-          "required": true,
-          "title": "Anthropic models Api Url",
-          "default": "https://file.enconvo.com/modles/anthropic.json"
+          "required": false,
+          "title": "Anthropic Api Base Url",
+          "defaultProxy": "key_management|anthropic",
+          "default": "https://api.anthropic.com",
+          "placeholder": "https://api.anthropic.com",
+          "visibility": "show"
         }
       ]
     },
@@ -242,7 +254,7 @@
           "type": "dropdown",
           "required": false,
           "title": "Model Name",
-          "default": "claude-3-7-sonnet-latest",
+          "default": "claude-sonnet-4-20250514",
           "dataProxy": "llm|anthropic_models"
         },
         {
@@ -285,16 +297,6 @@
           "default": "https://api.anthropic.com",
           "placeholder": "https://api.anthropic.com",
           "visibility": "show"
-        },
-        {
-          "name": "streaming",
-          "description": "Whether to stream output",
-          "type": "checkbox",
-          "required": false,
-          "title": "Streaming",
-          "default": true,
-          "label": "Streaming",
-          "visibility": "hidden"
         }
       ]
     },
@@ -377,7 +379,7 @@
       "targetCommand": "llm|chat_open_ai",
       "preferences": [
         {
-          "name": "openAIApiKey",
+          "name": "apiKey",
           "description": "How to get api key? [🔑here](https://platform.deepseek.com/api_keys)",
           "type": "password",
           "required": false,
@@ -482,7 +484,7 @@
           "dataProxy": "llm|groq_models"
         },
         {
-          "name": "openAIApiKey",
+          "name": "apiKey",
           "description": "How to get api key? [🔑here](https://console.groq.com/keys)",
           "type": "password",
           "required": false,
@@ -639,7 +641,7 @@
           "dataProxy": "llm|x_ai_models"
         },
         {
-          "name": "openAIApiKey",
+          "name": "apiKey",
           "description": "How to get api key? [🔑here](https://docs.x.ai/docs/quickstart#creating-an-api-key)",
           "type": "password",
           "required": false,
@@ -709,7 +711,7 @@
           "dataProxy": "llm|mistral_models"
         },
         {
-          "name": "openAIApiKey",
+          "name": "apiKey",
           "description": "How to get api key? [🔑here](https://console.mistral.ai/api-keys/)",
           "type": "password",
           "required": false,
@@ -927,7 +929,7 @@
           ]
         },
         {
-          "name": "openAIApiKey",
+          "name": "apiKey",
           "description": "How to get api key? [🔑here](https://www.perplexity.ai/settings/api)",
           "type": "password",
           "required": false,
@@ -1016,7 +1018,7 @@
           ]
         },
         {
-          "name": "openAIApiKey",
+          "name": "apiKey",
           "description": "How to get api key? [🔑here](https://cloud.siliconflow.cn/account/ak)",
           "type": "password",
           "required": false,
@@ -1104,7 +1106,7 @@
           ]
         },
         {
-          "name": "openAIApiKey",
+          "name": "apiKey",
           "description": "How to get api key? [🔑here](https://www.perplexity.ai/settings/api)",
           "type": "password",
           "required": false,
@@ -1174,7 +1176,7 @@
           ]
         },
         {
-          "name": "openAIApiKey",
+          "name": "apiKey",
           "description": "OpenRouter api key",
           "type": "password",
           "required": false,
@@ -1255,7 +1257,7 @@
           ]
         },
         {
-          "name": "openAIApiKey",
+          "name": "apiKey",
           "description": "How to get api key? [🔑here](https://fireworks.ai/account/api-keys)",
           "type": "password",
           "required": false,
@@ -1344,7 +1346,7 @@
           "dataProxy": "llm|together_models"
         },
         {
-          "name": "openAIApiKey",
+          "name": "apiKey",
           "description": "How to get api key? [🔑here](https://docs.together.ai/docs/quickstart)",
           "type": "password",
           "required": false,
@@ -1457,7 +1459,7 @@
           ]
         },
         {
-          "name": "openAIApiKey",
+          "name": "apiKey",
           "description": "MOONSHOT_API_KEY",
           "type": "password",
           "required": false,
@@ -1585,7 +1587,7 @@
           ]
         },
         {
-          "name": "openAIApiKey",
+          "name": "apiKey",
           "description": "api key",
           "type": "password",
           "required": false,
@@ -1655,7 +1657,7 @@
           ]
         },
         {
-          "name": "openAIApiKey",
+          "name": "apiKey",
           "description": "How to get api key? [🔑here](https://bailian.console.aliyun.com/#/home)",
           "type": "password",
           "required": false,
@@ -1725,7 +1727,7 @@
           ]
         },
         {
-          "name": "openAIApiKey",
+          "name": "apiKey",
           "description": "How to get api key? [🔑here](https://cloud.sambanova.ai/apis)",
           "type": "password",
           "required": false,
@@ -1795,7 +1797,7 @@
           ]
         },
         {
-          "name": "openAIApiKey",
+          "name": "apiKey",
           "description": "How to get api key? [🔑here](https://inference-docs.cerebras.ai/openai)",
           "type": "password",
           "required": false,
@@ -1835,7 +1837,7 @@
           "dataProxy": "llm|arli_models"
         },
         {
-          "name": "openAIApiKey",
+          "name": "apiKey",
           "description": "How to get api key? [🔑here](https://arliai.com/)",
           "type": "password",
           "required": false,
@@ -2005,7 +2007,7 @@
       "mode": "no-view",
       "preferences": [
         {
-          "name": "openAIApiKey",
+          "name": "apiKey",
           "description": "How to get api key? [🔑here](https://console.groq.com/keys)",
           "type": "password",
           "required": false,
@@ -2036,7 +2038,7 @@
       "mode": "no-view",
       "preferences": [
         {
-          "name": "openAIApiKey",
+          "name": "apiKey",
           "description": "How to get api key? [🔑here](https://docs.x.ai/docs/quickstart#creating-an-api-key)",
           "type": "password",
           "required": false,
@@ -2137,7 +2139,7 @@
       "mode": "no-view",
       "preferences": [
         {
-          "name": "openAIApiKey",
+          "name": "apiKey",
           "description": "How to get api key? [🔑here](https://bailian.console.aliyun.com/#/home)",
           "type": "password",
           "required": false,
@@ -2168,7 +2170,7 @@
       "mode": "no-view",
       "preferences": [
         {
-          "name": "openAIApiKey",
+          "name": "apiKey",
           "description": "How to get api key? [🔑here](https://cloud.sambanova.ai/apis)",
           "type": "password",
           "required": false,
@@ -2199,7 +2201,7 @@
       "mode": "no-view",
       "preferences": [
         {
-          "name": "openAIApiKey",
+          "name": "apiKey",
           "description": "How to get api key? [🔑here](https://cloud.sambanova.ai/apis)",
           "type": "password",
           "required": false,
@@ -2230,7 +2232,7 @@
       "mode": "no-view",
       "preferences": [
         {
-          "name": "openAIApiKey",
+          "name": "apiKey",
           "description": "How to get api key? [🔑here](https://console.mistral.ai/api-keys/)",
           "type": "password",
           "required": false,
@@ -2329,7 +2331,7 @@
       "mode": "no-view",
       "preferences": [
         {
-          "name": "openAIApiKey",
+          "name": "apiKey",
           "description": "OpenAI api key",
           "type": "password",
           "required": false,
@@ -2478,13 +2480,15 @@
     "@langchain/community": "^0.3.19",
     "@langchain/core": "^0.3.23",
     "@lmnr-ai/lmnr": "^0.4.42",
+    "@types/wav": "^1.0.4",
     "axios": "^1.7.9",
     "form-data": "^4.0.1",
     "langchain": "^0.3.7",
     "langsmith": "^0.3.28",
     "mime": "^4.0.6",
     "ollama": "^0.5.11",
-    "openai": "^4.95.1"
+    "openai": "^4.95.1",
+    "wav": "^1.0.2"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

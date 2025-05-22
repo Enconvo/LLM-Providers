@@ -61,7 +61,7 @@ async function fetchModels(url?: string, api_key?: string, type?: string): Promi
 export default async function main(req: Request): Promise<string> {
     const options = await req.json()
     // console.log("groq_models options", options)
-    options.api_key = options.openAIApiKey
+    options.api_key = options.apiKey
 
 
     let url

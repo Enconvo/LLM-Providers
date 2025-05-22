@@ -1,7 +1,7 @@
 import { DropdownListCache } from "@enconvo/api"
 import { GoogleGenAI } from "@google/genai";
 
-const models: DropdownListCache.ModelOutput[] = [
+const depModels: DropdownListCache.ModelOutput[] = [
     {
         "title": "Gemini 2.5 Pro Preview 05-06",
         "value": "gemini-2.5-pro-preview-05-06",
@@ -122,16 +122,35 @@ const models: DropdownListCache.ModelOutput[] = [
  * @param api_key - API authentication key
  * @returns Promise<ModelOutput[]> - Array of processed model data
  */
-async function fetchModels(url: string, api_key: string, type: string): Promise<DropdownListCache.ModelOutput[]> {
+async function fetchModels(url?: string, api_key?: string, type?: string): Promise<DropdownListCache.ModelOutput[]> {
     // console.log("fetchModels", url, api_key, type)
     try {
-
         const google = new GoogleGenAI({ apiKey: api_key });
         const pager = await google.models.list()
+        const models: DropdownListCache.ModelOutput[] = []
         for await (const model of pager) {
             console.log(model)
+            if (model.supportedActions?.some(action => action === 'generateContent')) {
+                const isGemini15 = model.name?.includes('gemini-1.5')
+                const isGemini10 = model.name?.includes('gemini-1.0')
+                const isDeprecatedModel = model.name?.includes('gemini-pro-vision')
+                if (isGemini15 || isGemini10 || isDeprecatedModel) {
+                    continue
+                }
+                const isThinking = model.name?.includes('thinking')
+                const isImageGeneration = model.name?.includes('image-generation')
+                const isTTS = model.name?.includes('tts')
+                models.push({
+                    title: model.displayName || '',
+                    value: model.name?.replace('models/', '') || '',
+                    context: model.inputTokenLimit,
+                    maxTokens: model.outputTokenLimit,
+                    visionEnable: true,
+                    audioEnable: true,
+                    toolUse: !isThinking && !isImageGeneration && !isTTS
+                })
+            }
         }
-
 
         return models
 
@@ -153,7 +172,7 @@ export default async function main(req: Request): Promise<string> {
 
     const models = await modelCache.getModelsCache({
         ...options,
-        input_text: 'refresh'
+        api_key: options.apiKey
     })
 
     return JSON.stringify(models)

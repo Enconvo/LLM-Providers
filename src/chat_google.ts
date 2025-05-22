@@ -142,15 +142,21 @@ export class GoogleGeminiProvider extends LLMProvider {
             }
         }
 
-        const responseModalities = [Modality.TEXT]
+        let responseModalities = [Modality.TEXT]
         if (this.options.modelName.value.includes('image-generation')) {
             responseModalities.push(Modality.IMAGE)
+            system = undefined
+            tools = undefined
+        } else if (this.options.modelName.value.includes('tts')) {
+            responseModalities = [Modality.AUDIO]
+            const lastMessage = newMessages.pop()
+            newMessages = lastMessage ? [lastMessage] : []
             system = undefined
             tools = undefined
         }
 
 
-        return {
+        const params = {
             system,
             model,
             temperature: this.options.temperature.value,
@@ -162,6 +168,9 @@ export class GoogleGeminiProvider extends LLMProvider {
             toolConfig,
             responseModalities
         }
+
+        console.log("params", params)
+        return params
 
     }
 

@@ -16,8 +16,6 @@ async function fetchModels(url?: string, api_key?: string, type?: string): Promi
     if (!url || !api_key) {
         return []
     }
-    try {
-        // Using axios to fetch data from the API
         const resp = await axios.get(url, {
             headers: {
                 'Authorization': `Bearer ${api_key}`
@@ -72,10 +70,7 @@ async function fetchModels(url?: string, api_key?: string, type?: string): Promi
         // console.log("Total models fetched:", result)
         return result
 
-    } catch (error) {
-        // console.error('Error fetching models:', error)
-        return []
-    }
+    
 }
 
 
@@ -87,7 +82,7 @@ async function fetchModels(url?: string, api_key?: string, type?: string): Promi
 export default async function main(req: Request): Promise<string> {
     const options = await req.json()
     console.log("options", options)
-    options.api_key = options.openAIApiKey
+    options.api_key = options.apiKey
 
     let url
     url = options.baseUrl.endsWith('/') ? options.baseUrl : `${options.baseUrl}/`

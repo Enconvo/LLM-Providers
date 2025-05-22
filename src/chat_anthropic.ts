@@ -79,16 +79,15 @@ export class AnthropicProvider extends LLMProvider {
         let stream: any
         const model = this.options.modelName.value
         if (model.includes("claude-3-7-sonnet-latest-thinking")) {
-            stream = this.anthropic.beta.messages.stream(params)
+            stream = this.anthropic.messages.stream(params)
         } else {
-            stream = this.anthropic.beta.messages.stream(params)
+            stream = this.anthropic.messages.stream(params)
         }
 
         return streamFromAnthropic(stream, stream.controller)
     }
 
     async initParams(content: LLMProvider.Params): Promise<any> {
-        console.log("initParams---", this.options)
         const messages = content.messages
         const systemMessages = messages.filter((message) => message.role === "system")
         const system = systemMessages.map((message) => {
@@ -108,7 +107,6 @@ export class AnthropicProvider extends LLMProvider {
                 })
             }
         })
-        console.log("system---", system)
 
         const conversationMessages = messages.filter((message) => message.role !== "system")
 
@@ -132,7 +130,6 @@ export class AnthropicProvider extends LLMProvider {
                 },
                 messages: newMessages,
                 temperature: Number(this.options.temperature.value),
-                betas: ["output-128k-2025-02-19"]
             }
         } else {
             const defaultMaxTokens = model.includes("claude-3-7-sonnet") ? 64000 : this.options.modelName.maxTokens || 8192
@@ -143,7 +140,6 @@ export class AnthropicProvider extends LLMProvider {
                 temperature: Number(this.options.temperature.value),
                 max_tokens: defaultMaxTokens,
                 messages: newMessages,
-                betas: ["output-128k-2025-02-19"]
             }
 
             if (tools && tools.length > 0) {
