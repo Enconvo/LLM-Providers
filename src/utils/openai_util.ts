@@ -126,7 +126,7 @@ export namespace OpenAIUtil {
 
 
 
-                    const results = item.flowResults.map((message) => {
+                    const results = item.flowResults.map((message: any) => {
                         return message.content
                     }).flat()
 
@@ -300,7 +300,7 @@ export namespace OpenAIUtil {
                 //@ts-ignore
                 messages = messages.reverse().map(message => {
                     if (typeof message.content !== "string") {
-                        const filteredContent = message.content.filter(item => {
+                        const filteredContent = message.content.filter((item: any) => {
                             if (item.type === "image_url" && imageCount < countLimit) {
                                 imageCount++;
                                 return true;
@@ -314,8 +314,8 @@ export namespace OpenAIUtil {
                 }).reverse();
 
                 imageCount = 0;
-                messages = messages.filter(message => {
-                    if (typeof message.content !== "string" && message.content.some(item => item.type === "image_url")) {
+                messages = messages.filter((message: any) => {
+                    if (typeof message.content !== "string" && message.content.some((item: any) => item.type === "image_url")) {
                         if (imageCount < countLimit) {
                             imageCount++;
                             return true;

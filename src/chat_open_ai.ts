@@ -15,7 +15,6 @@ class ChatOpenAIProvider extends LLMProvider {
     protected async _stream(content: LLMProvider.Params): Promise<Stream<BaseChatMessageChunk>> {
 
         const params = this.initParams(content)
-
         const chatCompletion = await this.client.chat.completions.create({
             ...params,
             stream: true,
@@ -129,11 +128,12 @@ class ChatOpenAIProvider extends LLMProvider {
         if (options.baseUrl === 'http://127.0.0.1:5001') {
             options.frequencyPenalty = 0.0001
         }
+        const credentials = options.credentials?.[options.credentials?.commandKey]
 
         const client = new OpenAI({
-            apiKey: options.apiKey, // This is the default and can be omitted
+            apiKey: credentials?.apiKey, // This is the default and can be omitted
             // baseURL: "http://127.0.0.1:8181/v1",
-            baseURL: options.baseUrl || "https://api.openai.com/v1",
+            baseURL: credentials?.baseUrl || "https://api.openai.com/v1",
             defaultHeaders: headers,
 
         });
