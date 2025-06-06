@@ -22,13 +22,18 @@
       "commandType": "provider",
       "preferences": [
         {
-          "name": "apiKey",
-          "description": "OpenAI api key",
-          "type": "password",
+          "name": "credentials",
+          "description": "The key management provider to use",
+          "type": "extension",
           "required": false,
-          "title": "OpenAI Api Key",
-          "default": "default",
-          "placeholder": "sk-********",
+          "default": "enconvo_ai",
+          "extensionType": "credentials-provider",
+          "extensionFilter": {
+            "targetCommands": [
+              "credentials|enconvo_ai"
+            ]
+          },
+          "title": "Credential Provider",
           "visibility": "hidden"
         },
         {
@@ -95,26 +100,6 @@
               "value": "off"
             }
           ]
-        },
-        {
-          "name": "anthropicApiKey",
-          "description": "OpenAI api key",
-          "type": "password",
-          "required": false,
-          "title": "OpenAI Api Key",
-          "default": "default",
-          "placeholder": "OpenAI Api Key",
-          "visibility": "hidden"
-        },
-        {
-          "name": "apiKey",
-          "description": "google api key",
-          "type": "password",
-          "required": false,
-          "title": "google Api Key",
-          "default": "default",
-          "placeholder": "google Api Key",
-          "visibility": "hidden"
         }
       ]
     },
