@@ -28,8 +28,10 @@ const models: DropdownListCache.ModelOutput[] = [
  * @param api_key - API authentication key
  * @returns Promise<ModelOutput[]> - Array of processed model data
  */
-async function fetchModels(url: string, api_key: string, type: string): Promise<DropdownListCache.ModelOutput[]> {
-    // console.log("fetchModels", url, api_key, type)
+async function fetchModels(url?: string, api_key?: string, type?: string): Promise<DropdownListCache.ModelOutput[]> {
+    if (!url) {
+        return []
+    }
     try {
         // Using axios to make the API request
         const resp = await axios.get(url, {
@@ -86,11 +88,12 @@ async function fetchModels(url: string, api_key: string, type: string): Promise<
  */
 export default async function main(req: Request): Promise<string> {
     const options = await req.json()
-    options.api_key = options.apiKey
-
+    const credentials = options.credentials
+    
+    options.api_key = credentials.apiKey
 
     let url
-    url = options.baseUrl.endsWith('/') ? options.baseUrl : `${options.baseUrl}/`
+    url = credentials.baseUrl.endsWith('/') ? credentials.baseUrl : `${credentials.baseUrl}/`
     url = `${url}models`
 
     options.url = url

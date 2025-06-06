@@ -18,6 +18,7 @@ export class ChatOpenAIProvider extends LLMProvider {
         const chatCompletion = await this.client.chat.completions.create({
             ...params,
             stream: true,
+
         });
 
         const ac = new AbortController()
@@ -108,7 +109,13 @@ export class ChatOpenAIProvider extends LLMProvider {
                 "commandTitle": `${env['commandTitle']}`,
                 "modelName": options.modelName.value
             }
+        } else if (options.originCommandName === 'chat_openrouter') {
+            headers = {
+                'HTTP-Referer': 'https://enconvo.ai',
+                'X-Title': 'Enconvo',
+            }
         }
+        console.log("headers", headers)
 
         if (
             options.modelName &&

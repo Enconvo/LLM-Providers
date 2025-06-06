@@ -1028,8 +1028,21 @@
       "icon": "openrouter.png",
       "mode": "no-view",
       "commandType": "provider",
-      "targetCommand": "llm|chat_open_ai",
       "preferences": [
+        {
+          "name": "credentials",
+          "description": "The key management provider to use",
+          "type": "extension",
+          "required": false,
+          "default": "openrouter",
+          "extensionType": "credentials-provider",
+          "extensionFilter": {
+            "targetCommands": [
+              "credentials|openrouter"
+            ]
+          },
+          "title": "Credential Provider"
+        },
         {
           "name": "modelName",
           "description": "The model to generate the completion.",
@@ -1068,36 +1081,6 @@
               "value": 2
             }
           ]
-        },
-        {
-          "name": "apiKey",
-          "description": "OpenRouter api key",
-          "type": "password",
-          "required": false,
-          "title": "OpenRouter Api Key",
-          "default": "",
-          "defaultProxy": "credentials|openrouter",
-          "placeholder": "sk-********"
-        },
-        {
-          "name": "baseUrl",
-          "description": "OpenRouter api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "OpenRouter Api Base Url",
-          "default": "https://openrouter.ai/api/v1",
-          "placeholder": "OpenRouter Api Base Url",
-          "visibility": "hidden"
-        },
-        {
-          "name": "streaming",
-          "description": "Whether to stream output",
-          "type": "checkbox",
-          "required": false,
-          "title": "Streaming",
-          "default": true,
-          "label": "Streaming",
-          "visibility": "hidden"
         }
       ]
     },
@@ -1108,8 +1091,21 @@
       "icon": "fireworks.jpg",
       "mode": "no-view",
       "commandType": "provider",
-      "targetCommand": "llm|chat_open_ai",
       "preferences": [
+        {
+          "name": "credentials",
+          "description": "The key management provider to use",
+          "type": "extension",
+          "required": false,
+          "default": "fireworks",
+          "extensionType": "credentials-provider",
+          "extensionFilter": {
+            "targetCommands": [
+              "credentials|fireworks"
+            ]
+          },
+          "title": "Credential Provider"
+        },
         {
           "name": "modelName",
           "description": "The model to generate the completion.",
@@ -1149,36 +1145,6 @@
               "value": 2
             }
           ]
-        },
-        {
-          "name": "apiKey",
-          "description": "How to get api key? [🔑here](https://fireworks.ai/account/api-keys)",
-          "type": "password",
-          "required": false,
-          "title": "API Key",
-          "default": "",
-          "defaultProxy": "credentials|fireworks",
-          "placeholder": "API Key"
-        },
-        {
-          "name": "baseUrl",
-          "description": "OpenAI api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "OpenAI Api Base Url",
-          "default": "https://api.fireworks.ai/inference/v1",
-          "placeholder": "OpenAI Api Base Url",
-          "visibility": "hidden"
-        },
-        {
-          "name": "streaming",
-          "description": "Whether to stream output",
-          "type": "checkbox",
-          "required": false,
-          "title": "Streaming",
-          "default": true,
-          "label": "Streaming",
-          "visibility": "hidden"
         }
       ]
     },
@@ -1191,6 +1157,20 @@
       "commandType": "provider",
       "preferences": [
         {
+          "name": "credentials",
+          "description": "The key management provider to use",
+          "type": "extension",
+          "required": false,
+          "default": "cloudflare",
+          "extensionType": "credentials-provider",
+          "extensionFilter": {
+            "targetCommands": [
+              "credentials|cloudflare"
+            ]
+          },
+          "title": "Credential Provider"
+        },
+        {
           "name": "modelName",
           "description": "The model to generate the completion.",
           "type": "dropdown",
@@ -1198,26 +1178,6 @@
           "title": "Model Name",
           "default": "@cf/meta/llama-2-7b-chat-int8",
           "dataProxy": "llm|cloudflare_models"
-        },
-        {
-          "name": "cloudflareAccountId",
-          "description": "Cloudflare AccountID",
-          "type": "textfield",
-          "required": false,
-          "title": "Cloudflare AccountID",
-          "default": "",
-          "defaultProxy": "credentials|cloudflare",
-          "placeholder": "Cloudflare AccountID"
-        },
-        {
-          "name": "cloudflareApiToken",
-          "description": "Cloudflare API Token",
-          "type": "password",
-          "required": false,
-          "title": "Cloudflare API Token",
-          "default": "",
-          "defaultProxy": "credentials|cloudflare",
-          "placeholder": "Cloudflare API Token"
         }
       ]
     },
@@ -1228,8 +1188,21 @@
       "icon": "together.png",
       "mode": "no-view",
       "commandType": "provider",
-      "targetCommand": "llm|chat_open_ai",
       "preferences": [
+        {
+          "name": "credentials",
+          "description": "The key management provider to use",
+          "type": "extension",
+          "required": false,
+          "default": "together_ai",
+          "extensionType": "credentials-provider",
+          "extensionFilter": {
+            "targetCommands": [
+              "credentials|together_ai"
+            ]
+          },
+          "title": "Credential Provider"
+        },
         {
           "name": "modelName",
           "description": "The model to generate the completion.",
@@ -1238,16 +1211,6 @@
           "title": "Model Name",
           "default": "meta-llama/Llama-3.2-3B-Instruct-Turbo",
           "dataProxy": "llm|together_models"
-        },
-        {
-          "name": "apiKey",
-          "description": "How to get api key? [🔑here](https://docs.together.ai/docs/quickstart)",
-          "type": "password",
-          "required": false,
-          "title": "API Key",
-          "default": "",
-          "defaultProxy": "credentials|together_ai",
-          "placeholder": "Together Api Key"
         },
         {
           "name": "temperature",
@@ -1278,16 +1241,6 @@
               "value": 2
             }
           ]
-        },
-        {
-          "name": "baseUrl",
-          "description": "OpenAI api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "OpenAI Api Base Url",
-          "default": "https://api.together.xyz/v1",
-          "placeholder": "OpenAI Api Base Url",
-          "visibility": "hidden"
         }
       ]
     },
@@ -1298,8 +1251,21 @@
       "icon": "moonshot.png",
       "mode": "no-view",
       "commandType": "provider",
-      "targetCommand": "llm|chat_open_ai",
       "preferences": [
+        {
+          "name": "credentials",
+          "description": "The key management provider to use",
+          "type": "extension",
+          "required": false,
+          "default": "moonshot_ai",
+          "extensionType": "credentials-provider",
+          "extensionFilter": {
+            "targetCommands": [
+              "credentials|moonshot_ai"
+            ]
+          },
+          "title": "Credential Provider"
+        },
         {
           "name": "modelName",
           "description": "The model to generate the completion.",
@@ -1351,26 +1317,6 @@
               "value": 2
             }
           ]
-        },
-        {
-          "name": "apiKey",
-          "description": "MOONSHOT_API_KEY",
-          "type": "password",
-          "required": false,
-          "title": "API Key",
-          "default": "",
-          "defaultProxy": "credentials|moonshot_ai",
-          "placeholder": "MoonShot Api Key"
-        },
-        {
-          "name": "baseUrl",
-          "description": "MoonShot api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "MoonShot Api Base Url",
-          "default": "https://api.moonshot.cn/v1",
-          "placeholder": "MoonShot Api Base Url",
-          "visibility": "hidden"
         }
       ]
     },
@@ -1381,8 +1327,21 @@
       "icon": "yi.png",
       "mode": "no-view",
       "commandType": "provider",
-      "targetCommand": "llm|chat_open_ai",
       "preferences": [
+        {
+          "name": "credentials",
+          "description": "The key management provider to use",
+          "type": "extension",
+          "required": false,
+          "default": "yii",
+          "extensionType": "credentials-provider",
+          "extensionFilter": {
+            "targetCommands": [
+              "credentials|yii"
+            ]
+          },
+          "title": "Credential Provider"
+        },
         {
           "name": "modelName",
           "description": "The model to generate the completion.",
@@ -1479,26 +1438,6 @@
               "value": 2
             }
           ]
-        },
-        {
-          "name": "apiKey",
-          "description": "api key",
-          "type": "password",
-          "required": false,
-          "title": "API Key",
-          "default": "",
-          "defaultProxy": "credentials|yii",
-          "placeholder": "API Key"
-        },
-        {
-          "name": "baseUrl",
-          "description": "OpenAI api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "OpenAI Api Base Url",
-          "default": "https://api.lingyiwanwu.com/v1",
-          "placeholder": "OpenAI Api Base Url",
-          "visibility": "hidden"
         }
       ]
     },
@@ -1509,8 +1448,21 @@
       "icon": "dashscope.png",
       "mode": "no-view",
       "commandType": "provider",
-      "targetCommand": "llm|chat_open_ai",
       "preferences": [
+        {
+          "name": "credentials",
+          "description": "The key management provider to use",
+          "type": "extension",
+          "required": false,
+          "default": "dashscope",
+          "extensionType": "credentials-provider",
+          "extensionFilter": {
+            "targetCommands": [
+              "credentials|dashscope"
+            ]
+          },
+          "title": "Credential Provider"
+        },
         {
           "name": "modelName",
           "description": "The model to generate the completion.",
@@ -1549,26 +1501,6 @@
               "value": 2
             }
           ]
-        },
-        {
-          "name": "apiKey",
-          "description": "How to get api key? [🔑here](https://bailian.console.aliyun.com/#/home)",
-          "type": "password",
-          "required": false,
-          "title": "API Key",
-          "default": "",
-          "defaultProxy": "credentials|dashscope",
-          "placeholder": "sk-********"
-        },
-        {
-          "name": "baseUrl",
-          "description": "OpenAI api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "OpenAI Api Base Url",
-          "default": "https://dashscope.aliyuncs.com/compatible-mode/v1",
-          "placeholder": "OpenAI Api Base Url",
-          "visibility": "hidden"
         }
       ]
     },
@@ -1579,8 +1511,21 @@
       "icon": "sambanova.png",
       "mode": "no-view",
       "commandType": "provider",
-      "targetCommand": "llm|chat_open_ai",
       "preferences": [
+        {
+          "name": "credentials",
+          "description": "The key management provider to use",
+          "type": "extension",
+          "required": false,
+          "default": "sambanova",
+          "extensionType": "credentials-provider",
+          "extensionFilter": {
+            "targetCommands": [
+              "credentials|sambanova"
+            ]
+          },
+          "title": "Credential Provider"
+        },
         {
           "name": "modelName",
           "description": "The model to generate the completion.",
@@ -1619,26 +1564,6 @@
               "value": 2
             }
           ]
-        },
-        {
-          "name": "apiKey",
-          "description": "How to get api key? [🔑here](https://cloud.sambanova.ai/apis)",
-          "type": "password",
-          "required": false,
-          "title": "API Key",
-          "default": "",
-          "defaultProxy": "credentials|sambanova",
-          "placeholder": "********"
-        },
-        {
-          "name": "baseUrl",
-          "description": "Perplexity api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "Perplexity Api Base Url",
-          "default": "https://api.sambanova.ai/v1",
-          "placeholder": "Perplexity Api Base Url",
-          "visibility": "hidden"
         }
       ]
     },
@@ -1649,8 +1574,21 @@
       "icon": "cerebras.png",
       "mode": "no-view",
       "commandType": "provider",
-      "targetCommand": "llm|chat_open_ai",
       "preferences": [
+        {
+          "name": "credentials",
+          "description": "The key management provider to use",
+          "type": "extension",
+          "required": false,
+          "default": "cerebras",
+          "extensionType": "credentials-provider",
+          "extensionFilter": {
+            "targetCommands": [
+              "credentials|cerebras"
+            ]
+          },
+          "title": "Credential Provider"
+        },
         {
           "name": "modelName",
           "description": "The model to generate the completion.",
@@ -1689,26 +1627,6 @@
               "value": 2
             }
           ]
-        },
-        {
-          "name": "apiKey",
-          "description": "How to get api key? [🔑here](https://inference-docs.cerebras.ai/openai)",
-          "type": "password",
-          "required": false,
-          "title": "API Key",
-          "default": "",
-          "defaultProxy": "credentials|cerebras",
-          "placeholder": "********"
-        },
-        {
-          "name": "baseUrl",
-          "description": "Perplexity api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "Perplexity Api Base Url",
-          "default": "https://api.cerebras.ai/v1",
-          "placeholder": "Perplexity Api Base Url",
-          "visibility": "hidden"
         }
       ]
     },
@@ -1719,8 +1637,21 @@
       "icon": "arli.png",
       "mode": "no-view",
       "commandType": "provider",
-      "targetCommand": "llm|chat_open_ai",
       "preferences": [
+        {
+          "name": "credentials",
+          "description": "The key management provider to use",
+          "type": "extension",
+          "required": false,
+          "default": "arli",
+          "extensionType": "credentials-provider",
+          "extensionFilter": {
+            "targetCommands": [
+              "credentials|arli"
+            ]
+          },
+          "title": "Credential Provider"
+        },
         {
           "name": "modelName",
           "description": "The model to generate the completion.",
@@ -1729,16 +1660,6 @@
           "title": "Model Name",
           "default": "(TRIAL) Llama-3.1-70B-ArliAI-RPMax-v1.1",
           "dataProxy": "llm|arli_models"
-        },
-        {
-          "name": "apiKey",
-          "description": "How to get api key? [🔑here](https://arliai.com/)",
-          "type": "password",
-          "required": false,
-          "title": "API Key",
-          "default": "",
-          "defaultProxy": "credentials|arli",
-          "placeholder": "Arli Api Key"
         },
         {
           "name": "temperature",
@@ -1769,16 +1690,6 @@
               "value": 2
             }
           ]
-        },
-        {
-          "name": "baseUrl",
-          "description": "Arli api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "Arli Api Base Url",
-          "default": "https://api.arliai.com/v1",
-          "placeholder": "OpenAI Api Base Url",
-          "visibility": "hidden"
         }
       ]
     },
@@ -1791,6 +1702,20 @@
       "commandType": "provider",
       "preferences": [
         {
+          "name": "credentials",
+          "description": "The key management provider to use",
+          "type": "extension",
+          "required": false,
+          "default": "straico",
+          "extensionType": "credentials-provider",
+          "extensionFilter": {
+            "targetCommands": [
+              "credentials|straico"
+            ]
+          },
+          "title": "Credential Provider"
+        },
+        {
           "name": "modelName",
           "description": "The model to generate the completion.",
           "type": "dropdown",
@@ -1798,16 +1723,6 @@
           "title": "Model Name",
           "default": "openai/gpt-4o-mini",
           "dataProxy": "llm|straico_models"
-        },
-        {
-          "name": "api_key",
-          "description": "How to get api key? [🔑here](https://straico.com/)",
-          "type": "password",
-          "required": false,
-          "title": "API Key",
-          "default": "",
-          "defaultProxy": "credentials|straico",
-          "placeholder": "Straico Api Key"
         },
         {
           "name": "temperature",
@@ -2059,24 +1974,19 @@
       "mode": "no-view",
       "preferences": [
         {
-          "name": "apiKey",
-          "description": "How to get api key? [🔑here](https://cloud.sambanova.ai/apis)",
-          "type": "password",
+          "name": "credentials",
+          "description": "The key management provider to use",
+          "type": "extension",
           "required": false,
-          "title": "API Key",
-          "default": "",
-          "defaultProxy": "credentials|sambanova",
-          "placeholder": "********"
-        },
-        {
-          "name": "baseUrl",
-          "description": "Sambanova api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "Sambanova Api Base Url",
-          "default": "https://api.sambanova.ai/v1",
-          "placeholder": "Sambanova Api Base Url",
-          "visibility": "hidden"
+          "default": "sambanova",
+          "defaultProxy": "llm|chat_sambanova",
+          "extensionType": "credentials-provider",
+          "extensionFilter": {
+            "targetCommands": [
+              "credentials|sambanova"
+            ]
+          },
+          "title": "Credential Provider"
         }
       ]
     },
@@ -2090,24 +2000,19 @@
       "mode": "no-view",
       "preferences": [
         {
-          "name": "apiKey",
-          "description": "How to get api key? [🔑here](https://cloud.sambanova.ai/apis)",
-          "type": "password",
+          "name": "credentials",
+          "description": "The key management provider to use",
+          "type": "extension",
           "required": false,
-          "title": "API Key",
-          "default": "",
-          "defaultProxy": "credentials|cerebras",
-          "placeholder": "********"
-        },
-        {
-          "name": "baseUrl",
-          "description": "Cerebras api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "Cerebras Api Base Url",
-          "default": "https://api.cerebras.ai/v1",
-          "placeholder": "Cerebras Api Base Url",
-          "visibility": "hidden"
+          "default": "cerebras",
+          "defaultProxy": "llm|chat_cerebras",
+          "extensionType": "credentials-provider",
+          "extensionFilter": {
+            "targetCommands": [
+              "credentials|cerebras"
+            ]
+          },
+          "title": "Credential Provider"
         }
       ]
     },
@@ -2351,11 +2256,19 @@
       "mode": "no-view",
       "preferences": [
         {
-          "name": "url",
-          "description": "arli api url",
-          "type": "textfield",
+          "name": "credentials",
+          "description": "The key management provider to use",
+          "type": "extension",
           "required": false,
-          "default": "https://api-v.enconvo.com/arli/v1/models"
+          "default": "arli",
+          "extensionType": "credentials-provider",
+          "defaultProxy": "llm|chat_arli",
+          "extensionFilter": {
+            "targetCommands": [
+              "credentials|arli"
+            ]
+          },
+          "title": "Credential Provider"
         }
       ]
     }

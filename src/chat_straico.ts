@@ -61,7 +61,9 @@ export class StraicoProvider extends LLMProvider {
 
 
     async request(messages: BaseChatMessageLike[]) {
-        if (!this.options.api_key) {
+        const credentials = this.options.credentials
+        console.log("straico credentials", credentials)
+        if (!credentials.apiKey) {
             throw new Error("API key is required")
         }
 
@@ -96,7 +98,7 @@ export class StraicoProvider extends LLMProvider {
             maxBodyLength: Infinity,
             url: 'https://api.straico.com/v1/prompt/completion',
             headers: {
-                'Authorization': `Bearer ${this.options.api_key}`,
+                'Authorization': `Bearer ${credentials.apiKey}`,
                 'Content-Type': 'application/json'
             },
             data: data

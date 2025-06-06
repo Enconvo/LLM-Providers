@@ -94,7 +94,7 @@ const models: DropdownListCache.ModelOutput[] = [
  * @param api_key - API authentication key
  * @returns Promise<ModelOutput[]> - Array of processed model data
  */
-async function fetchModels(url: string, api_key: string, type: string): Promise<DropdownListCache.ModelOutput[]> {
+async function fetchModels(url?: string, api_key?: string, type?: string): Promise<DropdownListCache.ModelOutput[]> {
     // console.log("fetchModels", url, api_key, type)
     return models
 }
@@ -106,11 +106,12 @@ async function fetchModels(url: string, api_key: string, type: string): Promise<
  */
 export default async function main(req: Request): Promise<string> {
     const options = await req.json()
-    options.api_key = options.apiKey
-
+    const credentials = options.credentials
+    console.log("sambanova models credentials", credentials)
+    options.api_key = credentials.apiKey
 
     let url
-    url = options.baseUrl.endsWith('/') ? options.baseUrl : `${options.baseUrl}/`
+    url = credentials.baseUrl.endsWith('/') ? credentials.baseUrl : `${credentials.baseUrl}/`
     url = `${url}models`
 
     options.url = url

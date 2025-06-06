@@ -14,7 +14,11 @@ export class ChatCloudflareWorkersProvider extends LLMProvider {
     model: ChatCloudflareWorkersAI
     constructor(options: LLMProvider.LLMOptions) {
         super(options)
-        this.model = this._initLangchainChatModel(this.options)
+        const credentials = this.options.credentials
+        this.model = this._initLangchainChatModel({
+            ...this.options,
+            ...credentials
+        })
     }
 
 
