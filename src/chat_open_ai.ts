@@ -15,11 +15,10 @@ class ChatOpenAIProvider extends LLMProvider {
     protected async _stream(content: LLMProvider.Params): Promise<Stream<BaseChatMessageChunk>> {
 
         const params = this.initParams(content)
-        // console.log("params", params)
 
         const chatCompletion = await this.client.chat.completions.create({
             ...params,
-            stream: true
+            stream: true,
         });
 
         const ac = new AbortController()
@@ -77,6 +76,10 @@ class ChatOpenAIProvider extends LLMProvider {
             temperature: temperature,
             messages
         }
+
+
+
+
 
         if (reasoning_effort) {
             params.reasoning_effort = reasoning_effort
