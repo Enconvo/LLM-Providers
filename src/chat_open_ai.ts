@@ -10,7 +10,7 @@ export default function main(options: any) {
 }
 
 
-class ChatOpenAIProvider extends LLMProvider {
+export class ChatOpenAIProvider extends LLMProvider {
 
     protected async _stream(content: LLMProvider.Params): Promise<Stream<BaseChatMessageChunk>> {
 
@@ -47,9 +47,9 @@ class ChatOpenAIProvider extends LLMProvider {
     }
 
     private initParams(content: LLMProvider.Params) {
-        console.log("initParams___", this.options)
         const credentials = this.options.credentials
-        if (!credentials?.apiKey) {
+        console.log("credentials", credentials)
+        if (!credentials.apiKey) {
             throw new Error("API key is required")
         }
         const modelOptions = this.options.modelName
@@ -76,10 +76,6 @@ class ChatOpenAIProvider extends LLMProvider {
             temperature: temperature,
             messages
         }
-
-
-
-
 
         if (reasoning_effort) {
             params.reasoning_effort = reasoning_effort
@@ -130,7 +126,7 @@ class ChatOpenAIProvider extends LLMProvider {
             options.frequencyPenalty = 0.0001
         }
         const credentials = options.credentials
-        console.log("credentials", credentials)
+        // console.log("credentials", credentials)
 
         const client = new OpenAI({
             apiKey: credentials?.apiKey, // This is the default and can be omitted

@@ -12,7 +12,9 @@ export class GoogleGeminiProvider extends LLMProvider {
 
     constructor(options: LLMProvider.LLMOptions) {
         super(options)
-        const google = new GoogleGenAI({ apiKey: options.apiKey });
+        const credentials = options.credentials
+        console.log("google credentials", credentials)
+        const google = new GoogleGenAI({ apiKey: credentials.apiKey });
 
         if (env['LANGCHAIN_TRACING_V2'] === 'true') {
             this.ai = wrapSDK(google)
@@ -73,6 +75,11 @@ export class GoogleGeminiProvider extends LLMProvider {
 
 
     initParams(content: LLMProvider.Params) {
+        const credentials = this.options.credentials
+        if (!credentials.apiKey) {
+            throw new Error("Google API key is required")
+        }
+
         const userMessages = content.messages.filter((message) => message.role !== 'system')
         const systemMessages = content.messages.filter((message) => message.role === 'system')
 
@@ -106,7 +113,7 @@ export class GoogleGeminiProvider extends LLMProvider {
         let newMessages = convertMessagesToGoogleMessages(fixedMessages, this.options)
 
         let headers = {}
-        let baseUrl = this.options.baseUrl
+        let baseUrl = credentials.baseUrl
 
         let model = this.options.modelName.value
 

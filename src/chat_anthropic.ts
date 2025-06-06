@@ -27,9 +27,12 @@ export class AnthropicProvider extends LLMProvider {
             }
         }
 
+        const credentials = options.credentials
+        console.log("anthropic credentials", credentials)
+
         const anthropic = new Anthropic({
-            apiKey: options.anthropicApiKey, // defaults to process.env["ANTHROPIC_API_KEY"]
-            baseURL: options.anthropicApiUrl,
+            apiKey: credentials.anthropicApiKey,
+            baseURL: credentials.anthropicApiUrl,
             defaultHeaders: headers
         });
 
@@ -73,6 +76,11 @@ export class AnthropicProvider extends LLMProvider {
 
 
     protected async _stream(content: LLMProvider.Params): Promise<Stream<BaseChatMessageChunk>> {
+
+        const credentials = this.options.credentials
+        if (!credentials.anthropicApiKey) {
+            throw new Error("Anthropic API key is required")
+        }
 
         const params = await this.initParams(content)
 

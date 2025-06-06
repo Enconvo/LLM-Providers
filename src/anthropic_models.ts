@@ -85,8 +85,10 @@ async function fetchModels(url?: string, api_key?: string, type?: string): Promi
  */
 export default async function main(req: Request): Promise<string> {
     const options = await req.json()
-    options.api_key = options.anthropicApiKey
-    options.url = options.anthropicApiUrl
+    const credentials = options.credentials
+    console.log("anthropic models credentials", credentials)
+    options.api_key = credentials.anthropicApiKey
+    options.url = credentials.anthropicApiUrl
 
     const modelCache = new DropdownListCache(fetchModels)
 

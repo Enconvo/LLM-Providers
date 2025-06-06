@@ -18,7 +18,7 @@
       "title": "Enconvo Cloud Plan",
       "description": "Chat using EnconvoAI which provide LLM service, , learn more : [docs](https://docs.enconvo.com/docs/providers/llm)",
       "icon": "enconvo.png",
-      "mode": "provider",
+      "mode": "no-view",
       "commandType": "provider",
       "preferences": [
         {
@@ -123,7 +123,7 @@
       "title": "OpenAI",
       "description": "Chat with OpenAI , learn more : [openai developers](https://platform.openai.com/docs/overview)",
       "icon": "openai.png",
-      "mode": "provider",
+      "mode": "no-view",
       "commandType": "provider",
       "preferences": [
         {
@@ -132,9 +132,11 @@
           "type": "extension",
           "required": false,
           "default": "open_ai",
-          "extensionType":"credentials-provider",
+          "extensionType": "credentials-provider",
           "extensionFilter": {
-            "targetCommands": ["credentials|open_ai"]
+            "targetCommands": [
+              "credentials|open_ai"
+            ]
           },
           "title": "Credential Provider"
         },
@@ -190,25 +192,18 @@
       "mode": "no-view",
       "preferences": [
         {
-          "name": "anthropicApiKey",
-          "description": "Anthropic api key",
-          "type": "password",
+          "name": "credentials",
+          "description": "The key management provider to use",
+          "type": "extension",
           "required": false,
-          "title": "Claude Api Key",
-          "default": "",
-          "defaultProxy": "credentials|anthropic",
-          "placeholder": "sk-ant-********"
-        },
-        {
-          "name": "anthropicApiUrl",
-          "description": "Anthropic api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "Anthropic Api Base Url",
-          "defaultProxy": "credentials|anthropic",
-          "default": "https://api.anthropic.com",
-          "placeholder": "https://api.anthropic.com",
-          "visibility": "show"
+          "default": "anthropic",
+          "extensionType": "credentials-provider",
+          "extensionFilter": {
+            "targetCommands": [
+              "credentials|anthropic"
+            ]
+          },
+          "title": "Credential Provider"
         }
       ]
     },
@@ -216,19 +211,23 @@
       "name": "chat_anthropic",
       "title": "Anthropic Claude",
       "description": "Chat with Anthropic Claude, learn more : [anthropic.com](https://www.anthropic.com/)",
-      "mode": "provider",
+      "mode": "no-view",
       "commandType": "provider",
       "icon": "anthropic.png",
       "preferences": [
         {
-          "name": "anthropicApiKey",
-          "description": "Anthropic api key",
-          "type": "password",
+          "name": "credentials",
+          "description": "The key management provider to use",
+          "type": "extension",
           "required": false,
-          "title": "Claude Api Key",
-          "default": "",
-          "defaultProxy": "credentials|anthropic",
-          "placeholder": "sk-ant-********"
+          "default": "anthropic",
+          "extensionType": "credentials-provider",
+          "extensionFilter": {
+            "targetCommands": [
+              "credentials|anthropic"
+            ]
+          },
+          "title": "Credential Provider"
         },
         {
           "name": "modelName",
@@ -268,17 +267,6 @@
               "value": 2
             }
           ]
-        },
-        {
-          "name": "anthropicApiUrl",
-          "description": "Anthropic api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "Anthropic Api Base Url",
-          "defaultProxy": "credentials|anthropic",
-          "default": "https://api.anthropic.com",
-          "placeholder": "https://api.anthropic.com",
-          "visibility": "show"
         }
       ]
     },
@@ -287,18 +275,22 @@
       "title": "Google Gemini AI",
       "description": "Chat with Google Gemini AI, learn more : [Google AI](https://ai.google.dev/)",
       "icon": "google.jpg",
-      "mode": "provider",
+      "mode": "no-view",
       "commandType": "provider",
       "preferences": [
         {
-          "name": "apiKey",
-          "description": "Google AI api key",
-          "type": "password",
+          "name": "credentials",
+          "description": "The key management provider to use",
+          "type": "extension",
           "required": false,
-          "title": "Google AI Api Key",
-          "default": "",
-          "defaultProxy": "credentials|google",
-          "placeholder": "AI********"
+          "default": "gemini",
+          "extensionType": "credentials-provider",
+          "extensionFilter": {
+            "targetCommands": [
+              "credentials|gemini"
+            ]
+          },
+          "title": "Credential Provider"
         },
         {
           "name": "modelName",
@@ -338,16 +330,6 @@
               "value": 2
             }
           ]
-        },
-        {
-          "name": "baseUrl",
-          "description": "Google AI api base url",
-          "type": "textfield",
-          "required": true,
-          "title": "Google AI Api Base Url",
-          "defaultProxy": "credentials|google",
-          "default": "",
-          "placeholder": "https://generativelanguage.googleapis.com"
         }
       ]
     },
@@ -356,19 +338,22 @@
       "title": "Deep Seek",
       "description": "Chat with DeepSeek , learn more : [DeepSeek developers](https://platform.deepseek.com/)",
       "icon": "deepseek.png",
-      "mode": "provider",
+      "mode": "no-view",
       "commandType": "provider",
-      "targetCommand": "llm|chat_open_ai",
       "preferences": [
         {
-          "name": "apiKey",
-          "description": "How to get api key? [🔑here](https://platform.deepseek.com/api_keys)",
-          "type": "password",
+          "name": "credentials",
+          "description": "The key management provider to use",
+          "type": "extension",
           "required": false,
-          "title": "API Key",
-          "default": "",
-          "defaultProxy": "credentials|deepseek",
-          "placeholder": "sk-********"
+          "default": "deepseek",
+          "extensionType": "credentials-provider",
+          "extensionFilter": {
+            "targetCommands": [
+              "credentials|deepseek"
+            ]
+          },
+          "title": "Credential Provider"
         },
         {
           "name": "modelName",
@@ -434,16 +419,6 @@
               "value": "off"
             }
           ]
-        },
-        {
-          "name": "baseUrl",
-          "description": "DeepSeek api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "DeepSeek Api Base Url",
-          "defaultProxy": "credentials|deepseek",
-          "default": "https://api.deepseek.com/v1",
-          "placeholder": "DeepSeek Api Base Url"
         }
       ]
     },
@@ -452,10 +427,23 @@
       "title": "Groq AI",
       "description": "Chat with Groq ai, learn more : [groq.com/](https://groq.com/)",
       "icon": "groq.png",
-      "mode": "provider",
+      "mode": "no-view",
       "commandType": "provider",
-      "targetCommand": "llm|chat_open_ai",
       "preferences": [
+        {
+          "name": "credentials",
+          "description": "The key management provider to use",
+          "type": "extension",
+          "required": false,
+          "default": "default",
+          "extensionType": "credentials-provider",
+          "extensionFilter": {
+            "targetCommands": [
+              "credentials|groq"
+            ]
+          },
+          "title": "Credential Provider"
+        },
         {
           "name": "modelName",
           "description": "The model to generate the completion.",
@@ -464,16 +452,6 @@
           "title": "Model Name",
           "default": "gemma2-9b-it",
           "dataProxy": "llm|groq_models"
-        },
-        {
-          "name": "apiKey",
-          "description": "How to get api key? [🔑here](https://console.groq.com/keys)",
-          "type": "password",
-          "required": false,
-          "title": "API Key",
-          "default": "",
-          "defaultProxy": "credentials|groq",
-          "placeholder": "gsk_********"
         },
         {
           "name": "temperature",
@@ -504,16 +482,6 @@
               "value": 2
             }
           ]
-        },
-        {
-          "name": "baseUrl",
-          "description": "Groq api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "Groq Api Base Url",
-          "default": "https://api.groq.com/openai/v1",
-          "placeholder": "Groq Api Base Url",
-          "visibility": "hidden"
         }
       ]
     },
@@ -522,7 +490,7 @@
       "title": "Azure OpenAI",
       "description": "Azure OpenAI , learn more : [azure openai](https://learn.microsoft.com/en-us/azure/ai-services/openai/overview)",
       "icon": "azure.png",
-      "mode": "provider",
+      "mode": "no-view",
       "commandType": "provider",
       "preferences": [
         {
@@ -609,10 +577,23 @@
       "title": "X.AI-GROK",
       "description": "Chat with Grok AI, learn more : [x.ai](https://x.ai/)",
       "icon": "x.png",
-      "mode": "provider",
+      "mode": "no-view",
       "commandType": "provider",
-      "targetCommand": "llm|chat_open_ai",
       "preferences": [
+        {
+          "name": "credentials",
+          "description": "The key management provider to use",
+          "type": "extension",
+          "required": false,
+          "default": "x_ai",
+          "extensionType": "credentials-provider",
+          "extensionFilter": {
+            "targetCommands": [
+              "credentials|x_ai"
+            ]
+          },
+          "title": "Credential Provider"
+        },
         {
           "name": "modelName",
           "description": "The model to generate the completion.",
@@ -621,16 +602,6 @@
           "title": "Model Name",
           "default": "grok-2-1212",
           "dataProxy": "llm|x_ai_models"
-        },
-        {
-          "name": "apiKey",
-          "description": "How to get api key? [🔑here](https://docs.x.ai/docs/quickstart#creating-an-api-key)",
-          "type": "password",
-          "required": false,
-          "title": "API Key",
-          "default": "",
-          "defaultProxy": "credentials|x_ai",
-          "placeholder": "xai-********"
         },
         {
           "name": "temperature",
@@ -661,16 +632,6 @@
               "value": 2
             }
           ]
-        },
-        {
-          "name": "baseUrl",
-          "description": "X.AI api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "X.AI Api Base Url",
-          "default": "https://api.x.ai/v1",
-          "placeholder": "X.AI Api Base Url",
-          "visibility": "hidden"
         }
       ]
     },
@@ -679,10 +640,23 @@
       "title": "Mistral AI",
       "description": "Chat with Mistral AI, learn more : [mistral.ai](https://mistral.ai/)",
       "icon": "mistral.jpg",
-      "mode": "provider",
+      "mode": "no-view",
       "commandType": "provider",
-      "targetCommand": "llm|chat_open_ai",
       "preferences": [
+        {
+          "name": "credentials",
+          "description": "The key management provider to use",
+          "type": "extension",
+          "required": false,
+          "default": "mistral",
+          "extensionType": "credentials-provider",
+          "extensionFilter": {
+            "targetCommands": [
+              "credentials|mistral"
+            ]
+          },
+          "title": "Credential Provider"
+        },
         {
           "name": "modelName",
           "description": "md:The model to generate the completion. \n\n ## Pricing and rate limits\n\n**Pay-as-you-go**\n\nThe prices listed below are exclusive of VAT.\n\n### Chat Completions API\n\n| Model           | Endpoint                | Input (USD)         | Output (USD)         |\n|-----------------|-------------------------|---------------------|----------------------|\n| Mistral 7B      | open-mistral-7b         | 0.25$ / 1M tokens   | 0.25$ / 1M tokens    |\n| Mixtral 8x7B    | open-mixtral-8x7b       | 0.7$ / 1M tokens    | 0.7$ / 1M tokens     |\n| Mistral Small   | mistral-small-latest     | 2$ / 1M tokens     | 6$ / 1M tokens       |\n| Mistral Medium  | mistral-medium-latest    | 2.7$ / 1M tokens   | 8.1$ / 1M tokens     |\n| Mistral Large   | mistral-large-latest     | 8$ / 1M tokens     | 24$ / 1M tokens      |\n",
@@ -691,26 +665,6 @@
           "title": "Model Name",
           "default": "mistral-small-latest",
           "dataProxy": "llm|mistral_models"
-        },
-        {
-          "name": "apiKey",
-          "description": "How to get api key? [🔑here](https://console.mistral.ai/api-keys/)",
-          "type": "password",
-          "required": false,
-          "title": "API Key",
-          "default": "",
-          "defaultProxy": "credentials|mistral",
-          "placeholder": "Mistral AI Api Key"
-        },
-        {
-          "name": "baseUrl",
-          "description": "Mixtral api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "BaseUrl",
-          "default": "https://api.mistral.ai/v1",
-          "defaultProxy": "credentials|mistral",
-          "placeholder": "Mixtral Api Base Url"
         },
         {
           "name": "temperature",
@@ -749,9 +703,23 @@
       "title": "Ollama",
       "description": "Chat with Ollama, learn more : [ollama.ai](https://ollama.ai/)",
       "icon": "ollama.png",
-      "mode": "provider",
+      "mode": "no-view",
       "commandType": "provider",
       "preferences": [
+        {
+          "name": "credentials",
+          "description": "The key management provider to use",
+          "type": "extension",
+          "required": false,
+          "default": "ollama",
+          "extensionType": "credentials-provider",
+          "extensionFilter": {
+            "targetCommands": [
+              "credentials|ollama"
+            ]
+          },
+          "title": "Credential Provider"
+        },
         {
           "name": "modelName",
           "description": "The model to generate the completion.",
@@ -790,16 +758,6 @@
               "value": 2
             }
           ]
-        },
-        {
-          "name": "baseUrl",
-          "description": "Ollama api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "BaseUrl",
-          "default": "http://127.0.0.1:11434",
-          "placeholder": "http://127.0.0.1:11434",
-          "defaultProxy": "credentials|ollama"
         }
       ]
     },
@@ -808,27 +766,31 @@
       "title": "Cohere AI",
       "description": "Chat using [Cohere](cohere.com), get [API KEY](https://dashboard.cohere.com/)",
       "icon": "cohere.jpg",
-      "mode": "provider",
+      "mode": "no-view",
       "commandType": "provider",
       "preferences": [
+        {
+          "name": "credentials",
+          "description": "The key management provider to use",
+          "type": "extension",
+          "required": false,
+          "default": "cohere",
+          "extensionType": "credentials-provider",
+          "extensionFilter": {
+            "targetCommands": [
+              "credentials|cohere"
+            ]
+          },
+          "title": "Credential Provider"
+        },
         {
           "name": "model",
           "description": "The model to generate the completion.",
           "type": "dropdown",
           "required": false,
           "title": "Model Name",
-          "default": "command-r-plus",
+          "default": "command-r",
           "dataProxy": "llm|cohere_models"
-        },
-        {
-          "name": "apiKey",
-          "description": "How to get api key? [🔑here](https://dashboard.cohere.com/api-keys)",
-          "type": "password",
-          "required": false,
-          "title": "API Key",
-          "default": "",
-          "defaultProxy": "credentials|cohere",
-          "placeholder": "API Key"
         },
         {
           "name": "temperature",
@@ -867,10 +829,24 @@
       "title": "Perplexity",
       "description": "Chat with Perplexity, learn more: [perplexity.ai](https://www.perplexity.ai/settings/api)",
       "icon": "perplexity.png",
-      "mode": "provider",
+      "mode": "no-view",
       "commandType": "provider",
       "targetCommand": "llm|chat_open_ai",
       "preferences": [
+        {
+          "name": "credentials",
+          "description": "The key management provider to use",
+          "type": "extension",
+          "required": false,
+          "default": "perplexity",
+          "extensionType": "credentials-provider",
+          "extensionFilter": {
+            "targetCommands": [
+              "credentials|perplexity"
+            ]
+          },
+          "title": "Credential Provider"
+        },
         {
           "name": "modelName",
           "description": "The model to generate the completion.",
@@ -911,42 +887,12 @@
           ]
         },
         {
-          "name": "apiKey",
-          "description": "How to get api key? [🔑here](https://www.perplexity.ai/settings/api)",
-          "type": "password",
-          "required": false,
-          "title": "API Key",
-          "default": "",
-          "defaultProxy": "credentials|perplexity",
-          "placeholder": "pplx-********"
-        },
-        {
           "name": "frequencyPenalty",
           "description": "frequencyPenalty",
           "type": "textfield",
           "required": false,
           "title": "frequencyPenalty",
           "default": "1",
-          "visibility": "hidden"
-        },
-        {
-          "name": "baseUrl",
-          "description": "Perplexity api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "Perplexity Api Base Url",
-          "default": "https://api.perplexity.ai",
-          "placeholder": "Perplexity Api Base Url",
-          "visibility": "hidden"
-        },
-        {
-          "name": "streaming",
-          "description": "Whether to stream output",
-          "type": "checkbox",
-          "required": false,
-          "title": "Streaming",
-          "default": true,
-          "label": "Streaming",
           "visibility": "hidden"
         }
       ]
@@ -956,10 +902,23 @@
       "title": "SiliconFlow",
       "description": "Chat with SiliconFlow , learn more : [SiliconFlow developers](https://siliconflow.cn/)",
       "icon": "siliconflow.png",
-      "mode": "provider",
+      "mode": "no-view",
       "commandType": "provider",
-      "targetCommand": "llm|chat_open_ai",
       "preferences": [
+        {
+          "name": "credentials",
+          "description": "The key management provider to use",
+          "type": "extension",
+          "required": false,
+          "default": "siliconflow",
+          "extensionType": "credentials-provider",
+          "extensionFilter": {
+            "targetCommands": [
+              "credentials|siliconflow"
+            ]
+          },
+          "title": "Credential Provider"
+        },
         {
           "name": "modelName",
           "description": "The model to generate the completion.",
@@ -998,36 +957,6 @@
               "value": 2
             }
           ]
-        },
-        {
-          "name": "apiKey",
-          "description": "How to get api key? [🔑here](https://cloud.siliconflow.cn/account/ak)",
-          "type": "password",
-          "required": false,
-          "title": "API Key",
-          "default": "",
-          "defaultProxy": "credentials|siliconflow",
-          "placeholder": "sk-********"
-        },
-        {
-          "name": "baseUrl",
-          "description": "OpenAI api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "OpenAI Api Base Url",
-          "default": "https://api.siliconflow.cn/v1",
-          "placeholder": "Api Base Url",
-          "visibility": "hidden"
-        },
-        {
-          "name": "streaming",
-          "description": "Whether to stream output",
-          "type": "checkbox",
-          "required": false,
-          "title": "Streaming",
-          "default": true,
-          "label": "Streaming",
-          "visibility": "hidden"
         }
       ]
     },
@@ -1036,19 +965,22 @@
       "title": "LM Studio",
       "description": "Chat with LM Studio, learn more : [lmstudio.ai](https://lmstudio.ai/)",
       "icon": "lm_studio.png",
-      "mode": "provider",
+      "mode": "no-view",
       "commandType": "provider",
-      "targetCommand": "llm|chat_open_ai",
       "preferences": [
         {
-          "name": "baseUrl",
-          "description": "LM Studio api base url",
-          "type": "textfield",
+          "name": "credentials",
+          "description": "The key management provider to use",
+          "type": "extension",
           "required": false,
-          "title": "BaseUrl",
-          "default": "http://127.0.0.1:1234/v1",
-          "defaultProxy": "credentials|lm_studio",
-          "placeholder": "LM Studio Api Base Url"
+          "default": "lm_studio",
+          "extensionType": "credentials-provider",
+          "extensionFilter": {
+            "targetCommands": [
+              "credentials|lm_studio"
+            ]
+          },
+          "title": "Credential Provider"
         },
         {
           "name": "modelName",
@@ -1086,26 +1018,6 @@
               "value": 2
             }
           ]
-        },
-        {
-          "name": "apiKey",
-          "description": "How to get api key? [🔑here](https://www.perplexity.ai/settings/api)",
-          "type": "password",
-          "required": false,
-          "title": "API Key",
-          "default": "default",
-          "placeholder": "pplx-********",
-          "visibility": "hidden"
-        },
-        {
-          "name": "streaming",
-          "description": "Whether to stream output",
-          "type": "checkbox",
-          "required": false,
-          "title": "Streaming",
-          "default": true,
-          "label": "Streaming",
-          "visibility": "hidden"
         }
       ]
     },
@@ -1114,7 +1026,7 @@
       "title": "OpenRouter",
       "description": "Chat with OpenRouter, learn more: [openrouter.ai](https://openrouter.ai/)",
       "icon": "openrouter.png",
-      "mode": "provider",
+      "mode": "no-view",
       "commandType": "provider",
       "targetCommand": "llm|chat_open_ai",
       "preferences": [
@@ -1194,7 +1106,7 @@
       "title": "Fireworks",
       "description": "Chat with Fireworks, learn more : [fireworks.ai](https://fireworks.ai), get all models from [fireworks models](https://fireworks.ai/models/fireworks/mixtral-8x7b-instruct)",
       "icon": "fireworks.jpg",
-      "mode": "provider",
+      "mode": "no-view",
       "commandType": "provider",
       "targetCommand": "llm|chat_open_ai",
       "preferences": [
@@ -1275,7 +1187,7 @@
       "title": "Cloudflare Workers AI",
       "description": "Chat with Cloudflare Workers AI, learn more : [workers-ai](https://developers.cloudflare.com/workers-ai/)",
       "icon": "cloudflare.png",
-      "mode": "provider",
+      "mode": "no-view",
       "commandType": "provider",
       "preferences": [
         {
@@ -1314,7 +1226,7 @@
       "title": "Together AI",
       "description": "Chat with together.ai, learn more : [together.ai](https://docs.together.ai/docs/quickstart), get chat models from [together models](https://docs.together.ai/docs/inference-models)",
       "icon": "together.png",
-      "mode": "provider",
+      "mode": "no-view",
       "commandType": "provider",
       "targetCommand": "llm|chat_open_ai",
       "preferences": [
@@ -1384,7 +1296,7 @@
       "title": "MoonShot AI",
       "description": "Chat with moonshot ai, learn more : [moonshot.cn](https://www.moonshot.cn/)",
       "icon": "moonshot.png",
-      "mode": "provider",
+      "mode": "no-view",
       "commandType": "provider",
       "targetCommand": "llm|chat_open_ai",
       "preferences": [
@@ -1467,7 +1379,7 @@
       "title": "Yi",
       "description": "Chat with Yi , learn more : [Yi developers](https://platform.lingyiwanwu.com/)",
       "icon": "yi.png",
-      "mode": "provider",
+      "mode": "no-view",
       "commandType": "provider",
       "targetCommand": "llm|chat_open_ai",
       "preferences": [
@@ -1595,7 +1507,7 @@
       "title": "DashScope",
       "description": "Chat with 阿里云百炼 , learn more : [阿里云百炼](https://bailian.console.aliyun.com/#/home)",
       "icon": "dashscope.png",
-      "mode": "provider",
+      "mode": "no-view",
       "commandType": "provider",
       "targetCommand": "llm|chat_open_ai",
       "preferences": [
@@ -1665,7 +1577,7 @@
       "title": "Sambanova AI",
       "description": "Chat with sambanova.ai, learn more : [sambanova.ai](https://cloud.sambanova.ai/pricing)",
       "icon": "sambanova.png",
-      "mode": "provider",
+      "mode": "no-view",
       "commandType": "provider",
       "targetCommand": "llm|chat_open_ai",
       "preferences": [
@@ -1735,7 +1647,7 @@
       "title": "Cerebras AI",
       "description": "Chat with cerebras.ai, learn more : [cerebras.ai](https://cerebras.ai/)",
       "icon": "cerebras.png",
-      "mode": "provider",
+      "mode": "no-view",
       "commandType": "provider",
       "targetCommand": "llm|chat_open_ai",
       "preferences": [
@@ -1805,7 +1717,7 @@
       "title": "Arli AI",
       "description": "Chat with arli.ai, learn more : [arliai.com](https://arliai.com/)",
       "icon": "arli.png",
-      "mode": "provider",
+      "mode": "no-view",
       "commandType": "provider",
       "targetCommand": "llm|chat_open_ai",
       "preferences": [
@@ -1875,7 +1787,7 @@
       "title": "Straico AI",
       "description": "Chat with straico.com, learn more : [straico.com](https://straico.com/)",
       "icon": "straico.png",
-      "mode": "provider",
+      "mode": "no-view",
       "commandType": "provider",
       "preferences": [
         {
@@ -2080,24 +1992,19 @@
       "mode": "no-view",
       "preferences": [
         {
-          "name": "apiKey",
-          "description": "Google AI api key",
-          "type": "password",
+          "name": "credentials",
+          "description": "The key management provider to use",
+          "type": "extension",
           "required": false,
-          "title": "Google AI Api Key",
-          "default": "",
-          "defaultProxy": "credentials|google",
-          "placeholder": "AI********"
-        },
-        {
-          "name": "baseUrl",
-          "description": "Google AI api base url",
-          "type": "textfield",
-          "required": true,
-          "title": "Google AI Api Base Url",
-          "defaultProxy": "credentials|google",
-          "default": "",
-          "placeholder": "https://generativelanguage.googleapis.com"
+          "default": "gemini",
+          "extensionType": "credentials-provider",
+          "defaultProxy": "llm|chat_google",
+          "extensionFilter": {
+            "targetCommands": [
+              "credentials|gemini"
+            ]
+          },
+          "title": "Credential Provider"
         }
       ]
     },
@@ -2318,9 +2225,11 @@
           "type": "extension",
           "required": false,
           "default": "open_ai",
-          "extensionType":"credentials-provider",
+          "extensionType": "credentials-provider",
           "extensionFilter": {
-            "targetCommands": ["credentials|open_ai"]
+            "targetCommands": [
+              "credentials|open_ai"
+            ]
           },
           "title": "Credential Provider",
           "defaultProxy": "llm|chat_open_ai"
@@ -2338,14 +2247,19 @@
       "mode": "no-view",
       "preferences": [
         {
-          "name": "baseUrl",
-          "description": "lmstudio api base url",
-          "type": "textfield",
+          "name": "credentials",
+          "description": "The key management provider to use",
+          "type": "extension",
           "required": false,
-          "title": "lmstudio Api Base Url",
-          "default": "http://127.0.0.1:1234/v1",
-          "defaultProxy": "credentials|lm_studio",
-          "placeholder": "LM Studio Api Base Url"
+          "default": "lm_studio",
+          "defaultProxy": "llm|chat_lm_studio",
+          "extensionType": "credentials-provider",
+          "extensionFilter": {
+            "targetCommands": [
+              "credentials|lm_studio"
+            ]
+          },
+          "title": "Credential Provider"
         }
       ]
     },

@@ -55,9 +55,12 @@ export default async function main(req: Request): Promise<string> {
 
     const modelCache = new DropdownListCache(fetchModels)
 
+    const credentials = options.credentials
+    console.log("gemini models credentials", credentials)
+
     const models = await modelCache.getModelsCache({
         ...options,
-        api_key: options.apiKey
+        api_key: credentials.apiKey
     })
 
     return JSON.stringify(models)

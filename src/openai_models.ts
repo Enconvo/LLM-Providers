@@ -82,6 +82,8 @@ export default async function main(req: Request): Promise<string> {
 
     const credentials = options.credentials
 
+    console.log("openai models credentials", credentials)
+
     options.api_key = credentials?.apiKey
 
     let url
