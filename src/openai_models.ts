@@ -80,9 +80,7 @@ async function fetchModels(url?: string, api_key?: string, type?: string): Promi
 export default async function main(req: Request): Promise<string> {
     const options = await req.json()
 
-    const credentials = options.credentials?.[options.credentials?.commandKey]
-
-    console.log("credentials", credentials)
+    const credentials = options.credentials
 
     options.api_key = credentials?.apiKey
 
