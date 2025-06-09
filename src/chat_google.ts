@@ -116,6 +116,7 @@ export class GoogleGeminiProvider extends LLMProvider {
         let baseUrl = credentials.baseUrl
 
         let model = this.options.modelName.value
+        console.log("model", model, this.options.originCommandName)
 
         if (this.options.originCommandName === 'enconvo_ai') {
             headers = {
@@ -125,7 +126,7 @@ export class GoogleGeminiProvider extends LLMProvider {
                 "commandTitle": `${env['commandTitle']}`,
                 "modelName": model
             }
-            baseUrl = this.options.baseUrl
+            baseUrl = baseUrl
             model = model.split('/')[1]
         }
 

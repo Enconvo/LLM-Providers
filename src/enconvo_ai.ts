@@ -18,6 +18,7 @@ async function initLLMProvider(options: LLMProvider.LLMOptions) {
     // const openAIBaseUrl = "http://127.0.0.1:8181/v1/"
     // const googleApiUrl = "http://127.0.0.1:8181"
 
+
     switch (modelProvider) {
         case "anthropic":
             options.commandName = "chat_anthropic";

@@ -115,7 +115,7 @@ export class ChatOpenAIProvider extends LLMProvider {
                 'X-Title': 'Enconvo',
             }
         }
-        console.log("headers", headers)
+        // console.log("headers", headers)
 
         if (
             options.modelName &&
@@ -133,7 +133,7 @@ export class ChatOpenAIProvider extends LLMProvider {
             options.frequencyPenalty = 0.0001
         }
         const credentials = options.credentials
-        // console.log("credentials", credentials)
+        console.log("openai credentials", credentials, env['LANGCHAIN_TRACING_V2'])
 
         const client = new OpenAI({
             apiKey: credentials?.apiKey, // This is the default and can be omitted
