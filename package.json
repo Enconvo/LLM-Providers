@@ -242,14 +242,6 @@
             {
               "title": "medium",
               "value": 1
-            },
-            {
-              "title": "high",
-              "value": 1.5
-            },
-            {
-              "title": "maximum",
-              "value": 2
             }
           ]
         }

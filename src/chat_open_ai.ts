@@ -49,7 +49,7 @@ export class ChatOpenAIProvider extends LLMProvider {
 
     private initParams(content: LLMProvider.Params) {
         const credentials = this.options.credentials
-        console.log("credentials", credentials)
+        // console.log("chat openai credentials",  JSON.stringify(this.options,null,2))
         if (!credentials.apiKey) {
             throw new Error("API key is required")
         }
@@ -133,7 +133,6 @@ export class ChatOpenAIProvider extends LLMProvider {
             options.frequencyPenalty = 0.0001
         }
         const credentials = options.credentials
-        console.log("openai credentials", credentials, env['LANGCHAIN_TRACING_V2'])
 
         const client = new OpenAI({
             apiKey: credentials?.apiKey, // This is the default and can be omitted

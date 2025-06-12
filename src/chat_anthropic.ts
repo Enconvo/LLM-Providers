@@ -125,6 +125,13 @@ export class AnthropicProvider extends LLMProvider {
 
         const model = this.options.modelName.value
         let params: any = {}
+        let temperature = Number(this.options.temperature.value)
+        if (temperature > 1) {
+            temperature = 1
+        }
+        if (temperature < 0) {
+            temperature = 0
+        }
         if (model.includes("claude-3-7-sonnet-latest-thinking")) {
             const modelName = model.includes("anthropic/") ? "anthropic/claude-3-7-sonnet-20250219" : "claude-3-7-sonnet-20250219"
 
@@ -137,7 +144,7 @@ export class AnthropicProvider extends LLMProvider {
                     budget_tokens: 32000
                 },
                 messages: newMessages,
-                temperature: Number(this.options.temperature.value),
+                temperature: temperature,
             }
         } else {
             const defaultMaxTokens = model.includes("claude-3-7-sonnet") ? 64000 : this.options.modelName.maxTokens || 8192
@@ -145,7 +152,7 @@ export class AnthropicProvider extends LLMProvider {
             params = {
                 system,
                 model: model,
-                temperature: Number(this.options.temperature.value),
+                temperature: temperature,
                 max_tokens: defaultMaxTokens,
                 messages: newMessages,
             }
