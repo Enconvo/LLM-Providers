@@ -387,7 +387,7 @@ export namespace OpenAIUtil {
 
         newMessages = ensureFirstMessageIsUser(newMessages)
 
-        // console.log("newMessages", JSON.stringify(newMessages, null, 2))
+        console.log("newMessages", JSON.stringify(newMessages, null, 2))
         return newMessages
     }
 

@@ -11,7 +11,7 @@ const models: DropdownListCache.ModelOutput[] = [
  * @returns Promise<ModelOutput[]> - Array of processed model data
  */
 async function fetchModels(url?: string, api_key?: string, type?: string): Promise<DropdownListCache.ModelOutput[]> {
-    // console.log("fetchModels", url, api_key, type)
+    console.log("fetchModels", url, api_key, type)
     if (!url || !api_key || !type) {
         return []
     }
@@ -67,6 +67,7 @@ async function fetchModels(url?: string, api_key?: string, type?: string): Promi
 export default async function main(req: Request): Promise<string> {
     const options = await req.json()
     const credentials = options.credentials
+    console.log("credentials", credentials)
 
     options.url = 'https://api.straico.com/v1/models'
     options.api_key = credentials.apiKey

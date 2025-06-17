@@ -7,6 +7,46 @@ export const openai_models_data = [
         "visionEnable": true
     },
     {
+        "title": "o4-mini",
+        "value": "o4-mini",
+        "context": 200000,
+        "inputPrice": 0,
+        "outputPrice": 0,
+        "toolUse": true,
+        "visionEnable": true,
+        "systemMessageEnable": true
+    },
+    {
+        "title": "o3",
+        "value": "o3",
+        "context": 200000,
+        "inputPrice": 0,
+        "outputPrice": 0,
+        "toolUse": true,
+        "visionEnable": true,
+        "systemMessageEnable": true
+    },
+    {
+        "title": "o3-pro",
+        "value": "o3-pro",
+        "context": 200000,
+        "inputPrice": 0,
+        "outputPrice": 0,
+        "toolUse": true,
+        "visionEnable": true,
+        "systemMessageEnable": true
+    },
+    {
+        "title": "o3-mini",
+        "value": "o3-mini",
+        "context": 200000,
+        "inputPrice": 0,
+        "outputPrice": 0,
+        "toolUse": true,
+        "visionEnable": false,
+        "systemMessageEnable": true
+    },
+    {
         "title": "gpt-4.1-2025-04-14",
         "value": "gpt-4.1-2025-04-14",
         "context": 1047576,
