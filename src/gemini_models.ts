@@ -1,4 +1,4 @@
-import { DropdownListCache } from "@enconvo/api"
+import { DropdownListCache, ListCache, RequestOptions } from "@enconvo/api"
 import { GoogleGenAI } from "@google/genai";
 
 
@@ -8,11 +8,11 @@ import { GoogleGenAI } from "@google/genai";
  * @param api_key - API authentication key
  * @returns Promise<ModelOutput[]> - Array of processed model data
  */
-async function fetchModels(url?: string, api_key?: string, type?: string): Promise<DropdownListCache.ModelOutput[]> {
+async function fetchModels(options: RequestOptions): Promise<ListCache.ListItem[]> {
     try {
-        const google = new GoogleGenAI({ apiKey: api_key });
+        const google = new GoogleGenAI({ apiKey: options.api_key });
         const pager = await google.models.list()
-        const models: DropdownListCache.ModelOutput[] = []
+        const models: ListCache.ListItem[] = []
         for await (const model of pager) {
             console.log(model)
             if (model.supportedActions?.some(action => action === 'generateContent' || action === 'bidiGenerateContent')) {
@@ -53,12 +53,12 @@ async function fetchModels(url?: string, api_key?: string, type?: string): Promi
 export default async function main(req: Request): Promise<string> {
     const options = await req.json()
 
-    const modelCache = new DropdownListCache(fetchModels)
+    const modelCache = new ListCache(fetchModels)
 
     const credentials = options.credentials
     console.log("gemini models credentials", credentials)
 
-    const models = await modelCache.getModelsCache({
+    const models = await modelCache.getList({
         ...options,
         api_key: credentials.apiKey
     })

@@ -1,4 +1,4 @@
-import { DropdownListCache } from '@enconvo/api'
+import { ListCache, RequestOptions } from '@enconvo/api'
 
 import Anthropic from '@anthropic-ai/sdk';
 
@@ -10,20 +10,19 @@ import Anthropic from '@anthropic-ai/sdk';
  * @param api_key - API authentication key
  * @returns Promise<ModelOutput[]> - Array of processed model data
  */
-async function fetchModels(url?: string, api_key?: string, type?: string): Promise<DropdownListCache.ModelOutput[]> {
-    // console.log("fetchModels", url, api_key, type)
-    if (!url || !api_key) {
+async function fetchModels(options: RequestOptions): Promise<ListCache.ListItem[]> {
+    if (!options.url || !options.api_key) {
         return []
     }
 
     const anthropic = new Anthropic({
-        apiKey: api_key, // defaults to process.env["ANTHROPIC_API_KEY"]
-        baseURL: url
+        apiKey: options.api_key, // defaults to process.env["ANTHROPIC_API_KEY"]
+        baseURL: options.url
     });
 
     const models = await anthropic.models.list()
 
-    let result: DropdownListCache.ModelOutput[] = []
+    let result: ListCache.ListItem[] = []
     for await (const model of models.iterPages()) {
         const items = model.data.map((item) => {
             const context = 200000
@@ -74,7 +73,6 @@ async function fetchModels(url?: string, api_key?: string, type?: string): Promi
     }
 
     return result
-
 }
 
 
@@ -90,9 +88,9 @@ export default async function main(req: Request): Promise<string> {
     options.api_key = credentials.anthropicApiKey
     options.url = credentials.anthropicApiUrl
 
-    const modelCache = new DropdownListCache(fetchModels)
+    const modelCache = new ListCache(fetchModels)
 
-    const models = await modelCache.getModelsCache(options)
+    const models = await modelCache.getList(options)
 
     return JSON.stringify(models)
 }

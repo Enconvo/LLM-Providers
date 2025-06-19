@@ -1,17 +1,7 @@
-import { DropdownListCache, environment } from "@enconvo/api"
-import fs from 'fs'
+import { ListCache, RequestOptions } from "@enconvo/api"
 
 
-// ModelOutput interface representing the processed model data structure
-interface ModelOutput {
-    title: string           // Display name of the model
-    value: string          // Model ID
-    context: number        // Maximum context length
-    inputPrice: number     // Price per token for input
-    outputPrice: number    // Price per token for output
-    toolUse: boolean       // Whether model supports tool use
-    visionEnable: boolean  // Whether model supports vision/image processing
-}
+
 
 /**
  * Fetches models from the API and transforms them into ModelOutput format
@@ -19,7 +9,8 @@ interface ModelOutput {
  * @param api_key - API authentication key
  * @returns Promise<ModelOutput[]> - Array of processed model data
  */
-async function fetchModels(url: string, api_key: string, type: string): Promise<ModelOutput[]> {
+async function fetchModels(options: RequestOptions): Promise<ListCache.ListItem[]> {
+    let { url, api_key, type } = options
     try {
         if (type) {
             url = `${url}?type=${type}`
@@ -35,7 +26,6 @@ async function fetchModels(url: string, api_key: string, type: string): Promise<
         }
 
         const data = await resp.json()
-        // console.log("Total models fetched:", data.length)
         return data
 
     } catch (error) {
@@ -57,9 +47,9 @@ async function fetchModels(url: string, api_key: string, type: string): Promise<
 export default async function main(req: Request): Promise<string> {
     const options = await req.json()
 
-    const modelCache = new DropdownListCache(fetchModels)
+    const modelCache = new ListCache(fetchModels)
 
-    const models = await modelCache.getModelsCache(options)
+    const models = await modelCache.getList(options)
 
     return JSON.stringify(models)
 }

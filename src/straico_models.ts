@@ -1,6 +1,6 @@
-import { DropdownListCache } from "@enconvo/api"
+import { ListCache, RequestOptions } from "@enconvo/api"
 
-const models: DropdownListCache.ModelOutput[] = [
+const models: ListCache.ListItem[] = [
 
 ]
 
@@ -10,15 +10,15 @@ const models: DropdownListCache.ModelOutput[] = [
  * @param api_key - API authentication key
  * @returns Promise<ModelOutput[]> - Array of processed model data
  */
-async function fetchModels(url?: string, api_key?: string, type?: string): Promise<DropdownListCache.ModelOutput[]> {
-    console.log("fetchModels", url, api_key, type)
-    if (!url || !api_key || !type) {
+async function fetchModels(options: RequestOptions): Promise<ListCache.ListItem[]> {
+    console.log("fetchModels", options.url, options.api_key, options.type)
+    if (!options.url || !options.api_key || !options.type) {
         return []
     }
     try {
-        const resp = await fetch(url, {
+        const resp = await fetch(options.url, {
             headers: {
-                'Authorization': `Bearer ${api_key}`
+                'Authorization': `Bearer ${options.api_key}`
             }
         })
 
@@ -27,7 +27,7 @@ async function fetchModels(url?: string, api_key?: string, type?: string): Promi
         }
 
         const data = await resp.json()
-        const result = data.data[type].map((item: any) => {
+        const result = data.data[options.type].map((item: any) => {
             const model = models.find((m) => {
                 return m.value === item.model
             })
@@ -73,8 +73,8 @@ export default async function main(req: Request): Promise<string> {
     options.api_key = credentials.apiKey
     options.type = options.type || 'chat'
 
-    const modelCache = new DropdownListCache(fetchModels)
+    const modelCache = new ListCache(fetchModels)
 
-    const models = await modelCache.getModelsCache(options)
+    const models = await modelCache.getList(options)
     return JSON.stringify(models)
 }

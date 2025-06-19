@@ -1,7 +1,7 @@
-import { DropdownListCache } from "@enconvo/api"
+import { ListCache, RequestOptions } from "@enconvo/api"
 
 
-const models: DropdownListCache.ModelOutput[] = [
+const models: ListCache.ListItem[] = [
     {
         title: "DeepSeek-R1-Distill-Llama-70B",
         value: "DeepSeek-R1-Distill-Llama-70B",
@@ -94,7 +94,7 @@ const models: DropdownListCache.ModelOutput[] = [
  * @param api_key - API authentication key
  * @returns Promise<ModelOutput[]> - Array of processed model data
  */
-async function fetchModels(url?: string, api_key?: string, type?: string): Promise<DropdownListCache.ModelOutput[]> {
+async function fetchModels(options: RequestOptions): Promise<ListCache.ListItem[]> {
     // console.log("fetchModels", url, api_key, type)
     return models
 }
@@ -116,8 +116,8 @@ export default async function main(req: Request): Promise<string> {
 
     options.url = url
 
-    const modelCache = new DropdownListCache(fetchModels)
+    const modelCache = new ListCache(fetchModels)
 
-    const models = await modelCache.getModelsCache(options)
+    const models = await modelCache.getList(options)
     return JSON.stringify(models)
 }

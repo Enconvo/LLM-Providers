@@ -1,4 +1,4 @@
-import { DropdownListCache } from "@enconvo/api"
+import { DropdownListCache, ListCache, RequestOptions } from "@enconvo/api"
 import axios from 'axios';
 
 const models: DropdownListCache.ModelOutput[] = [
@@ -28,23 +28,23 @@ const models: DropdownListCache.ModelOutput[] = [
  * @param api_key - API authentication key
  * @returns Promise<ModelOutput[]> - Array of processed model data
  */
-async function fetchModels(url?: string, api_key?: string, type?: string): Promise<DropdownListCache.ModelOutput[]> {
-    if (!url) {
+async function fetchModels(options: RequestOptions): Promise<ListCache.ListItem[]> {
+    if (!options.url) {
         return []
     }
     try {
         // Using axios to make the API request
-        const resp = await axios.get(url, {
+        const resp = await axios.get(options.url, {
             headers: {
-                'Authorization': `Bearer ${api_key}`
+                'Authorization': `Bearer ${options.api_key}`
             }
         });
 
         if (resp.status !== 200) {
             throw new Error(`
-                url: ${url}
-                api_key: ${api_key}
-                type: ${type}
+                url: ${options.url}
+                api_key: ${options.api_key}
+                type: ${options.type}
                 API request failed with status ${resp.data}`)
         }
 
@@ -98,8 +98,8 @@ export default async function main(req: Request): Promise<string> {
 
     options.url = url
 
-    const modelCache = new DropdownListCache(fetchModels)
+    const modelCache = new ListCache(fetchModels)
 
-    const models = await modelCache.getModelsCache(options)
+    const models = await modelCache.getList(options)
     return JSON.stringify(models)
 }

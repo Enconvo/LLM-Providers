@@ -1,4 +1,4 @@
-import { DropdownListCache } from '@enconvo/api'
+import { ListCache, RequestOptions } from '@enconvo/api'
 import { openai_models_data } from './utils/openai_models_data.ts'
 import axios from 'axios'
 
@@ -11,64 +11,63 @@ import axios from 'axios'
  * @param api_key - API authentication key
  * @returns Promise<ModelOutput[]> - Array of processed model data
  */
-async function fetchModels(url?: string, api_key?: string, type?: string): Promise<DropdownListCache.ModelOutput[]> {
-    // console.log("fetchModels", url, api_key, type)
+async function fetchModels(options: RequestOptions): Promise<ListCache.ListItem[]> {
+    const { url, api_key } = options
     if (!url || !api_key) {
         return []
     }
-        const resp = await axios.get(url, {
-            headers: {
-                'Authorization': `Bearer ${api_key}`
-            }
-        })
+    const resp = await axios.get(url, {
+        headers: {
+            'Authorization': `Bearer ${api_key}`
+        }
+    })
 
-        if (resp.status !== 200) {
-            throw new Error(`API request failed with status ${resp.status}`)
+    if (resp.status !== 200) {
+        throw new Error(`API request failed with status ${resp.status}`)
+    }
+
+    const data = resp.data
+    const result = data.data.map((item: any) => {
+        if (item.value) {
+            return item
         }
 
-        const data = resp.data
-        const result = data.data.map((item: any) => {
-            if (item.value) {
-                return item
-            }
+        const model = openai_models_data.find((model: any) => model.value === (item.value || item.id))
 
-            const model = openai_models_data.find((model: any) => model.value === (item.value || item.id))
+        const context = model?.context || 8000
+        const toolUse = model?.toolUse || false
+        const visionEnable = model?.visionEnable || false
+        const modelName = model?.value || item.id
 
-            const context = model?.context || 8000
-            const toolUse = model?.toolUse || false
-            const visionEnable = model?.visionEnable || false
-            const modelName = model?.value || item.id
+        const systemMessageEnable = (!modelName.includes('o1-'))
 
-            const systemMessageEnable = (!modelName.includes('o1-'))
+        return {
+            title: model?.title || item.id,
+            value: modelName,
+            context: context,
+            inputPrice: model?.inputPrice || 0,
+            outputPrice: model?.outputPrice || 0,
+            toolUse: toolUse,
+            visionEnable: visionEnable,
+            systemMessageEnable: systemMessageEnable
+        }
 
-            return {
-                title: model?.title || item.id,
-                value: modelName,
-                context: context,
-                inputPrice: model?.inputPrice || 0,
-                outputPrice: model?.outputPrice || 0,
-                toolUse: toolUse,
-                visionEnable: visionEnable,
-                systemMessageEnable: systemMessageEnable
-            }
+    }).filter((item: any) => {
+        if (item.value.includes('embedding')
+            || item.value.includes('dall')
+            || item.value.includes('whisper')
+            || item.value.includes('babbage')
+            || item.value.includes('davinci')
+            || item.value.includes('audio')
+            || item.value.includes('realtime')
+            || item.value.includes('omni-moderation')
+            || item.value.includes('tts')) {
+            return false
+        }
+        return true
+    })
 
-        }).filter((item: any) => {
-            if (item.value.includes('embedding')
-                || item.value.includes('dall')
-                || item.value.includes('whisper')
-                || item.value.includes('babbage')
-                || item.value.includes('davinci')
-                || item.value.includes('audio')
-                || item.value.includes('realtime')
-                || item.value.includes('omni-moderation')
-                || item.value.includes('tts')) {
-                return false
-            }
-            return true
-        })
-
-        // console.log("Total models fetched:", result)
-        return result
+    return result
 }
 
 
@@ -92,9 +91,9 @@ export default async function main(req: Request): Promise<string> {
 
     options.url = url
 
-    const modelCache = new DropdownListCache(fetchModels)
+    const modelCache = new ListCache(fetchModels)
 
-    const models = await modelCache.getModelsCache(options)
+    const models = await modelCache.getList(options)
 
     return JSON.stringify(models)
 }

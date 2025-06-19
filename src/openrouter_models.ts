@@ -1,8 +1,5 @@
-import { DropdownListCache } from '@enconvo/api'
+import { ListCache, RequestOptions } from '@enconvo/api'
 import axios from 'axios'
-
-
-
 
 /**
  * Fetches models from the API and transforms them into ModelOutput format
@@ -10,10 +7,10 @@ import axios from 'axios'
  * @param api_key - API authentication key
  * @returns Promise<ModelOutput[]> - Array of processed model data
  */
-async function fetchModels(url: string, api_key: string, type: string): Promise<DropdownListCache.ModelOutput[]> {
+async function fetchModels(options: RequestOptions): Promise<ListCache.ListItem[]> {
     try {
         // Using axios to fetch data from the API
-        const resp = await axios.get(url)
+        const resp = await axios.get(options.url)
 
         if (resp.status !== 200) {
             throw new Error(`API request failed with status ${resp.status}`)
@@ -53,9 +50,9 @@ export default async function main(req: Request): Promise<string> {
 
     options.url = "https://openrouter.ai/api/v1/models"
 
-    const modelCache = new DropdownListCache(fetchModels)
+    const modelCache = new ListCache(fetchModels)
 
-    const models = await modelCache.getModelsCache(options)
+    const models = await modelCache.getList(options)
 
     return JSON.stringify(models)
 }

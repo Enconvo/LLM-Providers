@@ -1,6 +1,6 @@
-import { DropdownListCache } from "@enconvo/api"
+import { DropdownListCache, ListCache, RequestOptions } from "@enconvo/api"
 
-const models: DropdownListCache.ModelOutput[] = [
+const models: ListCache.ListItem[] = [
     {
       "title": "Deepseek V3",
       "value": "deepseek-chat",
@@ -26,7 +26,7 @@ const models: DropdownListCache.ModelOutput[] = [
  * @param api_key - API authentication key
  * @returns Promise<ModelOutput[]> - Array of processed model data
  */
-async function fetchModels(url: string, api_key: string, type: string): Promise<DropdownListCache.ModelOutput[]> {
+async function fetchModels(options: RequestOptions): Promise<ListCache.ListItem[]> {
     // console.log("fetchModels", url, api_key, type)
     try {
 
@@ -46,9 +46,9 @@ async function fetchModels(url: string, api_key: string, type: string): Promise<
 export default async function main(req: Request): Promise<string> {
     const options = await req.json()
 
-    const modelCache = new DropdownListCache(fetchModels)
+    const modelCache = new ListCache(fetchModels)
 
-    const models = await modelCache.getModelsCache({
+    const models = await modelCache.getList({
         ...options,
         input_text: 'refresh'
     })
