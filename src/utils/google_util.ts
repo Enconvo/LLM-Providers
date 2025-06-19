@@ -104,7 +104,7 @@ const convertToolResults = (results: (string | ChatMessageContent)[], options: L
                     })
                 }
                 messageContents.push({
-                    text: "This is a image file , url is " + url
+                    text: `This is a image file , url is ${url} , only used for reference when you use tool, if not , ignore this .`
                 })
             }
         }
@@ -210,7 +210,7 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
 
                 if (isAgentMode) {
                     const text: Part = {
-                        text: "This is a image file , url is " + url
+                        text: `This is a image file , url is ${url} , only used for reference when you use tool, if not , ignore this .`
                     }
 
                     parts.push(text)
@@ -307,9 +307,11 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
                     parts.push(audio)
                 }
 
-                parts.push({
-                    text: "This is a audio file , url is " + url
-                })
+                if (isAgentMode) {
+                    parts.push({
+                        text: "This is a audio file , url is " + url
+                    })
+                }
 
             } else if (item.type === "video") {
                 const url = item.file_url.url

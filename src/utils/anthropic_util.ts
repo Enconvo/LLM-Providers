@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk"
-import { AssistantMessage, BaseChatMessageChunk, BaseChatMessageLike, ChatMessageContent, FileUtil, LLMProvider, LLMTool, Stream, ToolMessage, uuid } from "@enconvo/api"
+import { AssistantMessage, BaseChatMessageChunk, BaseChatMessageLike, ChatMessageContent, FileUtil, LLMProvider, LLMTool, Runtime, Stream, ToolMessage, uuid } from "@enconvo/api"
 import fs from "fs"
 import path from "path"
 import mime from "mime"
@@ -246,10 +246,12 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
                     })
                 }
 
-                parts.push({
-                    type: "text",
-                    text: "This is a image file , url is " + url
-                })
+                if (Runtime.isAgentMode()) {
+                    parts.push({
+                        type: "text",
+                        text: `This is a image file , url is ${url} , only used for reference when you use tool, if not , ignore this .`
+                    })
+                }
 
 
             } else if (item.type === "flow_step") {

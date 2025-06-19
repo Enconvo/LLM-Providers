@@ -1,4 +1,4 @@
-import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, BaseChatMessageLike, ChatMessageContent, FileUtil, LLMProvider, LLMTool, Stream } from "@enconvo/api"
+import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, BaseChatMessageLike, ChatMessageContent, FileUtil, LLMProvider, LLMTool, Runtime, Stream } from "@enconvo/api"
 import OpenAI from "openai"
 import path from "path"
 import fs from "fs"
@@ -34,7 +34,7 @@ export namespace OpenAIUtil {
 
                     messageContents.push({
                         type: "text",
-                        text: "This is a image file , url is " + url
+                        text: `This is a image file , url is ${url} , only used for reference when you use tool, if not , ignore this .`
                     })
                 }
             }
@@ -116,10 +116,12 @@ export namespace OpenAIUtil {
                         })
                     }
 
-                    messageContents.push({
-                        type: "text",
-                        text: "This is a image file , url is " + url
-                    })
+                    if (Runtime.isAgentMode()) {
+                        messageContents.push({
+                            type: "text",
+                            text: `This is a image file , url is ${url} , only used for reference when you use tool, if not , ignore this .`
+                        })
+                    }
 
                 } else if (item.type === "flow_step") {
 
