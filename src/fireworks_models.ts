@@ -25,12 +25,13 @@ async function fetchModels(options: RequestOptions): Promise<ListCache.ListItem[
         }
 
         const data = await resp.json()
+        console.log("fireworks_models data", JSON.stringify(data.data, null, 2))
         const result = data.data.filter((item: any) => !item.id.includes('whisper')).map((item: any) => {
-            const context = item.context_window || 8000
-            const visionEnable = item.id.includes('vision')
+            const context = item.context_length || 8000
+            const visionEnable = item.supports_image_input || false
             // Check if model supports tool use based on model ID
             // llama-3.3-70b-versatile and llama-3.1-8b-instant support tool use
-            const toolUse = item.id.includes('tool-use')
+            const toolUse = item.supports_tools || false
             return {
                 title: item.title || item.id,
                 value: item.value || item.id,
@@ -60,15 +61,13 @@ async function fetchModels(options: RequestOptions): Promise<ListCache.ListItem[
  */
 export default async function main(req: Request): Promise<string> {
     const options = await req.json()
-    // console.log("groq_models options", options.credentials)
     const credentials = options.credentials
+    console.log("fireworks_models credentials", credentials)
     options.api_key = credentials.apiKey
 
-    let url
-    url = credentials.baseUrl.endsWith('/') ? credentials.baseUrl : `${credentials.baseUrl}/`
-    url = `${url}models`
+    const url = credentials.baseUrl.endsWith('/') ? credentials.baseUrl : `${credentials.baseUrl}/`
+    options.url = `${url}models`
 
-    options.url = url
 
     const modelCache = new ListCache(fetchModels)
 

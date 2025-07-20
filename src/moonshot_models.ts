@@ -25,22 +25,39 @@ async function fetchModels(options: RequestOptions): Promise<ListCache.ListItem[
         }
 
         const data = await resp.json()
-        const result = data.data.filter((item: any) => !item.id.includes('whisper')).map((item: any) => {
-            const context = item.context_window || 8000
-            const visionEnable = item.id.includes('vision')
-            // Check if model supports tool use based on model ID
-            // llama-3.3-70b-versatile and llama-3.1-8b-instant support tool use
-            const toolUse = item.id.includes('tool-use')
+        const result = data.data.map((item: any) => {
+
+            let context = 131072
+            let toolUse = true
+            let visionEnable = false
+            if (item.id.startsWith('kimi-k2-0711-preview')) {
+            } else if (item.id.startsWith('kimi-thinking-preview')) {
+                visionEnable = true
+                toolUse = false
+            } else if (item.id.startsWith('kimi-latest')) {
+                visionEnable = true
+            } else if (item.id.includes('-32k')) {
+                context = 32768
+            } else if (item.id.includes('-128k')) {
+                context = 131072
+            } else if (item.id.includes('-8k')) {
+                context = 8192
+            }
+
+            if (item.id.includes('vision')) {
+                visionEnable = true
+            }
+
             return {
-                title: item.title || item.id,
-                value: item.value || item.id,
+                title: item.id,
+                value: item.id,
                 context: context,
                 inputPrice: item.inputPrice || 0,
                 outputPrice: item.outputPrice || 0,
                 toolUse: toolUse,
                 visionEnable: visionEnable,
                 visionImageCountLimit: 1,
-                systemMessageEnable: !visionEnable
+                systemMessageEnable: true
             }
         })
 
@@ -60,15 +77,11 @@ async function fetchModels(options: RequestOptions): Promise<ListCache.ListItem[
  */
 export default async function main(req: Request): Promise<string> {
     const options = await req.json()
-    // console.log("groq_models options", options.credentials)
-    const credentials = options.credentials
-    options.api_key = credentials.apiKey
+    options.api_key = options.credentials.apiKey
 
-    let url
-    url = credentials.baseUrl.endsWith('/') ? credentials.baseUrl : `${credentials.baseUrl}/`
-    url = `${url}models`
-
+    const url = `${options.credentials.baseUrl}/models`
     options.url = url
+    console.log("url", url)
 
     const modelCache = new ListCache(fetchModels)
 

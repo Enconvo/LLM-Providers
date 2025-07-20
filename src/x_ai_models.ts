@@ -1,80 +1,6 @@
 import { ListCache, RequestOptions } from "@enconvo/api"
 
 
-const models: ListCache.ListItem[] = [
-    {
-        title: "grok-3-beta",
-        value: "grok-3-latest",
-        context: 131072,
-        inputPrice: 5.00,
-        outputPrice: 15.00,
-        toolUse: true,
-        visionEnable: false,
-    },
-    {
-        title: "grok-3-fast-beta",
-        value: "grok-3-fast-latest",
-        context: 131072,
-        inputPrice: 5.00,
-        outputPrice: 15.00,
-        toolUse: true,
-        visionEnable: false,
-    },
-    {
-        title: "grok-3-mini-beta",
-        value: "grok-3-mini-latest",
-        context: 131072,
-        inputPrice: 5.00,
-        outputPrice: 15.00,
-        toolUse: true,
-        visionEnable: false,
-    },
-    {
-        title: "grok-3-mini-fast-beta",
-        value: "grok-3-mini-fast-latest",
-        context: 131072,
-        inputPrice: 5.00,
-        outputPrice: 15.00,
-        toolUse: true,
-        visionEnable: false,
-    },
-    {
-        title: "grok-beta",
-        value: "grok-beta",
-        context: 131072,
-        inputPrice: 5.00,
-        outputPrice: 15.00,
-        toolUse: true,
-        visionEnable: false,
-    },
-    {
-        title: "grok-vision-beta",
-        value: "grok-vision-beta",
-        context: 8192,
-        inputPrice: 5.00,
-        outputPrice: 15.00,
-        toolUse: true,
-        visionEnable: true,
-    },
-    {
-        title: "grok-2-vision-1212",
-        value: "grok-2-vision-1212",
-        context: 32768,
-        inputPrice: 2.00,
-        outputPrice: 10.00,
-        toolUse: true,
-        visionEnable: true,
-    },
-    {
-        title: "grok-2-1212",
-        value: "grok-2-1212",
-        context: 131072,
-        inputPrice: 2.00,
-        outputPrice: 10.00,
-        toolUse: true,
-        visionEnable: false,
-    }
-]
 
 /**
  * Fetches models from the API and transforms them into ModelOutput format
@@ -85,7 +11,49 @@ const models: ListCache.ListItem[] = [
 async function fetchModels(options: RequestOptions): Promise<ListCache.ListItem[]> {
     // console.log("fetchModels", url, api_key, type)
     try {
-        return models
+        if (!options.url || !options.api_key) {
+            throw new Error("URL and API key are required")
+        }
+        const resp = await fetch(options.url, {
+            headers: {
+                'Authorization': `Bearer ${options.api_key}`
+            }
+        })
+
+        if (!resp.ok) {
+            throw new Error(`API request failed with status ${resp.status}`)
+        }
+
+        const data = await resp.json()
+        const result = data.data.filter((item: any) => !item.id.includes('image')).map((item: any) => {
+
+            let context = 32768
+            let toolUse = true
+            let visionEnable = false
+            if (item.id.startsWith('grok-3')) {
+                context = 131072
+            } else if (item.id.startsWith('grok-4')) {
+                context = 256000
+                visionEnable = true
+            } else if (item.id.includes('vision')) {
+                visionEnable = true
+            }
+
+            return {
+                title: item.id,
+                value: item.id,
+                context: context,
+                inputPrice: item.inputPrice || 0,
+                outputPrice: item.outputPrice || 0,
+                toolUse: toolUse,
+                visionEnable: visionEnable,
+                visionImageCountLimit: 1,
+                systemMessageEnable: true
+            }
+        })
+
+        // console.log("Total models fetched:", result)
+        return result
 
     } catch (error) {
         console.error('Error fetching models:', error)
@@ -100,13 +68,9 @@ async function fetchModels(options: RequestOptions): Promise<ListCache.ListItem[
  */
 export default async function main(req: Request): Promise<string> {
     const options = await req.json()
-    options.api_key = options.apiKey
+    options.api_key = options.credentials.apiKey
 
-
-    let url
-    url = options.baseUrl.endsWith('/') ? options.baseUrl : `${options.baseUrl}/`
-    url = `${url}models`
-
+    const url = `https://api.x.ai/v1/models`
     options.url = url
 
     const modelCache = new ListCache(fetchModels)
