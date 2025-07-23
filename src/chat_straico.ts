@@ -62,12 +62,13 @@ export class StraicoProvider extends LLMProvider {
 
     async request(messages: BaseChatMessageLike[]) {
         const credentials = this.options.credentials
-        console.log("straico credentials", credentials)
+        // console.log("straico credentials", credentials)
         if (!credentials.apiKey) {
             throw new Error("API key is required")
         }
 
         const newMessages = await this.convertMessagesToStraicoMessages(messages)
+        console.log("newMessages", JSON.stringify(newMessages, null, 2))
 
         const files = newMessages.map((message) => {
             return message.files
@@ -82,6 +83,7 @@ export class StraicoProvider extends LLMProvider {
 
 
         const prompt = `history messages:\n${history}\n\nuser input:\n${userInput}`
+        console.log("prompt", prompt)
 
         var data = JSON.stringify({
             "models": [
@@ -91,7 +93,7 @@ export class StraicoProvider extends LLMProvider {
             "temperature": this.options.temperature.value
         });
 
-        console.log("data", this.options)
+        // console.log("data", this.options)
 
         var config = {
             method: 'post',
@@ -104,7 +106,7 @@ export class StraicoProvider extends LLMProvider {
             data: data
         };
 
-        console.log("config", JSON.stringify(config))
+        // console.log("config", JSON.stringify(config))
 
         try {
             const response = await axios(config)
@@ -131,9 +133,13 @@ export class StraicoProvider extends LLMProvider {
         } else {
 
             const content = message.content.filter((item) => {
-                return item.type === "text"
+                return item.type === "text" || item.type === "search_result_list"
             }).map((item) => {
-                return item.text
+                if (item.type === "search_result_list") {
+                    return JSON.stringify(item.items)
+                } else {
+                    return item.text
+                }
             })
 
             const images = message.content.filter((item) => {

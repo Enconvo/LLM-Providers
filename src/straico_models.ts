@@ -67,7 +67,7 @@ async function fetchModels(options: RequestOptions): Promise<ListCache.ListItem[
 export default async function main(req: Request): Promise<string> {
     const options = await req.json()
     const credentials = options.credentials
-    console.log("credentials", credentials)
+    // console.log("credentials", credentials)
 
     options.url = 'https://api.straico.com/v1/models'
     options.api_key = credentials.apiKey
