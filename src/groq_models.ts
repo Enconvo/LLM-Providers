@@ -69,6 +69,7 @@ export default async function main(req: Request): Promise<string> {
     url = `${url}models`
 
     options.url = url
+    console.log("groq_models options", options)
 
     const modelCache = new ListCache(fetchModels)
 

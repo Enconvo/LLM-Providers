@@ -28,7 +28,7 @@ export class AnthropicProvider extends LLMProvider {
         }
 
         const credentials = options.credentials
-        console.log("anthropic credentials", credentials)
+        // console.log("anthropic credentials", credentials)
 
         const anthropic = new Anthropic({
             apiKey: credentials.anthropicApiKey,

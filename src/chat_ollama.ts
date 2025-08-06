@@ -13,7 +13,6 @@ export class OllamaProvider extends LLMProvider {
     constructor(options: LLMProvider.LLMOptions) {
         super(options)
         this.ollama = new Ollama({ host: options.baseUrl })
-
     }
 
     protected async _call(content: LLMProvider.Params): Promise<BaseChatMessage> {
