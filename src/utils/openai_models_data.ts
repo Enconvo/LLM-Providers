@@ -1,5 +1,75 @@
 export const openai_models_data = [
     {
+        "title": "gpt-5-chat-latest",
+        "value": "gpt-5-chat-latest",
+        "context": 400000,
+        "inputPrice": 0,
+        "outputPrice": 0,
+        "toolUse": false,
+        "visionEnable": true,
+        "systemMessageEnable": true
+    },
+    {
+        "title": "gpt-5-2025-08-07",
+        "value": "gpt-5-2025-08-07",
+        "context": 400000,
+        "inputPrice": 0,
+        "outputPrice": 0,
+        "toolUse": true,
+        "visionEnable": true,
+        "systemMessageEnable": true
+    },
+    {
+        "title": "gpt-5-nano",
+        "value": "gpt-5-nano",
+        "context": 400000,
+        "inputPrice": 0,
+        "outputPrice": 0,
+        "toolUse": true,
+        "visionEnable": true,
+        "systemMessageEnable": true
+    },
+    {
+        "title": "gpt-5",
+        "value": "gpt-5",
+        "context": 400000,
+        "inputPrice": 0,
+        "outputPrice": 0,
+        "toolUse": true,
+        "visionEnable": true,
+        "systemMessageEnable": true
+    },
+    {
+        "title": "gpt-5-mini-2025-08-07",
+        "value": "gpt-5-mini-2025-08-07",
+        "context": 400000,
+        "inputPrice": 0,
+        "outputPrice": 0,
+        "toolUse": true,
+        "visionEnable": true,
+        "systemMessageEnable": true
+    },
+    {
+        "title": "gpt-5-mini",
+        "value": "gpt-5-mini",
+        "context": 400000,
+        "inputPrice": 0,
+        "outputPrice": 0,
+        "toolUse": true,
+        "visionEnable": true,
+        "systemMessageEnable": true
+    },
+    {
+        "title": "gpt-5-nano-2025-08-07",
+        "value": "gpt-5-nano-2025-08-07",
+        "context": 400000,
+        "inputPrice": 0,
+        "outputPrice": 0,
+        "toolUse": true,
+        "visionEnable": true,
+        "systemMessageEnable": true
+    },
+    {
         "title": "gpt-4.1",
         "value": "gpt-4.1",
         "context": 1047576,

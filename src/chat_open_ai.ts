@@ -71,6 +71,9 @@ export class ChatOpenAIProvider extends LLMProvider {
         } catch (e) {
             temperature = 0.5
         }
+        if (modelOptions?.value.includes('gpt-5')) {
+            temperature = 1
+        }
 
         let params: any = {
             model: modelOptions?.value,
