@@ -4,52 +4,90 @@ import { ListCache, RequestOptions } from '@enconvo/api'
  * Aimagicx models data with capabilities and context limits
  */
 const aimagicx_models_data = [
+    // OpenAI Models - Speed and efficiency focused
     {
         value: "4o-mini",
         title: "GPT-4o Mini",
         context: 128000,
         toolUse: true,
-        visionEnable: false
+        visionEnable: true
     },
     {
-        value: "gpt-4",
-        title: "GPT-4",
-        context: 8192,
-        toolUse: true,
-        visionEnable: false
-    },
-    {
-        value: "gpt-4-turbo",
-        title: "GPT-4 Turbo",
+        value: "4o",
+        title: "GPT-4o",
         context: 128000,
         toolUse: true,
         visionEnable: true
     },
     {
-        value: "gpt-3.5-turbo",
-        title: "GPT-3.5 Turbo",
-        context: 16385,
+        value: "gpt-4.1",
+        title: "GPT-4.1",
+        context: 128000,
         toolUse: true,
-        visionEnable: false
+        visionEnable: true
     },
     {
-        value: "claude-3-sonnet",
-        title: "Claude 3 Sonnet",
+        value: "gpt-4.1-mini",
+        title: "GPT-4.1 Mini",
+        context: 128000,
+        toolUse: true,
+        visionEnable: true
+    },
+    {
+        value: "o3",
+        title: "O3",
+        context: 128000,
+        toolUse: true,
+        visionEnable: true
+    },
+    {
+        value: "o3-mini",
+        title: "O3 Mini",
+        context: 128000,
+        toolUse: true,
+        visionEnable: true
+    },
+    // Anthropic Models - Advanced reasoning and understanding
+    {
+        value: "claude-3-5-sonnet",
+        title: "Claude 3.5 Sonnet",
         context: 200000,
         toolUse: true,
         visionEnable: true
     },
     {
-        value: "claude-3-haiku",
-        title: "Claude 3 Haiku",
+        value: "claude-3-7-sonnet",
+        title: "Claude 3.7 Sonnet",
         context: 200000,
         toolUse: true,
         visionEnable: true
     },
     {
-        value: "gemini-pro",
-        title: "Gemini Pro",
-        context: 32768,
+        value: "claude-sonnet-4-20250514",
+        title: "Claude Sonnet 4",
+        context: 200000,
+        toolUse: true,
+        visionEnable: true
+    },
+    {
+        value: "claude-opus-4-20250514",
+        title: "Claude Opus 4",
+        context: 200000,
+        toolUse: true,
+        visionEnable: true
+    },
+    // Google Models - Large context and ultra-fast processing
+    {
+        value: "gemini-2.5-flash",
+        title: "Gemini 2.5 Flash",
+        context: 1000000,
+        toolUse: true,
+        visionEnable: true
+    },
+    {
+        value: "gemini-2.5-pro",
+        title: "Gemini 2.5 Pro",
+        context: 2000000,
         toolUse: true,
         visionEnable: true
     }
