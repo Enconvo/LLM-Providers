@@ -1222,6 +1222,69 @@
       ]
     },
     {
+      "name": "chat_poe",
+      "title": "Poe",
+      "description": "Chat with Poe, learn more : [poe.com](https://poe.com)",
+      "icon": "poe.png",
+      "mode": "no-view",
+      "commandType": "provider",
+      "preferences": [
+        {
+          "name": "credentials",
+          "description": "The key management provider to use",
+          "type": "extension",
+          "required": false,
+          "default": "poe",
+          "extensionType": "credentials-provider",
+          "extensionFilter": {
+            "targetCommands": [
+              "credentials|poe"
+            ]
+          },
+          "title": "Credential Provider"
+        },
+        {
+          "name": "modelName",
+          "description": "The model to generate the completion.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Model Name",
+          "default": "claude-3.5-sonnet",
+          "dataProxy": "llm|poe_models"
+        },
+        {
+          "name": "temperature",
+          "description": "What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Temperature",
+          "default": 1,
+          "data": [
+            {
+              "title": "none",
+              "value": 0
+            },
+            {
+              "title": "low",
+              "value": 0.5
+            },
+            {
+              "title": "medium",
+              "value": 1
+            },
+            {
+              "title": "high",
+              "value": 1.5
+            },
+            {
+              "title": "maximum",
+              "value": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "chat_moonshot_ai",
       "title": "MoonShot AI",
       "description": "Chat with moonshot ai, learn more : [moonshot.cn](https://www.moonshot.cn/)",
@@ -2093,6 +2156,31 @@
       ]
     },
     {
+      "name": "poe_models",
+      "title": "Poe Models",
+      "description": "get Poe model list",
+      "commandType": "function_command",
+      "icon": "poe.png",
+      "showInCommandList": false,
+      "mode": "no-view",
+      "preferences": [
+        {
+          "name": "credentials",
+          "description": "The key management provider to use",
+          "type": "extension",
+          "required": false,
+          "default": "poe",
+          "extensionType": "credentials-provider",
+          "extensionFilter": {
+            "targetCommands": [
+              "credentials|poe"
+            ]
+          },
+          "title": "Credential Provider"
+        }
+      ]
+    },
+    {
       "name": "together_models",
       "targetCommand": "llm|fetch_models",
       "title": "together Models",
@@ -2373,7 +2461,7 @@
             },
             {
               "title": "high",
-              "value": 1.0
+              "value": 1
             }
           ]
         },
@@ -2418,7 +2506,7 @@
       "name": "chat_1minai",
       "title": "1min AI",
       "description": "Chat with 1min AI, learn more : [1min.ai](https://1min.ai/)",
-      "icon": "openrouter.png",
+      "icon": "1minai.png",
       "mode": "no-view",
       "commandType": "provider",
       "preferences": [
@@ -2467,7 +2555,7 @@
             },
             {
               "title": "high",
-              "value": 1.0
+              "value": 1
             }
           ]
         },
