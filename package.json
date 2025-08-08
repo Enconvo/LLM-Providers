@@ -2321,6 +2321,100 @@
       ]
     },
     {
+      "name": "chat_aimagicx",
+      "title": "AIMagicX",
+      "description": "Chat with AIMagicX, learn more : [aimagicx.com](https://aimagicx.com/)",
+      "icon": "openrouter.png",
+      "mode": "no-view",
+      "commandType": "provider",
+      "preferences": [
+        {
+          "name": "credentials",
+          "description": "The key management provider to use",
+          "type": "extension",
+          "required": false,
+          "default": "aimagicx",
+          "extensionType": "credentials-provider",
+          "extensionFilter": {
+            "targetCommands": [
+              "credentials|aimagicx"
+            ]
+          },
+          "title": "Credential Provider"
+        },
+        {
+          "name": "modelName",
+          "description": "The model to generate the completion.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Model Name",
+          "default": "4o-mini",
+          "dataProxy": "llm|aimagicx_models"
+        },
+        {
+          "name": "temperature",
+          "description": "What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Temperature",
+          "default": 0.7,
+          "data": [
+            {
+              "title": "none",
+              "value": 0
+            },
+            {
+              "title": "low",
+              "value": 0.5
+            },
+            {
+              "title": "medium",
+              "value": 0.7
+            },
+            {
+              "title": "high",
+              "value": 1.0
+            }
+          ]
+        },
+        {
+          "name": "maxTokens",
+          "description": "The maximum number of tokens to generate in the completion.",
+          "type": "textfield",
+          "required": false,
+          "title": "Max Tokens",
+          "default": "4096"
+        }
+      ]
+    },
+    {
+      "name": "aimagicx_models",
+      "title": "aimagicx_models",
+      "targetCommand": "llm|aimagicx_models",
+      "description": "get AIMagicX model list",
+      "icon": "openrouter.png",
+      "showInCommandList": false,
+      "commandType": "function_command",
+      "mode": "no-view",
+      "preferences": [
+        {
+          "name": "credentials",
+          "description": "The key management provider to use",
+          "type": "extension",
+          "required": false,
+          "default": "aimagicx",
+          "extensionType": "credentials-provider",
+          "defaultProxy": "llm|chat_aimagicx",
+          "extensionFilter": {
+            "targetCommands": [
+              "credentials|aimagicx"
+            ]
+          },
+          "title": "Credential Provider"
+        }
+      ]
+    },
+    {
       "name": "arli_models",
       "title": "arli_models",
       "targetCommand": "llm|fetch_models",
