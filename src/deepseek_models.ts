@@ -1,20 +1,20 @@
-import { DropdownListCache, ListCache, RequestOptions } from "@enconvo/api"
+import { ListCache, RequestOptions } from "@enconvo/api"
 
 const models: ListCache.ListItem[] = [
     {
       "title": "Deepseek V3",
       "value": "deepseek-chat",
       "context": 64000,
-      "inputPrice": 0.00014,
-      "outputPrice": 0.00028,
+      "inputPrice": 0.14, // Price per 1M tokens
+      "outputPrice": 0.28, // Price per 1M tokens
       "toolUse": true
     },
     {
       "title": "Deepseek R1",
       "value": "deepseek-reasoner",
       "context": 64000,
-      "inputPrice": 0.00014,
-      "outputPrice": 0.00028,
+      "inputPrice": 0.14, // Price per 1M tokens
+      "outputPrice": 0.28, // Price per 1M tokens
       "sequenceContentDisable": true,
       "systemMessageEnable": false
     }

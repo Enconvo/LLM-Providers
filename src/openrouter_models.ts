@@ -17,13 +17,14 @@ async function fetchModels(options: RequestOptions): Promise<ListCache.ListItem[
         }
 
         const data = resp.data.data
+        console.log("data", data)
         const models = data
             .map((model: any) => ({
                 title: model.name,
                 value: model.id,
                 context: model.context_length,
-                inputPrice: model.pricing.prompt,
-                outputPrice: model.pricing.completion,
+                inputPrice: model.pricing.prompt*1000000,
+                outputPrice: model.pricing.completion*1000000,
                 toolUse: false,
                 // toolUse: model.id.includes('openai/'),
                 visionEnable: model.architecture.modality === 'text+image->text'

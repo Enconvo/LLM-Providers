@@ -1,38 +1,152 @@
-import { DropdownListCache, ListCache, RequestOptions } from "@enconvo/api"
+import { ListCache, RequestOptions } from "@enconvo/api"
 import { GoogleGenAI } from "@google/genai";
 
 
+// Gemini models pricing and configuration data
+const geminiModelsData = [
+    // Gemini 2.5 Pro - State-of-the-art multipurpose model
+    {
+        title: "Gemini 2.5 Pro",
+        value: "gemini-2.5-pro",
+        inputPrice: 1.25, // prompts <= 200k tokens
+        outputPrice: 10.00,
+        contextCachePrice: 0.31,
+        speed: 3,
+        intelligence: 5,
+        reasoning: 5
+    },
+    // Gemini 2.5 Flash - Hybrid reasoning model with 1M token context
+    {
+        title: "Gemini 2.5 Flash",
+        value: "gemini-2.5-flash",
+        inputPrice: 0.30, // text/image/video
+        outputPrice: 2.50,
+        contextCachePrice: 0.075,
+        speed: 4,
+        intelligence: 4,
+        reasoning: 4
+    },
+    // Gemini 2.5 Flash-Lite - Most cost effective model
+    {
+        title: "Gemini 2.5 Flash-Lite",
+        value: "gemini-2.5-flash-lite",
+        inputPrice: 0.10, // text/image/video
+        outputPrice: 0.40,
+        contextCachePrice: 0.025,
+        speed: 5,
+        intelligence: 3,
+        reasoning: 3
+    },
+    // Gemini 2.0 Flash - Balanced multimodal model for Agents era
+    {
+        title: "Gemini 2.0 Flash",
+        value: "gemini-2.0-flash",
+        inputPrice: 0.10, // text/image/video
+        outputPrice: 0.40,
+        contextCachePrice: 0.025,
+        speed: 4,
+        intelligence: 4
+    },
+    // Gemini 2.0 Flash-Lite - Smallest and most cost effective
+    {
+        title: "Gemini 2.0 Flash-Lite",
+        value: "gemini-2.0-flash-lite",
+        inputPrice: 0.075,
+        outputPrice: 0.30,
+        speed: 5,
+        intelligence: 3
+    },
+    // Gemini 1.5 Pro - Highest intelligence with 2M token context
+    {
+        title: "Gemini 1.5 Pro",
+        value: "gemini-1.5-pro",
+        inputPrice: 1.25, // prompts <= 128k tokens
+        outputPrice: 5.00,
+        contextCachePrice: 0.3125,
+        speed: 3,
+        intelligence: 5
+    },
+    // Gemini 1.5 Flash - Fastest multimodal with 1M token context
+    {
+        title: "Gemini 1.5 Flash",
+        value: "gemini-1.5-flash",
+        inputPrice: 0.075, // prompts <= 128k tokens
+        outputPrice: 0.30,
+        contextCachePrice: 0.01875,
+        speed: 4,
+        intelligence: 4
+    },
+    // Gemini 1.5 Flash-8B - Smallest model for lower intelligence tasks
+    {
+        title: "Gemini 1.5 Flash-8B",
+        value: "gemini-1.5-flash-8b",
+        inputPrice: 0.0375, // prompts <= 128k tokens
+        outputPrice: 0.15,
+        contextCachePrice: 0.01,
+        speed: 5,
+        intelligence: 3
+    }
+];
+
 /**
  * Fetches models from the API and transforms them into ModelOutput format
- * @param url - API endpoint URL
- * @param api_key - API authentication key
- * @returns Promise<ModelOutput[]> - Array of processed model data
+ * @param options - Request options containing API key and other parameters
+ * @returns Promise<ListCache.ListItem[]> - Array of processed model data
  */
 async function fetchModels(options: RequestOptions): Promise<ListCache.ListItem[]> {
     try {
         const google = new GoogleGenAI({ apiKey: options.api_key });
         const pager = await google.models.list()
         const models: ListCache.ListItem[] = []
+        
         for await (const model of pager) {
             console.log(model)
+            
+            // Check if model supports content generation
             if (model.supportedActions?.some(action => action === 'generateContent' || action === 'bidiGenerateContent')) {
+                // Skip deprecated and unsupported models
                 const isGemini15 = model.name?.includes('gemini-1.5')
                 const isGemini10 = model.name?.includes('gemini-1.0')
                 const isDeprecatedModel = model.name?.includes('gemini-pro-vision')
+                
                 if (isGemini15 || isGemini10 || isDeprecatedModel) {
                     continue
                 }
+                
+                // Identify special model types
                 const isThinking = model.name?.includes('thinking')
                 const isImageGeneration = model.name?.includes('image-generation')
                 const isTTS = model.name?.includes('tts')
+                const isEmbedding = model.name?.includes('embedding')
+                
+                // Skip non-chat models
+                if (isImageGeneration || isTTS || isEmbedding) {
+                    continue
+                }
+                
+                const modelId = model.name?.replace('models/', '') || ''
+                
+                // Find matching model data or use defaults
+                const modelData = geminiModelsData.find(data => modelId.includes(data.value)) || {
+                    inputPrice: 0.10,
+                    outputPrice: 0.40,
+                    speed: 4,
+                    intelligence: 3
+                }
+                
                 models.push({
-                    title: model.displayName || '',
-                    value: model.name?.replace('models/', '') || '',
-                    context: model.inputTokenLimit,
-                    maxTokens: model.outputTokenLimit,
-                    visionEnable: true,
-                    audioEnable: true,
-                    toolUse: !isThinking && !isImageGeneration && !isTTS
+                    title: model.displayName || modelId,
+                    value: modelId,
+                    context: model.inputTokenLimit || 1000000, // Default 1M context
+                    maxTokens: model.outputTokenLimit || 8192, // Default max tokens
+                    inputPrice: modelData.inputPrice,
+                    outputPrice: modelData.outputPrice,
+                    visionEnable: true, // All Gemini models support vision
+                    audioEnable: true, // All Gemini models support audio
+                    systemMessageEnable: true, // All Gemini models support system messages
+                    toolUse: !isThinking, // Thinking models don't support tools
+                    speed: modelData.speed || 4,
+                    intelligence: modelData.intelligence || 3,
                 })
             }
         }

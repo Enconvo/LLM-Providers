@@ -28,7 +28,7 @@ async function fetchModels(options: RequestOptions): Promise<ListCache.ListItem[
     }
 
     const data = resp.data
-    console.log("data", data)
+    // console.log("data", data)
     const result = data.data.map((item: any) => {
         if (item.value) {
             return item
@@ -44,6 +44,7 @@ async function fetchModels(options: RequestOptions): Promise<ListCache.ListItem[
         const systemMessageEnable = (!modelName.includes('o1-'))
 
         return {
+            ...model,
             title: model?.title || item.id,
             value: modelName,
             context: context,
