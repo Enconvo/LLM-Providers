@@ -1,3 +1,5 @@
+import { ListCache } from "@enconvo/api"
+import { Ollama } from "ollama"
 
 
 const embeddingModels = [
@@ -89,21 +91,42 @@ const embeddingModels = [
 ]
 
 async function fetch_model(options: any) {
+    const credentials = options.credentials
 
-    const baseUrl = options.baseUrl || "http://127.0.0.1:11434";
-    // console.log('baseUrl', baseUrl,options)
+    const customHeaders: Record<string, string> = {}
+    if (credentials.customHeaders) {
+        const headerString = credentials.customHeaders as string
+        const headerPairs = headerString.split('\n').filter(line => line.trim() && line.trim().includes('='))
+        for (const pair of headerPairs) {
+            const [key, value] = pair.split('=')
+            if (key && value) {
+                customHeaders[key.trim()] = value.trim()
+            }
+        }
+    }
 
-    let models = []
+    const ollama = new Ollama({
+        host: credentials.baseUrl,
+        headers: {
+            ...customHeaders,
+            Authorization: `Bearer ${credentials.apiKey || ''}`,
+            'User-Agent': 'Enconvo/1.0',
+        }
+    })
+
+
+    let models: ListCache.ListItem[] = []
     try {
-        const resp = await fetch(`${baseUrl}/api/tags`)
-        const json = await resp.json()
-        // Filter out embedding models and map remaining models
-        models = json.models
-            .filter((item: any) => !embeddingModels.some(em => item.name.includes(em.value)))
-            .map((item: any) => {
+        const list = await ollama.list()
+        models = list.models
+            .filter((item) => !embeddingModels.some(em => item.name.includes(em.value)))
+            .map((item) => {
                 return {
                     "title": item.name,
                     "value": item.name,
+                    "providerName": item.details.family,
+                    "context": 8000,
+                    maxTokens: 1024,
                     // Add vision flag for vision-capable models
                     "visionEnable": item.name.includes('llava') || item.name.includes('vision')
                 }
@@ -116,7 +139,7 @@ async function fetch_model(options: any) {
 }
 
 export default async function main(req: Request) {
-    const  options  = await req.json()
+    const options = await req.json()
 
     let models = []
 

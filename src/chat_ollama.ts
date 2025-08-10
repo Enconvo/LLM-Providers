@@ -12,10 +12,12 @@ export class OllamaProvider extends LLMProvider {
 
     constructor(options: LLMProvider.LLMOptions) {
         super(options)
+        const credentials = this.options.credentials
+        console.log("ollama credentials", credentials)
 
         const customHeaders: Record<string, string> = {}
-        if (this.options.customHeaders) {
-            const headerString = this.options.customHeaders as string
+        if (credentials.customHeaders) {
+            const headerString = credentials.customHeaders as string
             const headerPairs = headerString.split('\n').filter(line => line.trim() && line.trim().includes('='))
             for (const pair of headerPairs) {
                 const [key, value] = pair.split('=')
@@ -26,9 +28,10 @@ export class OllamaProvider extends LLMProvider {
         }
 
         this.ollama = new Ollama({
-            host: options.baseUrl, headers: {
+            host: credentials.baseUrl,
+            headers: {
                 ...customHeaders,
-                Authorization: `Bearer ${this.options.apiKey || ''}`,
+                Authorization: `Bearer ${credentials.apiKey || ''}`,
                 'User-Agent': 'Enconvo/1.0',
             }
         })
