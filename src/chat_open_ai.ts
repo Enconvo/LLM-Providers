@@ -17,8 +17,7 @@ export class ChatOpenAIProvider extends LLMProvider {
         const params = this.initParams(content)
         const chatCompletion = await this.client.chat.completions.create({
             ...params,
-            stream: true,
-
+            stream: true
         });
 
         const ac = new AbortController()
@@ -50,6 +49,7 @@ export class ChatOpenAIProvider extends LLMProvider {
     private initParams(content: LLMProvider.Params) {
         // console.log("openai content", JSON.stringify(this.options, null, 2))
         const credentials = this.options.credentials
+        console.log("openai credentials", credentials)
         if (!credentials.apiKey) {
             throw new Error("API key is required")
         }
@@ -130,7 +130,6 @@ export class ChatOpenAIProvider extends LLMProvider {
             options.max_completion_tokens = options.maxTokens;
             delete options.maxTokens;
         }
-
 
         if (options.baseUrl === 'http://127.0.0.1:5001') {
             options.frequencyPenalty = 0.0001

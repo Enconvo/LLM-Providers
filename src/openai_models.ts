@@ -13,6 +13,7 @@ import axios from 'axios'
  */
 async function fetchModels(options: RequestOptions): Promise<ListCache.ListItem[]> {
     const { url, api_key } = options
+    console.log("openai models options", url, api_key)
     if (!url || !api_key) {
         return []
     }
@@ -27,6 +28,7 @@ async function fetchModels(options: RequestOptions): Promise<ListCache.ListItem[
     }
 
     const data = resp.data
+    console.log("data", data)
     const result = data.data.map((item: any) => {
         if (item.value) {
             return item
@@ -81,7 +83,7 @@ export default async function main(req: Request): Promise<string> {
 
     const credentials = options.credentials
 
-    console.log("openai models credentials", credentials)
+    // console.log("openai models credentials", credentials)
 
     options.api_key = credentials?.apiKey
 

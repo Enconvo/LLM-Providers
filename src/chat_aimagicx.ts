@@ -14,27 +14,33 @@ export class AimagicxProvider extends LLMProvider {
         this.baseUrl = options.credentials?.baseUrl || "https://beta.aimagicx.com/api/v1"
         this.apiKey = options.credentials?.apiKey
         if (!this.apiKey) {
-            throw new Error("API key is required for Aimagicx provider")
+            throw new Error("API key is required for AIMagicX provider")
+        }
+        if (!AimagicxUtil.validateApiKey(this.apiKey)) {
+            console.warn("API key format may be invalid for AIMagicX provider")
         }
     }
 
     protected async _call(content: LLMProvider.Params): Promise<BaseChatMessage> {
-        const messages = AimagicxUtil.convertMessagesToOpenAIMessages(content.messages)
-        const params = this.initParams(content, false)
+        const messageData = AimagicxUtil.convertMessagesToSingleMessage(content.messages)
+        const params = this.buildRequestParams(content, false, messageData)
 
-        const response = await this.makeApiRequest(params, messages, false)
+        const response = await this.makeApiRequest(params, false)
+
+        // Handle the actual API response format: { success: true, data: { choices: [...] } }
+        const responseData = response.success ? response.data : response;
         
-        if (!response.choices || response.choices.length === 0) {
-            throw new Error("No response from Aimagicx API")
+        if (!responseData.choices || responseData.choices.length === 0) {
+            throw new Error("No response from AIMagicX API")
         }
 
-        const messageContent = response.choices[0].message?.content || ""
+        const messageContent = responseData.choices[0].message?.content || ""
         return new AssistantMessage(messageContent)
     }
 
     protected async _stream(content: LLMProvider.Params): Promise<Stream<BaseChatMessageChunk>> {
-        const messages = AimagicxUtil.convertMessagesToOpenAIMessages(content.messages)
-        const params = this.initParams(content, true)
+        const messageData = AimagicxUtil.convertMessagesToSingleMessage(content.messages)
+        const params = this.buildRequestParams(content, true, messageData)
 
         let consumed = false;
         const controller = new AbortController();
@@ -46,31 +52,39 @@ export class AimagicxProvider extends LLMProvider {
             consumed = true;
 
             try {
-                const response = await this.makeApiRequest(params, messages, true, controller.signal);
-                
+                const response = await this.makeApiRequest(params, true, controller.signal);
+
                 if (!response.body) {
-                    throw new Error("No response body from Aimagicx API")
+                    throw new Error("No response body from AIMagicX API")
                 }
 
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
+                let buffer = '';
 
                 try {
                     while (true) {
                         const { done, value } = await reader.read();
                         if (done) break;
 
-                        const chunk = decoder.decode(value, { stream: true });
-                        const lines = chunk.split('\n');
+                        buffer += decoder.decode(value, { stream: true });
+                        const lines = buffer.split('\n');
+
+                        // Keep incomplete line in buffer
+                        buffer = lines.pop() || '';
 
                         for (const line of lines) {
+                            if (line.trim() === '') continue;
+
                             if (line.startsWith('data: ')) {
-                                const data = line.slice(6);
-                                if (data === '[DONE]') break;
+                                const data = line.slice(6).trim();
+                                if (data === '[DONE]') return;
 
                                 try {
                                     const parsed = JSON.parse(data);
-                                    if (parsed.choices && parsed.choices[0]?.delta?.content) {
+
+                                    // Handle content chunks
+                                    if (parsed.choices?.[0]?.delta?.content) {
                                         const newChunk: BaseChatMessageChunk = {
                                             model: this.options.modelName.value,
                                             id: parsed.id || uuid(),
@@ -82,13 +96,34 @@ export class AimagicxProvider extends LLMProvider {
                                                 finish_reason: parsed.choices[0].finish_reason || null,
                                                 index: 0
                                             }],
-                                            created: parsed.created || Date.now(),
+                                            created: parsed.created || Math.floor(Date.now() / 1000),
                                             object: "chat.completion.chunk"
                                         }
                                         yield newChunk;
                                     }
+
+                                    // Handle tool calls
+                                    if (parsed.choices?.[0]?.delta?.tool_calls) {
+                                        const toolCalls = parsed.choices[0].delta.tool_calls;
+                                        const toolCallChunk: BaseChatMessageChunk = {
+                                            model: this.options.modelName.value,
+                                            id: parsed.id || uuid(),
+                                            choices: [{
+                                                delta: {
+                                                    tool_calls: toolCalls,
+                                                    role: "assistant"
+                                                },
+                                                finish_reason: parsed.choices[0].finish_reason || null,
+                                                index: 0
+                                            }],
+                                            created: parsed.created || Math.floor(Date.now() / 1000),
+                                            object: "chat.completion.chunk"
+                                        }
+                                        yield toolCallChunk;
+                                    }
                                 } catch (e) {
                                     // Skip invalid JSON lines
+                                    console.debug('Failed to parse SSE data:', data);
                                 }
                             }
                         }
@@ -109,61 +144,83 @@ export class AimagicxProvider extends LLMProvider {
         return new Stream(iterator.bind(this), controller);
     }
 
-    private initParams(content: LLMProvider.Params, stream: boolean) {
+    private buildRequestParams(content: LLMProvider.Params, stream: boolean, messageData: { message: string, system?: string }): any {
         let temperature = this.options.temperature?.value || 0.7;
         if (typeof temperature === "string") {
             temperature = parseFloat(temperature);
         }
 
         const params: any = {
+            message: messageData.message,
             model: this.options.modelName?.value || "4o-mini",
             temperature: temperature,
             stream: stream
         }
 
-        if (this.options.maxTokens?.value) {
-            params.max_tokens = this.options.maxTokens.value;
+        // Add system message if present
+        if (messageData.system) {
+            params.system = messageData.system;
         }
 
-        // Handle tools if supported
-        const tools = AimagicxUtil.convertToolsToOpenAITools(content.tools);
+        // Handle maxTokens (AIMagicX uses maxTokens, not max_tokens)
+        if (this.options.maxTokens?.value) {
+            params.maxTokens = this.options.maxTokens.value;
+        }
+
+        // Handle tools - AIMagicX uses simple string array
+        const tools = AimagicxUtil.convertToolsToAimagicxTools(content.tools);
         if (tools && tools.length > 0) {
             params.tools = tools;
-            if (content.tool_choice) {
-                params.tool_choice = content.tool_choice;
-            }
         }
+
+        // Additional parameters supported by AIMagicX API
+        // Note: topP, frequencyPenalty, presencePenalty, and stop are supported by the API
+        // but not exposed through the current LLMProvider.Params interface
+        // These would need to be passed through options or extended interface
 
         return params;
     }
 
-    private async makeApiRequest(params: any, messages: any[], stream: boolean, signal?: AbortSignal) {
-        const requestBody = {
-            ...params,
-            messages: messages
-        };
-
+    private async makeApiRequest(params: any, stream: boolean, signal?: AbortSignal) {
         const headers: Record<string, string> = {
             'Authorization': `Bearer ${this.apiKey}`,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json; charset=utf-8'
         };
 
-        const response = await fetch(`${this.baseUrl}/chat/completions`, {
-            method: 'POST',
-            headers: headers,
-            body: JSON.stringify(requestBody),
-            signal: signal
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Aimagicx API request failed with status ${response.status}: ${errorText}`);
+        if (stream) {
+            headers['Accept'] = 'text/event-stream';
         }
 
-        if (stream) {
-            return response;
-        } else {
-            return await response.json();
+        try {
+            const response = await fetch(`${this.baseUrl}/chat`, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(params),
+                signal: signal
+            });
+            console.log("params", JSON.stringify(params, null, 2), headers)
+
+            if (!response.ok) {
+                let errorMessage: string;
+                try {
+                    const errorData = await response.json();
+                    errorMessage = AimagicxUtil.formatApiError(errorData);
+                } catch {
+                    errorMessage = await response.text();
+                }
+                throw new Error(`AIMagicX API request failed with status ${response.status}: ${errorMessage}`);
+            }
+
+            if (stream) {
+                return response;
+            } else {
+                return await response.json();
+            }
+        } catch (error) {
+            if (error instanceof Error) {
+                throw new Error(`AIMagicX API error: ${error.message}`);
+            }
+            throw error;
         }
     }
 }

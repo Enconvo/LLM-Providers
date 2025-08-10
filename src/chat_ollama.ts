@@ -12,7 +12,26 @@ export class OllamaProvider extends LLMProvider {
 
     constructor(options: LLMProvider.LLMOptions) {
         super(options)
-        this.ollama = new Ollama({ host: options.baseUrl })
+
+        const customHeaders: Record<string, string> = {}
+        if (this.options.customHeaders) {
+            const headerString = this.options.customHeaders as string
+            const headerPairs = headerString.split('\n').filter(line => line.trim() && line.trim().includes('='))
+            for (const pair of headerPairs) {
+                const [key, value] = pair.split('=')
+                if (key && value) {
+                    customHeaders[key.trim()] = value.trim()
+                }
+            }
+        }
+
+        this.ollama = new Ollama({
+            host: options.baseUrl, headers: {
+                ...customHeaders,
+                Authorization: `Bearer ${this.options.apiKey || ''}`,
+                'User-Agent': 'Enconvo/1.0',
+            }
+        })
     }
 
     protected async _call(content: LLMProvider.Params): Promise<BaseChatMessage> {
