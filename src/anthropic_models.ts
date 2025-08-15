@@ -11,16 +11,30 @@ import Anthropic from '@anthropic-ai/sdk';
  * @returns Promise<ModelOutput[]> - Array of processed model data
  */
 async function fetchModels(options: RequestOptions): Promise<ListCache.ListItem[]> {
-    if (!options.url || !options.api_key) {
+    const credentials = options.credentials
+    console.log("anthropic models credentials", credentials)
+
+    const credentialsType = credentials?.credentials_type?.value
+
+    if (credentialsType === 'oauth2' && (!credentials?.anthropicApiUrl || !credentials?.access_token)) {
+        return []
+    }
+
+    if (credentialsType === 'apiKey' && (!credentials?.anthropicApiUrl || !credentials?.anthropicApiKey)) {
         return []
     }
 
     const anthropic = new Anthropic({
-        apiKey: options.api_key, // defaults to process.env["ANTHROPIC_API_KEY"]
-        baseURL: options.url
+        apiKey: credentials?.anthropicApiKey,
+        authToken: credentials?.access_token,
+        baseURL: credentials?.anthropicApiUrl,
+        defaultHeaders: credentialsType === 'oauth2' ? {
+            'anthropic-beta': 'oauth-2025-04-20,claude-code-20250219,interleaved-thinking-2025-05-14,fine-grained-tool-streaming-2025-05-14',
+        } : {}
     });
 
     const models = await anthropic.models.list()
+    // console.log("anthropic models", models)
 
     let result: ListCache.ListItem[] = []
     for await (const model of models.iterPages()) {
@@ -122,10 +136,6 @@ async function fetchModels(options: RequestOptions): Promise<ListCache.ListItem[
  */
 export default async function main(req: Request): Promise<string> {
     const options = await req.json()
-    const credentials = options.credentials
-    console.log("anthropic models credentials", credentials)
-    options.api_key = credentials.anthropicApiKey
-    options.url = credentials.anthropicApiUrl
 
     const modelCache = new ListCache(fetchModels)
 
