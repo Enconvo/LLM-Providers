@@ -33,8 +33,8 @@ export class AnthropicProvider extends LLMProvider {
             headers['anthropic-beta'] = 'oauth-2025-04-20,claude-code-20250219,interleaved-thinking-2025-05-14,fine-grained-tool-streaming-2025-05-14'
         }
 
-        // console.log("anthropic credentials", credentials)
-        const credentialsType = credentials?.credentials_type?.value
+        console.log("anthropic credentials", credentials)
+        const credentialsType = credentials?.credentials_type?.value || 'apiKey'
 
         const anthropic = new Anthropic({
             apiKey: credentialsType === 'apiKey' ? credentials?.anthropicApiKey : undefined,
@@ -86,7 +86,7 @@ export class AnthropicProvider extends LLMProvider {
     protected async _stream(content: LLMProvider.Params): Promise<Stream<BaseChatMessageChunk>> {
 
         const credentials = this.options.credentials
-        if (!credentials.anthropicApiKey && !credentials.access_token) {
+        if (!credentials?.anthropicApiKey && !credentials?.access_token) {
             throw new Error("Anthropic API key or OAuth is required")
         }
 
@@ -108,7 +108,7 @@ export class AnthropicProvider extends LLMProvider {
         const systemMessages = messages.filter((message) => message.role === "system")
         const system: Array<TextBlockParam> = []
 
-        const credentialsType = this.options.credentials?.credentials_type?.value
+        const credentialsType = this.options.credentials?.credentials_type?.value || 'apiKey'
         if (credentialsType === 'oauth2') {
             system.push({
                 type: "text",
