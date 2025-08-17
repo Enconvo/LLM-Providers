@@ -17,7 +17,8 @@ export class ChatOpenAIProvider extends LLMProvider {
         const params = this.initParams(content)
         const chatCompletion = await this.client.chat.completions.create({
             ...params,
-            stream: true
+            stream: true,
+            reasoning_effort: 'low'
         });
 
         const ac = new AbortController()
