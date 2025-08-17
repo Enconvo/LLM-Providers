@@ -15,18 +15,18 @@ export class ChatOpenAIProvider extends LLMProvider {
     protected async _stream(content: LLMProvider.Params): Promise<Stream<BaseChatMessageChunk>> {
 
         const params = this.initParams(content)
+        console.log("params", JSON.stringify(params, null, 2))
+        console.time("chatCompletion")
         const chatCompletion = await this.client.chat.completions.create({
             ...params,
-            stream: true
+            stream: true,
         });
-
+        console.timeEnd("chatCompletion")
         const ac = new AbortController()
         //@ts-ignore
         const stream = OpenAIUtil.streamFromOpenAI(chatCompletion, ac)
         return stream
-
     }
-
 
     client: OpenAI
     constructor(options: LLMProvider.LLMOptions) {
@@ -47,7 +47,7 @@ export class ChatOpenAIProvider extends LLMProvider {
     }
 
     private initParams(content: LLMProvider.Params) {
-        // console.log("openai content", JSON.stringify(this.options, null, 2))
+        // console.log("openai options", JSON.stringify(this.options, null, 2))
         const credentials = this.options.credentials
         // console.log("openai credentials", credentials)
         if (!credentials?.apiKey) {
@@ -59,11 +59,6 @@ export class ChatOpenAIProvider extends LLMProvider {
 
         const tools = OpenAIUtil.convertToolsToOpenAITools(content.tools)
 
-        let reasoning_effort = this.options?.reasoning_effort?.value === "off" ? null : this.options?.reasoning_effort?.value
-
-        if (!modelOptions?.title?.toLowerCase().includes("r1")) {
-            reasoning_effort = null
-        }
 
         let temperature = this.options.temperature.value
         try {
@@ -71,6 +66,7 @@ export class ChatOpenAIProvider extends LLMProvider {
         } catch (e) {
             temperature = 0.5
         }
+
         if (modelOptions?.value.includes('gpt-5')) {
             temperature = 1
         }
@@ -81,7 +77,9 @@ export class ChatOpenAIProvider extends LLMProvider {
             messages
         }
 
-        if (reasoning_effort) {
+
+        let reasoning_effort = this.options?.reasoning_effort?.value || this.options?.reasoning_effort_o?.value
+        if (reasoning_effort && reasoning_effort !== "off") {
             params.reasoning_effort = reasoning_effort
         }
 

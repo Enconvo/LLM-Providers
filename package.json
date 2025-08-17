@@ -76,12 +76,12 @@
           ]
         },
         {
-          "name": "reasoning_effort",
+          "name": "reasoning_effort_o",
           "description": "Applicable to reasoning models only, this option controls the reasoning token length.",
           "type": "dropdown",
           "required": false,
           "title": "Reasoning Effort",
-          "default": "off",
+          "default": "low",
           "data": [
             {
               "title": "low",
@@ -94,12 +94,93 @@
             {
               "title": "high",
               "value": "high"
+            }
+          ],
+          "showOnlyWhen": {
+            "modelName": {
+              "operator": "or",
+              "conditions": [
+                {
+                  "condition": "eq",
+                  "value": "openai/o1-mini",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "openai/o1",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "openai/o1-pro",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "openai/o3-mini",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "openai/o3",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "openai/o4-mini",
+                  "operator": "or"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "reasoning_effort",
+          "description": "Applicable to reasoning models only, this option controls the reasoning token length.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Reasoning Effort",
+          "default": "minimal",
+          "data": [
+            {
+              "title": "minimal",
+              "value": "minimal"
             },
             {
-              "title": "off",
-              "value": "off"
+              "title": "low",
+              "value": "low"
+            },
+            {
+              "title": "medium",
+              "value": "medium"
+            },
+            {
+              "title": "high",
+              "value": "high"
             }
-          ]
+          ],
+          "showOnlyWhen": {
+            "modelName": {
+              "operator": "or",
+              "conditions": [
+                {
+                  "condition": "eq",
+                  "value": "openai/gpt-5-mini",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "openai/gpt-5",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "openai/gpt-5-nano",
+                  "operator": "or"
+                }
+              ]
+            }
+          }
         }
       ]
     },
@@ -164,6 +245,113 @@
               "value": 2
             }
           ]
+        },
+        {
+          "name": "reasoning_effort_o",
+          "description": "Applicable to reasoning models only, this option controls the reasoning token length.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Reasoning Effort",
+          "default": "low",
+          "data": [
+            {
+              "title": "low",
+              "value": "low"
+            },
+            {
+              "title": "medium",
+              "value": "medium"
+            },
+            {
+              "title": "high",
+              "value": "high"
+            }
+          ],
+          "showOnlyWhen": {
+            "modelName": {
+              "operator": "or",
+              "conditions": [
+                {
+                  "condition": "eq",
+                  "value": "o1-mini",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "o1",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "o1-pro",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "o3-mini",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "o3",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "o4-mini",
+                  "operator": "or"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "reasoning_effort",
+          "description": "Applicable to reasoning models only, this option controls the reasoning token length.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Reasoning Effort",
+          "default": "minimal",
+          "data": [
+            {
+              "title": "minimal",
+              "value": "minimal"
+            },
+            {
+              "title": "low",
+              "value": "low"
+            },
+            {
+              "title": "medium",
+              "value": "medium"
+            },
+            {
+              "title": "high",
+              "value": "high"
+            }
+          ],
+          "showOnlyWhen": {
+            "modelName": {
+              "operator": "or",
+              "conditions": [
+                {
+                  "condition": "eq",
+                  "value": "gpt-5-mini",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "gpt-5",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "gpt-5-nano",
+                  "operator": "or"
+                }
+              ]
+            }
+          }
         }
       ]
     },
