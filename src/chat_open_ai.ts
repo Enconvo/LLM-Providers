@@ -49,8 +49,8 @@ export class ChatOpenAIProvider extends LLMProvider {
     private initParams(content: LLMProvider.Params) {
         // console.log("openai content", JSON.stringify(this.options, null, 2))
         const credentials = this.options.credentials
-        console.log("openai credentials", credentials)
-        if (!credentials.apiKey) {
+        // console.log("openai credentials", credentials)
+        if (!credentials?.apiKey) {
             throw new Error("API key is required")
         }
         const modelOptions = this.options.modelName
