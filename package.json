@@ -2638,7 +2638,6 @@
     "@langchain/community": "^0.3.19",
     "@langchain/core": "^0.3.23",
     "@lmnr-ai/lmnr": "^0.4.42",
-    "@openauthjs/openauth": "^0.4.3",
     "@types/wav": "^1.0.4",
     "ai": "^5.0.15",
     "axios": "^1.7.9",
@@ -2648,10 +2647,9 @@
     "mime": "^4.0.6",
     "ollama": "^0.5.17",
     "open": "^10.2.0",
-    "openai": "^4.95.1",
+    "openai": "^5.12.2",
     "pkce": "link:@openauthjs/openauth/pkce",
     "wav": "^1.0.2",
-    "xdg-basedir": "^5.1.0",
     "zod": "^4.0.17"
   },
   "devDependencies": {
