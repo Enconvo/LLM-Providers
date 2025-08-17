@@ -4,7 +4,7 @@ import { AnthropicUtil, convertMessagesToAnthropicMessages, streamFromAnthropic 
 import { env } from "process";
 
 import { wrapSDK } from "langsmith/wrappers";
-import { TextBlockParam } from "@anthropic-ai/sdk/resources/index.js";
+import {  MessageStreamParams, TextBlockParam } from "@anthropic-ai/sdk/resources/index.js";
 
 export default function main(options: any) {
     return new AnthropicProvider(options)
@@ -33,8 +33,8 @@ export class AnthropicProvider extends LLMProvider {
             headers['anthropic-beta'] = 'oauth-2025-04-20,claude-code-20250219,interleaved-thinking-2025-05-14,fine-grained-tool-streaming-2025-05-14'
         }
 
-        console.log("anthropic credentials", credentials)
         const credentialsType = credentials?.credentials_type?.value || 'apiKey'
+        console.log("anthropic credentials", credentialsType)
 
         const anthropic = new Anthropic({
             apiKey: credentialsType === 'apiKey' ? credentials?.anthropicApiKey : undefined,
@@ -92,18 +92,12 @@ export class AnthropicProvider extends LLMProvider {
 
         const params = await this.initParams(content)
 
-        let stream: any
-        const model = this.options.modelName.value
-        if (model.includes("claude-3-7-sonnet-latest-thinking")) {
-            stream = this.anthropic.messages.stream(params)
-        } else {
-            stream = this.anthropic.messages.stream(params)
-        }
+        const stream = this.anthropic.messages.stream(params)
 
         return streamFromAnthropic(stream, stream.controller)
     }
 
-    async initParams(content: LLMProvider.Params): Promise<any> {
+    async initParams(content: LLMProvider.Params): Promise<MessageStreamParams> {
         const messages = content.messages
         const systemMessages = messages.filter((message) => message.role === "system")
         const system: Array<TextBlockParam> = []
@@ -142,7 +136,6 @@ export class AnthropicProvider extends LLMProvider {
 
 
         const model = this.options.modelName.value
-        let params: any = {}
         let temperature = Number(this.options.temperature.value)
         if (temperature > 1) {
             temperature = 1
@@ -150,49 +143,43 @@ export class AnthropicProvider extends LLMProvider {
         if (temperature < 0) {
             temperature = 0
         }
-        if (model.includes("claude-3-7-sonnet-latest-thinking")) {
-            const modelName = model.includes("anthropic/") ? "anthropic/claude-3-7-sonnet-20250219" : "claude-3-7-sonnet-20250219"
 
-            params = {
-                system,
-                model: modelName,
-                max_tokens: 64000,
-                thinking: {
-                    type: "enabled",
-                    budget_tokens: 32000
-                },
-                messages: newMessages,
-                temperature: temperature,
+        const defaultMaxTokens = this.options.modelName.maxTokens || 8192
+
+        let params: MessageStreamParams = {
+            system,
+            model: model,
+            temperature: temperature,
+            max_tokens: defaultMaxTokens,
+            messages: newMessages,
+        }
+
+        if (this.options.thinking?.value === "enabled") {
+            params.thinking = {
+                type: "enabled",
+                budget_tokens: 10000
             }
-        } else {
-            const defaultMaxTokens = model.includes("claude-3-7-sonnet") ? 64000 : this.options.modelName.maxTokens || 8192
+        }
 
-            params = {
-                system,
-                model: model,
-                temperature: temperature,
-                max_tokens: defaultMaxTokens,
-                messages: newMessages,
-            }
+        if (tools && tools.length > 0) {
+            params.tools = tools
+            if (content.tool_choice && typeof content.tool_choice !== "string") {
+                params.tool_choice = {
+                    type: "tool",
+                    name: content.tool_choice.function.name,
+                    disable_parallel_tool_use: true
+                }
 
-            if (tools && tools.length > 0) {
-                params.tools = tools
-                if (content.tool_choice && typeof content.tool_choice !== "string") {
-                    params.tool_choice = {
-                        type: "tool",
-                        name: content.tool_choice.function.name,
-                        disable_parallel_tool_use: true
-                    }
+            } else {
 
-                } else {
-
-                    params.tool_choice = {
-                        type: "auto",
-                        disable_parallel_tool_use: true
-                    }
+                params.tool_choice = {
+                    type: "auto",
+                    disable_parallel_tool_use: true
                 }
             }
         }
+
+        console.log("anthropic params", JSON.stringify(params, null, 2))
 
         return params
     }

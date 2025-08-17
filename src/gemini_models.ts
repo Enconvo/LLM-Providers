@@ -170,7 +170,7 @@ export default async function main(req: Request): Promise<string> {
     const modelCache = new ListCache(fetchModels)
 
     const credentials = options.credentials
-    console.log("gemini models credentials", credentials)
+    // console.log("gemini models credentials", credentials)
 
     const models = await modelCache.getList({
         ...options,

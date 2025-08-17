@@ -76,6 +76,51 @@
           ]
         },
         {
+          "name": "thinking",
+          "description": "Applicable to reasoning models only, this option controls the reasoning token length.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Extended thinking",
+          "default": "disabled",
+          "data": [
+            {
+              "title": "Disabled",
+              "value": "disabled"
+            },
+            {
+              "title": "Enabled",
+              "value": "enabled"
+            }
+          ],
+          "showOnlyWhen": {
+            "modelName": {
+              "operator": "or",
+              "conditions": [
+                {
+                  "condition": "eq",
+                  "value": "anthropic/claude-opus-4-1-20250805",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "anthropic/claude-opus-4-20250514",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "anthropic/claude-sonnet-4-20250514",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "anthropic/claude-3-7-sonnet-20250219",
+                  "operator": "or"
+                }
+              ]
+            }
+          }
+        },
+        {
           "name": "reasoning_effort_o",
           "description": "Applicable to reasoning models only, this option controls the reasoning token length.",
           "type": "dropdown",
@@ -432,6 +477,51 @@
               "value": 1
             }
           ]
+        },
+        {
+          "name": "thinking",
+          "description": "Applicable to reasoning models only, this option controls the reasoning token length.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Extended thinking",
+          "default": "disabled",
+          "data": [
+            {
+              "title": "Disabled",
+              "value": "disabled"
+            },
+            {
+              "title": "Enabled",
+              "value": "enabled"
+            }
+          ],
+          "showOnlyWhen": {
+            "modelName": {
+              "operator": "or",
+              "conditions": [
+                {
+                  "condition": "eq",
+                  "value": "claude-opus-4-1-20250805",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "claude-opus-4-20250514",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "claude-sonnet-4-20250514",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "claude-3-7-sonnet-20250219",
+                  "operator": "or"
+                }
+              ]
+            }
+          }
         }
       ]
     },

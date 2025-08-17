@@ -473,7 +473,7 @@ export function streamFromAnthropic(response: AsyncIterable<Anthropic.Messages.M
                 // console.log("chunk", JSON.stringify(chunk, null, 2))
                 if (chunk.type === "message_start") {
                     message = chunk.message
-                    console.log("input usage", JSON.stringify(chunk.message.usage, null, 2))
+                    // console.log("input usage", JSON.stringify(chunk.message.usage, null, 2))
                 }
 
                 if (done) continue;

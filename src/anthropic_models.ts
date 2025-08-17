@@ -12,7 +12,7 @@ import Anthropic from '@anthropic-ai/sdk';
  */
 async function fetchModels(options: RequestOptions): Promise<ListCache.ListItem[]> {
     const credentials = options.credentials
-    console.log("anthropic models credentials", credentials)
+    // console.log("anthropic models credentials", credentials)
 
     const credentialsType = credentials?.credentials_type?.value
 
