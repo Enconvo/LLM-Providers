@@ -63,12 +63,11 @@ export class StraicoProvider extends LLMProvider {
     async request(messages: BaseChatMessageLike[]) {
         const credentials = this.options.credentials
         // console.log("straico credentials", credentials)
-        if (!credentials.apiKey) {
+        if (!credentials?.apiKey) {
             throw new Error("API key is required")
         }
 
         const newMessages = await this.convertMessagesToStraicoMessages(messages)
-        console.log("newMessages", JSON.stringify(newMessages, null, 2))
 
         const files = newMessages.map((message) => {
             return message.files

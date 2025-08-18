@@ -1,7 +1,7 @@
 import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, BaseChatMessageLike, LLMProvider, Stream } from "@enconvo/api";
 import { convertMessagesToGoogleMessages, GoogleUtil, streamFromGoogle } from "./utils/google_util.ts";
 import { env } from "process";
-import { FunctionCallingConfigMode, GoogleGenAI, Modality } from '@google/genai';
+import { FunctionCallingConfigMode, GenerateContentParameters, GoogleGenAI, Modality } from '@google/genai';
 import { wrapSDK } from "langsmith/wrappers";
 export default function main(options: any) {
     return new GoogleGeminiProvider(options)
@@ -13,37 +13,19 @@ export class GoogleGeminiProvider extends LLMProvider {
     constructor(options: LLMProvider.LLMOptions) {
         super(options)
         const credentials = options.credentials
-        console.log("google credentials", credentials)
-        const google = new GoogleGenAI({ apiKey: credentials.apiKey });
+        const google = new GoogleGenAI({ apiKey: credentials?.apiKey });
 
         if (env['LANGCHAIN_TRACING_V2'] === 'true') {
             this.ai = wrapSDK(google)
         } else {
             this.ai = google
         }
-
     }
-
 
     protected async _call(content: LLMProvider.Params): Promise<BaseChatMessage> {
         const params = this.initParams(content)
 
-        // console.log("params", params)
-        const result = await this.ai.models.generateContent({
-            model: params.model,
-            contents: params.messages,
-            config: {
-                systemInstruction: params.system,
-                tools: params.tools,
-                toolConfig: params.toolConfig,
-                temperature: params.temperature,
-                httpOptions: {
-                    baseUrl: params.baseUrl,
-                    headers: params.headers
-                },
-                responseModalities: params.responseModalities
-            }
-        })
+        const result = await this.ai.models.generateContent(params)
 
         return new AssistantMessage(result.text || '')
     }
@@ -52,31 +34,16 @@ export class GoogleGeminiProvider extends LLMProvider {
 
         const params = this.initParams(content)
 
-        const result = await this.ai.models.generateContentStream({
-            model: params.model,
-            contents: params.messages,
-            config: {
-                systemInstruction: params.system,
-                tools: params.tools,
-                toolConfig: params.toolConfig,
-                temperature: params.temperature,
-                httpOptions: {
-                    baseUrl: params.baseUrl,
-                    headers: params.headers
-                },
-                responseModalities: params.responseModalities,
-                responseMimeType: 'text/plain'
-            }
-        })
+        const result = await this.ai.models.generateContentStream(params)
 
         return streamFromGoogle(result, new AbortController())
     }
 
 
 
-    initParams(content: LLMProvider.Params) {
+    initParams(content: LLMProvider.Params): GenerateContentParameters {
         const credentials = this.options.credentials
-        if (!credentials.apiKey) {
+        if (!credentials?.apiKey) {
             throw new Error("Google API key is required")
         }
 
@@ -91,6 +58,7 @@ export class GoogleGeminiProvider extends LLMProvider {
                     if (item.type === "text") {
                         return item.text
                     }
+                    return JSON.stringify(item)
                 }).join("\n\n")
             }
         }).join("\n\n") : undefined
@@ -116,7 +84,6 @@ export class GoogleGeminiProvider extends LLMProvider {
         let baseUrl = credentials.baseUrl
 
         let model = this.options.modelName.value
-        console.log("model", model, this.options.originCommandName)
 
         if (this.options.originCommandName === 'enconvo_ai') {
             headers = {
@@ -132,9 +99,8 @@ export class GoogleGeminiProvider extends LLMProvider {
 
 
         let tools = GoogleUtil.convertToolsToGoogleTools(content.tools)
-        // console.log("tools", tools)
 
-        let toolConfig = {}
+        let toolConfig: any = undefined
         if (typeof content.tool_choice === "object") {
             toolConfig = {
                 functionCallingConfig: {
@@ -142,7 +108,7 @@ export class GoogleGeminiProvider extends LLMProvider {
                     allowedFunctionNames: [content.tool_choice.function.name]
                 }
             }
-        } else {
+        } else if (tools && tools.length > 0) {
             toolConfig = {
                 functionCallingConfig: {
                     mode: FunctionCallingConfigMode.AUTO
@@ -163,23 +129,36 @@ export class GoogleGeminiProvider extends LLMProvider {
             tools = undefined
         }
 
+        const maxTokens = this.options.maxTokens?.value || 8192
+        const temperature = this.options.temperature?.value || 0.7
+        const geminiThinking = this.options.gemini_thinking_pro?.value || this.options.gemini_thinking?.value
 
-        const params = {
-            system,
-            model,
-            temperature: this.options.temperature.value,
-            max_tokens: 1024,
-            messages: newMessages,
-            headers,
-            baseUrl,
-            tools,
-            toolConfig,
-            responseModalities
+        let params: GenerateContentParameters = {
+            model: model,
+            contents: newMessages,
+            config: {
+                systemInstruction: system,
+                tools: tools,
+                toolConfig: toolConfig,
+                maxOutputTokens: maxTokens,
+                temperature: temperature,
+                httpOptions: {
+                    baseUrl: baseUrl,
+                    headers: headers
+                },
+                responseModalities: responseModalities,
+            }
         }
 
-        console.log("params", params)
-        return params
+        if (geminiThinking) {
+            params.config!.thinkingConfig = {
+                thinkingBudget: geminiThinking === 'auto' ? -1 : geminiThinking === 'disabled' ? 0 : parseInt(geminiThinking),
+                includeThoughts: true
+            }
+        }
 
+        console.log("gemini params", JSON.stringify(params, null, 2))
+        return params
     }
 
 }

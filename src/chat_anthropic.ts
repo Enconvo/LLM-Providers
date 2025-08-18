@@ -4,7 +4,7 @@ import { AnthropicUtil, convertMessagesToAnthropicMessages, streamFromAnthropic 
 import { env } from "process";
 
 import { wrapSDK } from "langsmith/wrappers";
-import {  MessageStreamParams, TextBlockParam } from "@anthropic-ai/sdk/resources/index.js";
+import { MessageStreamParams, TextBlockParam } from "@anthropic-ai/sdk/resources/index.js";
 
 export default function main(options: any) {
     return new AnthropicProvider(options)
@@ -55,25 +55,10 @@ export class AnthropicProvider extends LLMProvider {
     protected async _call(content: LLMProvider.Params): Promise<BaseChatMessage> {
 
         const params = await this.initParams(content)
-        let msg: any
-        const model = this.options.modelName.value
-        if (model.includes("claude-3-7-sonnet-latest-thinking")) {
-            const stream = this.anthropic.beta.messages.stream(params);
-            let text = ""
-            for await (const chunk of stream) {
-                if (chunk.type === "content_block_delta") {
-                    if (chunk.delta.type === "text_delta") {
-                        text += chunk.delta.text
-                    }
-                }
-            }
-            return new AssistantMessage(text)
-        } else {
-            msg = await this.anthropic.messages.create({
-                ...params,
-                stream: false
-            });
-        }
+        const msg = await this.anthropic.messages.create({
+            ...params,
+            stream: false
+        });
 
         if (msg.content[0]?.type === "text") {
             return new AssistantMessage(msg.content[0].text)
@@ -154,10 +139,11 @@ export class AnthropicProvider extends LLMProvider {
             messages: newMessages,
         }
 
-        if (this.options.thinking?.value === "enabled") {
+        const claudeThinking = this.options.claude_thinking?.value
+        if (claudeThinking && claudeThinking !== "disabled") {
             params.thinking = {
                 type: "enabled",
-                budget_tokens: 10000
+                budget_tokens: parseInt(claudeThinking)
             }
         }
 

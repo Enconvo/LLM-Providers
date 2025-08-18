@@ -415,7 +415,7 @@ export function streamFromGoogle(response: AsyncGenerator<GenerateContentRespons
         let done = false;
         try {
             for await (const chunk of response) {
-                // console.log("google chunk", JSON.stringify(chunk, null, 2))
+                console.log("google chunk", JSON.stringify(chunk, null, 2))
                 if (done) continue;
                 const candidate = chunk.candidates?.[0]
                 if (candidate?.finishReason === "STOP") {
@@ -453,8 +453,9 @@ export function streamFromGoogle(response: AsyncGenerator<GenerateContentRespons
 
                 } else {
 
-                    console.log("chunk", JSON.stringify(chunk, null, 2))
-                    const inlineData = chunk.candidates?.[0]?.content?.parts?.[0]?.inlineData
+                    // console.log("chunk", JSON.stringify(chunk, null, 2))
+                    const content = chunk.candidates?.[0]?.content?.parts?.[0]
+                    const inlineData = content?.inlineData
                     if (inlineData) {
                         const isImage = chunk.usageMetadata?.candidatesTokensDetails?.some(detail => detail.modality === "IMAGE")
                         const isAudio = chunk.usageMetadata?.candidatesTokensDetails?.some(detail => detail.modality === "AUDIO")
@@ -507,20 +508,37 @@ export function streamFromGoogle(response: AsyncGenerator<GenerateContentRespons
                             }
                         }
                     } else {
-
-                        yield {
-                            model: "Google",
-                            id: uuid(),
-                            choices: [{
-                                delta: {
-                                    content: chunk.text,
-                                    role: "assistant"
-                                },
-                                finish_reason: null,
-                                index: 0
-                            }],
-                            created: Date.now(),
-                            object: "chat.completion.chunk"
+                        if (content?.thought === true) {
+                            yield {
+                                model: "Google",
+                                id: uuid(),
+                                choices: [{
+                                    delta: {
+                                        //@ts-ignore
+                                        reasoning_content: content?.text,
+                                        role: "assistant"
+                                    },
+                                    finish_reason: null,
+                                    index: 0
+                                }],
+                                created: Date.now(),
+                                object: "chat.completion.chunk"
+                            }
+                        } else if (content?.text && content?.text !== "") {
+                            yield {
+                                model: "Google",
+                                id: uuid(),
+                                choices: [{
+                                    delta: {
+                                        content: chunk.text,
+                                        role: "assistant"
+                                    },
+                                    finish_reason: null,
+                                    index: 0
+                                }],
+                                created: Date.now(),
+                                object: "chat.completion.chunk"
+                            }
                         }
                     }
                 }

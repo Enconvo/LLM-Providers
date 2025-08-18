@@ -76,7 +76,7 @@
           ]
         },
         {
-          "name": "thinking",
+          "name": "claude_thinking",
           "description": "Applicable to reasoning models only, this option controls the reasoning token length.",
           "type": "dropdown",
           "required": false,
@@ -85,11 +85,33 @@
           "data": [
             {
               "title": "Disabled",
-              "value": "disabled"
+              "value": "disabled",
+              "description": "Model does not think"
             },
             {
               "title": "Enabled",
-              "value": "enabled"
+              "value": "10000",
+              "description": "Enabled, Thinking budget tokens: 10000"
+            },
+            {
+              "title": "Minimal",
+              "value": "1024",
+              "description": "Thinking budget tokens: 1024"
+            },
+            {
+              "title": "Low",
+              "value": "2048",
+              "description": "Thinking budget tokens: 2048"
+            },
+            {
+              "title": "Medium",
+              "value": "5120",
+              "description": "Thinking budget tokens: 5120"
+            },
+            {
+              "title": "High",
+              "value": "10240",
+              "description": "Thinking budget tokens: 10240"
             }
           ],
           "showOnlyWhen": {
@@ -130,15 +152,18 @@
           "data": [
             {
               "title": "low",
-              "value": "low"
+              "value": "low",
+              "description": "Favors speed and economical token usage with basic reasoning"
             },
             {
               "title": "medium",
-              "value": "medium"
+              "value": "medium",
+              "description": "Balance between speed and reasoning accuracy (default)"
             },
             {
               "title": "high",
-              "value": "high"
+              "value": "high",
+              "description": "Favors more complete reasoning with higher token usage"
             }
           ],
           "showOnlyWhen": {
@@ -174,6 +199,11 @@
                   "condition": "eq",
                   "value": "openai/o4-mini",
                   "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "deepseek-ai/DeepSeek-R1",
+                  "operator": "or"
                 }
               ]
             }
@@ -189,19 +219,23 @@
           "data": [
             {
               "title": "minimal",
-              "value": "minimal"
+              "value": "minimal",
+              "description": "Favors speed and economical token usage with minimal reasoning"
             },
             {
               "title": "low",
-              "value": "low"
+              "value": "low",
+              "description": "Favors speed and economical token usage with basic reasoning"
             },
             {
               "title": "medium",
-              "value": "medium"
+              "value": "medium",
+              "description": "Balance between speed and reasoning accuracy (default)"
             },
             {
               "title": "high",
-              "value": "high"
+              "value": "high",
+              "description": "Favors more complete reasoning with higher token usage"
             }
           ],
           "showOnlyWhen": {
@@ -221,6 +255,110 @@
                 {
                   "condition": "eq",
                   "value": "openai/gpt-5-nano",
+                  "operator": "or"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "gemini_thinking_pro",
+          "description": "Applicable to reasoning models only, this option controls the reasoning token length.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Gemini thinking",
+          "default": "auto",
+          "data": [
+            {
+              "title": "Auto",
+              "value": "auto",
+              "description": "Model decides when and how much to think"
+            },
+            {
+              "title": "Minimal",
+              "value": "128",
+              "description": "Thinking budgets: 128"
+            },
+            {
+              "title": "Low",
+              "value": "1024",
+              "description": "Thinking budgets: 1024"
+            },
+            {
+              "title": "Medium",
+              "value": "10000",
+              "description": "Thinking budgets: 10000"
+            },
+            {
+              "title": "High",
+              "value": "30000",
+              "description": "Thinking budgets: 30000"
+            }
+          ],
+          "showOnlyWhen": {
+            "modelName": {
+              "operator": "or",
+              "conditions": [
+                {
+                  "condition": "eq",
+                  "value": "google/gemini-2.5-pro",
+                  "operator": "or"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "gemini_thinking",
+          "description": "Applicable to reasoning models only, this option controls the reasoning token length.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Gemini thinking",
+          "default": "auto",
+          "data": [
+            {
+              "title": "Auto",
+              "value": "auto",
+              "description": "Model decides when and how much to think"
+            },
+            {
+              "title": "Disabled",
+              "value": "disabled",
+              "description": "Model does not think"
+            },
+            {
+              "title": "Minimal",
+              "value": "512",
+              "description": "Thinking budgets: 512"
+            },
+            {
+              "title": "Low",
+              "value": "1024",
+              "description": "Thinking budgets: 1024"
+            },
+            {
+              "title": "Medium",
+              "value": "10000",
+              "description": "Thinking budgets: 10000"
+            },
+            {
+              "title": "High",
+              "value": "20000",
+              "description": "Thinking budgets: 20000"
+            }
+          ],
+          "showOnlyWhen": {
+            "modelName": {
+              "operator": "or",
+              "conditions": [
+                {
+                  "condition": "eq",
+                  "value": "google/gemini-2.5-flash",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "google/gemini-2.5-flash-lite",
                   "operator": "or"
                 }
               ]
@@ -301,15 +439,18 @@
           "data": [
             {
               "title": "low",
-              "value": "low"
+              "value": "low",
+              "description": "Favors speed and economical token usage with basic reasoning"
             },
             {
               "title": "medium",
-              "value": "medium"
+              "value": "medium",
+              "description": "Balance between speed and reasoning accuracy (default)"
             },
             {
               "title": "high",
-              "value": "high"
+              "value": "high",
+              "description": "Favors more complete reasoning with higher token usage"
             }
           ],
           "showOnlyWhen": {
@@ -360,19 +501,23 @@
           "data": [
             {
               "title": "minimal",
-              "value": "minimal"
+              "value": "minimal",
+              "description": "Favors speed and economical token usage with minimal reasoning"
             },
             {
               "title": "low",
-              "value": "low"
+              "value": "low",
+              "description": "Favors speed and economical token usage with basic reasoning"
             },
             {
               "title": "medium",
-              "value": "medium"
+              "value": "medium",
+              "description": "Balance between speed and reasoning accuracy (default)"
             },
             {
               "title": "high",
-              "value": "high"
+              "value": "high",
+              "description": "Favors more complete reasoning with higher token usage"
             }
           ],
           "showOnlyWhen": {
@@ -479,7 +624,7 @@
           ]
         },
         {
-          "name": "thinking",
+          "name": "claude_thinking",
           "description": "Applicable to reasoning models only, this option controls the reasoning token length.",
           "type": "dropdown",
           "required": false,
@@ -488,11 +633,33 @@
           "data": [
             {
               "title": "Disabled",
-              "value": "disabled"
+              "value": "disabled",
+              "description": "Model does not think"
             },
             {
               "title": "Enabled",
-              "value": "enabled"
+              "value": "10000",
+              "description": "Enabled, Thinking budget tokens: 10000"
+            },
+            {
+              "title": "Minimal",
+              "value": "1024",
+              "description": "Thinking budget tokens: 1024"
+            },
+            {
+              "title": "Low",
+              "value": "2048",
+              "description": "Thinking budget tokens: 2048"
+            },
+            {
+              "title": "Medium",
+              "value": "5120",
+              "description": "Thinking budget tokens: 5120"
+            },
+            {
+              "title": "High",
+              "value": "10240",
+              "description": "Thinking budget tokens: 10240"
             }
           ],
           "showOnlyWhen": {
@@ -585,6 +752,110 @@
               "value": 2
             }
           ]
+        },
+        {
+          "name": "gemini_thinking_pro",
+          "description": "Applicable to reasoning models only, this option controls the reasoning token length.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Gemini thinking",
+          "default": "auto",
+          "data": [
+            {
+              "title": "Auto",
+              "value": "auto",
+              "description": "Model decides when and how much to think"
+            },
+            {
+              "title": "Minimal",
+              "value": "128",
+              "description": "Thinking budgets: 128"
+            },
+            {
+              "title": "Low",
+              "value": "1024",
+              "description": "Thinking budgets: 1024"
+            },
+            {
+              "title": "Medium",
+              "value": "10000",
+              "description": "Thinking budgets: 10000"
+            },
+            {
+              "title": "High",
+              "value": "30000",
+              "description": "Thinking budgets: 30000"
+            }
+          ],
+          "showOnlyWhen": {
+            "modelName": {
+              "operator": "or",
+              "conditions": [
+                {
+                  "condition": "eq",
+                  "value": "gemini-2.5-pro",
+                  "operator": "or"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "gemini_thinking",
+          "description": "Applicable to reasoning models only, this option controls the reasoning token length.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Gemini thinking",
+          "default": "auto",
+          "data": [
+            {
+              "title": "Auto",
+              "value": "auto",
+              "description": "Model decides when and how much to think"
+            },
+            {
+              "title": "Disabled",
+              "value": "disabled",
+              "description": "Model does not think"
+            },
+            {
+              "title": "Minimal",
+              "value": "512",
+              "description": "Thinking budgets: 512"
+            },
+            {
+              "title": "Low",
+              "value": "1024",
+              "description": "Thinking budgets: 1024"
+            },
+            {
+              "title": "Medium",
+              "value": "10000",
+              "description": "Thinking budgets: 10000"
+            },
+            {
+              "title": "High",
+              "value": "20000",
+              "description": "Thinking budgets: 20000"
+            }
+          ],
+          "showOnlyWhen": {
+            "modelName": {
+              "operator": "or",
+              "conditions": [
+                {
+                  "condition": "eq",
+                  "value": "gemini-2.5-flash",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "gemini-2.5-flash-lite",
+                  "operator": "or"
+                }
+              ]
+            }
+          }
         }
       ]
     },
@@ -655,25 +926,36 @@
           "type": "dropdown",
           "required": false,
           "title": "Reasoning Effort",
-          "default": "off",
+          "default": "low",
           "data": [
             {
               "title": "low",
-              "value": "low"
+              "value": "low",
+              "description": "Favors speed and economical token usage with basic reasoning"
             },
             {
               "title": "medium",
-              "value": "medium"
+              "value": "medium",
+              "description": "Balance between speed and reasoning accuracy (default)"
             },
             {
               "title": "high",
-              "value": "high"
-            },
-            {
-              "title": "off",
-              "value": "off"
+              "value": "high",
+              "description": "Favors more complete reasoning with higher token usage"
             }
-          ]
+          ],
+          "showOnlyWhen": {
+            "modelName": {
+              "operator": "or",
+              "conditions": [
+                {
+                  "condition": "eq",
+                  "value": "deepseek-reasoner",
+                  "operator": "or"
+                }
+              ]
+            }
+          }
         }
       ]
     },
@@ -2910,7 +3192,7 @@
     "@ai-sdk/openai": "^2.0.15",
     "@anthropic-ai/sdk": "^0.60.0",
     "@enconvo/api": "link:/Users/ysnows/Documents/Project/enconvo.nodejs/enconvo_api",
-    "@google/genai": "^1.0.0",
+    "@google/genai": "^1.14.0",
     "@langchain/cloudflare": "^0.1.0",
     "@langchain/cohere": "^0.3.1",
     "@langchain/community": "^0.3.19",
@@ -2926,7 +3208,6 @@
     "ollama": "^0.5.17",
     "open": "^10.2.0",
     "openai": "^5.12.2",
-    "pkce": "link:@openauthjs/openauth/pkce",
     "wav": "^1.0.2",
     "zod": "^4.0.17"
   },
