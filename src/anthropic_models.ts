@@ -12,15 +12,15 @@ import Anthropic from '@anthropic-ai/sdk';
  */
 async function fetchModels(options: RequestOptions): Promise<ListCache.ListItem[]> {
     const credentials = options.credentials
-    // console.log("anthropic models credentials", credentials)
 
     const credentialsType = credentials?.credentials_type?.value
 
-    if (credentialsType === 'oauth2' && (!credentials?.anthropicApiUrl || !credentials?.access_token)) {
+    console.log("anthropic models credentials", credentials, credentialsType)
+    if (credentialsType === 'oauth2' && (!credentials?.access_token)) {
         return []
     }
 
-    if (credentialsType === 'apiKey' && (!credentials?.anthropicApiUrl || !credentials?.anthropicApiKey)) {
+    if (credentialsType === 'apiKey' && (!credentials?.anthropicApiKey)) {
         return []
     }
 
@@ -136,6 +136,7 @@ async function fetchModels(options: RequestOptions): Promise<ListCache.ListItem[
  */
 export default async function main(req: Request): Promise<string> {
     const options = await req.json()
+    console.log("anthropic models options", options)
 
     const modelCache = new ListCache(fetchModels)
 

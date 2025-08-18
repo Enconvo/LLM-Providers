@@ -78,7 +78,7 @@ export class ChatOpenAIProvider extends LLMProvider {
         }
 
 
-        let reasoning_effort = this.options?.reasoning_effort?.value || this.options?.reasoning_effort_o?.value
+        let reasoning_effort = this.options?.reasoning_effort?.value || this.options?.reasoning_effort_new?.value
         if (reasoning_effort && reasoning_effort !== "off") {
             params.reasoning_effort = reasoning_effort
         }
