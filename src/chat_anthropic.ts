@@ -54,17 +54,16 @@ export class AnthropicProvider extends LLMProvider {
 
     protected async _call(content: LLMProvider.Params): Promise<BaseChatMessage> {
 
-        const params = await this.initParams(content)
-        const msg = await this.anthropic.messages.create({
-            ...params,
-            stream: false
-        });
-
-        if (msg.content[0]?.type === "text") {
-            return new AssistantMessage(msg.content[0].text)
+        const stream = await this._stream(content)
+        let message = ""
+        for await (const chunk of stream) {
+            console.log("chunk", chunk)
+            if (chunk.choices?.[0]?.delta?.content) {
+                message += chunk.choices[0].delta.content
+            }
         }
 
-        return new AssistantMessage(msg.content[0].type)
+        return new AssistantMessage(message)
     }
 
 
