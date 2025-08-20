@@ -33,9 +33,8 @@ export class ChatOpenAIProvider extends LLMProvider {
     }
 
     protected async _stream_v2(content: LLMProvider.Params): Promise<Stream<BaseChatMessageChunk>> {
+        const params = this.initResponseParams(content)
         const response = await this.client.responses.create({
-            "model": this.options.modelName.value || 'gpt-5',
-            "instructions": codex_instructions,
             "input": [
                 {
                     "type": "message",
@@ -58,18 +57,7 @@ export class ChatOpenAIProvider extends LLMProvider {
                     ]
                 }
             ],
-            "tools": [],
-            "tool_choice": "auto",
-            "parallel_tool_calls": false,
-            "store": false,
-            "stream": true,
-            "include": [
-            ],
-            "prompt_cache_key": "d36d744d-0c64-4b25-9c5a-3e132dbb2e18",
-            "reasoning": {
-                "effort": "minimal",
-                "summary": "auto"
-            }
+            ...params
         });
 
         const ac = new AbortController()
@@ -95,6 +83,52 @@ export class ChatOpenAIProvider extends LLMProvider {
 
         return new UserMessage(result?.message?.content || '')
     }
+
+
+
+    private initResponseParams(content: LLMProvider.Params): OpenAI.Responses.ResponseCreateParamsStreaming {
+        // console.log("openai options", JSON.stringify(content.messages, null, 2))
+        const credentials = this.options.credentials
+        // console.log("openai credentials", credentials)
+        if (!credentials?.access_token) {
+            throw new Error("Please authorize with OAuth2 first")
+        }
+
+        const modelOptions = this.options.modelName
+
+        const messages = OpenAIUtil.convertMessagesToOpenAIResponseMessages(this.options, content.messages)
+
+        const tools = OpenAIUtil.convertToolsToOpenAITools(content.tools)
+
+        let params: OpenAI.Responses.ResponseCreateParamsStreaming = {
+            model: modelOptions?.value,
+            instructions: codex_instructions,
+            input: messages,
+            stream: true,
+            tools: [],
+            tool_choice: "auto",
+            parallel_tool_calls: false,
+            store: false,
+            include: [],
+            prompt_cache_key: "d36d744d-0c64-4b25-9c5a-3e132dbb2e18",
+        }
+
+        let reasoning_effort = this.options?.reasoning_effort?.value || this.options?.reasoning_effort_new?.value
+        if (reasoning_effort && reasoning_effort !== "off") {
+            params.reasoning = {
+                effort: reasoning_effort,
+                summary: "auto"
+            }
+        }
+
+        if (tools && tools.length > 0 && modelOptions?.toolUse === true) {
+            // params.tools = tools
+        }
+
+
+        return params
+    }
+
 
     private initParams(content: LLMProvider.Params) {
         // console.log("openai options", JSON.stringify(this.options, null, 2))

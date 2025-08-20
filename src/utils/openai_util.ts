@@ -2,7 +2,8 @@ import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, BaseChatMessag
 import OpenAI from "openai"
 import path from "path"
 import fs from "fs"
-import { ResponseStreamEvent } from "openai/resources/responses/responses.mjs"
+import { EasyInputMessage, ResponseInputContent, ResponseInputItem, ResponseInputMessageContentList, ResponseOutputItem, ResponseOutputRefusal, ResponseOutputText, ResponseStreamEvent } from "openai/resources/responses/responses.mjs"
+import mime from "mime"
 export namespace OpenAIUtil {
 
     function isSupportedImageType(url: string) {
@@ -53,11 +54,259 @@ export namespace OpenAIUtil {
         return []
     }
 
+
+    export const convertMessageToOpenAIResponseMessage = (options: LLMProvider.LLMOptions, message: BaseChatMessageLike): (ResponseOutputItem | ResponseInputItem)[] => {
+        let role = message.role
+
+        if (message.role === "tool") {
+            let content: (string | ChatMessageContent)[] = []
+            try {
+                content = JSON.parse(message.content as string)
+            } catch (e) {
+                console.log("toolMessage content error", message.content)
+            }
+
+            const toolAdditionalMessages = convertToolResults(content, options)
+
+            //@ts-ignore
+            return [message, ...toolAdditionalMessages]
+        }
+
+
+        if (message.role === "assistant") {
+            const aiMessage = message as AssistantMessage
+            if (aiMessage.tool_calls && aiMessage.tool_calls.length > 0) {
+                //@ts-ignore
+                return [aiMessage]
+            }
+        }
+
+
+        if (typeof message.content === "string" && (role === "user" || role === "assistant" || role === "system")) {
+            let newMessage: ResponseInputItem
+            if (role === 'system' || role === 'user') {
+                newMessage = {
+                    type: "message",
+                    content: message.content,
+                    role: 'user'
+                }
+            } else {
+                newMessage = {
+                    type: "message",
+                    content: message.content,
+                    role: 'assistant'
+                }
+            }
+            return [newMessage]
+        } else if (Array.isArray(message.content) && (role === "user" || role === "assistant" || role === "system")) {
+            let newMessages: ResponseInputItem[] = []
+            let messageContents: (ResponseInputContent | ResponseOutputText | ResponseOutputRefusal)[] = []
+
+            for (const item of message.content) {
+                if (item.type === "image_url") {
+                    const url = item.image_url.url
+                    if (role === "user" && options.modelName.visionEnable === true && isSupportedImageType(url)) {
+                        if (url.startsWith("http://") || url.startsWith("https://")) {
+                            messageContents.push({
+                                type: 'input_image',
+                                detail: 'auto',
+                                image_url: url
+                            })
+                        } else {
+                            const fileUrl = url.startsWith("file://") ? url.replace("file://", "") : url
+                            const fileExists = fs.existsSync(fileUrl)
+
+                            if (fileExists) {
+                                const base64 = FileUtil.convertFileUrlToBase64(fileUrl)
+                                const mimeType = mime.getType(fileUrl) || "image/png"
+                                messageContents.push({
+                                    type: 'input_image',
+                                    detail: 'auto',
+                                    image_url: `data:image/${mimeType};base64,${base64}`
+                                })
+                            }
+                        }
+                    }
+
+                    if (Runtime.isAgentMode() && role === 'user') {
+                        messageContents.push({
+                            type: 'input_text',
+                            text: `This is a image file , url is ${url} , only used for reference when you use tool, if not , ignore this .`
+                        })
+                    }
+
+                } else if (item.type === "flow_step") {
+
+                    // const results = item.flowResults.map((message: any) => {
+                    //     return message.content
+                    // }).flat()
+
+
+                    // const msgs: OpenAI.Chat.ChatCompletionMessageParam[] = [
+                    //     {
+                    //         role: "assistant",
+                    //         tool_calls: [
+                    //             {
+                    //                 type: "function",
+                    //                 id: item.flowId,
+                    //                 function: {
+                    //                     name: item.flowName.replace("|", "-"),
+                    //                     arguments: item.flowParams || ''
+                    //                 }
+                    //             }
+                    //         ]
+                    //     }
+                    //     ,
+                    //     {
+                    //         role: "tool",
+                    //         tool_call_id: item.flowId,
+                    //         content: JSON.stringify(results)
+                    //     }]
+
+                    // if (options.modelName.toolUse === true) {
+
+                    //     if (messageContents.length > 0) {
+                    //         //@ts-ignore
+                    //         newMessages.push({
+                    //             role: role,
+                    //             content: messageContents
+                    //         })
+                    //         messageContents = []
+                    //     }
+
+                    //     const toolAdditionalMessages = convertToolResults(results, options)
+
+                    //     newMessages.push(...msgs, ...toolAdditionalMessages)
+                    // } else {
+                    //     messageContents.push({
+                    //         type: "text",
+                    //         text: "This is a tool call , name is " + item.flowName + " , args is " + JSON.stringify(item.flowParams) + " , results is " + JSON.stringify(results)
+                    //     })
+                    // }
+
+                } else if (item.type === "text" && item.text.trim() !== "") {
+                    if (role === 'user' || role === 'system') {
+                        messageContents.push({
+                            type: "input_text",
+                            text: item.text
+                        })
+                    } else if (role === 'assistant') {
+                        messageContents.push({
+                            type: "output_text",
+                            text: item.text,
+                            annotations: []
+                        })
+                    }
+                } else if (item.type === "audio") {
+                    // function isSupportAudioType(mimeType: string): boolean {
+                    //     return mimeType === "mp3" || mimeType === "wav"
+                    // }
+                    // const url = item.file_url.url
+                    // const mimeType = path.extname(url).slice(1)
+                    // const isSupport = isSupportAudioType(mimeType)
+                    // if (role === "user" && url.startsWith("file://") && options.modelName.audioEnable === true && isSupport) {
+                    //     const base64 = FileUtil.convertFileUrlToBase64(url)
+                    //     messageContents.push({
+                    //         type: "input_audio",
+                    //         input_audio: {
+                    //             data: base64,
+                    //             format: mimeType as "mp3" | "wav"
+                    //         }
+                    //     })
+                    // } else {
+                    //     messageContents.push({
+                    //         type: "text",
+                    //         text: "This is a audio file , url is " + url || ""
+                    //     })
+                    // }
+                    const url = item.file_url.url.startsWith("file://") ? item.file_url.url.replace("file://", '') : item.file_url.url
+                    if (role === 'user' || role === 'system') {
+                        messageContents.push({
+                            type: "input_text",
+                            text: `This is a audio file , url is ${url},only used for reference when you use tool, if not , ignore this .`
+                        })
+                    } else if (role === 'assistant') {
+                        messageContents.push({
+                            type: "output_text",
+                            text: `This is a audio file , url is ${url},only used for reference when you use tool, if not , ignore this .`,
+                            annotations: []
+                        })
+                    }
+
+                } else if (item.type === "video") {
+                    const url = item.file_url.url.startsWith("file://") ? item.file_url.url.replace("file://", '') : item.file_url.url
+                    if (role === 'user' || role === 'system') {
+                        messageContents.push({
+                            type: "input_text",
+                            text: `This is a video file , url is ${url},only used for reference when you use tool, if not , ignore this .`
+                        })
+                    } else if (role === 'assistant') {
+                        messageContents.push({
+                            type: "output_text",
+                            text: `This is a video file , url is ${url},only used for reference when you use tool, if not , ignore this .`,
+                            annotations: []
+                        })
+                    }
+                } else if (item.type === "file") {
+                    const url = item.file_url.url.startsWith("file://") ? item.file_url.url.replace("file://", '') : item.file_url.url
+                    if (role === 'user' || role === 'system') {
+                        messageContents.push({
+                            type: "input_text",
+                            text: `This is a file , url is ${url},only used for reference when you use tool, if not , ignore this .`
+                        })
+                    } else if (role === 'assistant') {
+                        messageContents.push({
+                            type: "output_text",
+                            text: `This is a file , url is ${url},only used for reference when you use tool, if not , ignore this .`,
+                            annotations: []
+                        })
+                    }
+                } else if (item.type === "thinking") {
+
+                } else {
+                    if (role === 'user' || role === 'system') {
+                        messageContents.push({
+                            type: "input_text",
+                            text: JSON.stringify(item)
+                        })
+                    } else if (role === 'assistant') {
+                        messageContents.push({
+                            type: "output_text",
+                            text: JSON.stringify(item),
+                            annotations: []
+                        })
+                    }
+                }
+            }
+
+            if (messageContents.length > 0) {
+                if (role === 'user' || role === 'system') {
+                    newMessages.push({
+                        type: "message",
+                        content: messageContents as ResponseInputMessageContentList,
+                        role: role === 'system' ? 'user' : role as EasyInputMessage['role']
+                    })
+                } else if (role === 'assistant') {
+                    newMessages.push({
+                        type: "message",
+                        content: messageContents as Array<ResponseOutputText | ResponseOutputRefusal>,
+                        role: 'assistant',
+                        status: 'completed',
+                        id: message.id || `msg_${uuid()}`
+                    })
+                }
+            }
+
+            return newMessages
+        }
+        return []
+    }
+
     export const convertMessageToOpenAIMessage = (options: LLMProvider.LLMOptions, message: BaseChatMessageLike): OpenAI.Chat.ChatCompletionMessageParam[] => {
         let role = message.role
         if (options.modelName && options.modelName.systemMessageEnable === false && message.role === "system") {
             message.role = "user"
-            const assistantMessage: AssistantMessage = BaseChatMessage.assistant('Got it , I will follow your instructions')
+            const assistantMessage: AssistantMessage = BaseChatMessage.assistant('Got it, I will follow your instructions and respond using your language.')
 
             //@ts-ignore
             return [message, assistantMessage]
@@ -395,6 +644,15 @@ export namespace OpenAIUtil {
     }
 
 
+    export const convertMessagesToOpenAIResponseMessages = (options: LLMProvider.LLMOptions, messages: BaseChatMessageLike[]): ResponseInputItem[] => {
+
+        let newMessages = messages.map((message) => convertMessageToOpenAIResponseMessage(options, message)).flat()
+
+        console.log("newMessages", JSON.stringify(newMessages, null, 2))
+        return newMessages
+    }
+
+
 
     export function streamFromOpenAI(response: AsyncIterable<OpenAI.Chat.ChatCompletionChunk>, controller: AbortController): Stream<BaseChatMessageChunk> {
         let consumed = false;
@@ -436,15 +694,16 @@ export namespace OpenAIUtil {
             consumed = true;
             let done = false;
             try {
-
                 for await (const chunk of response) {
-                    console.log("chunk", JSON.stringify(chunk, null, 2))
+                    if (chunk.type !== 'response.created' && chunk.type !== 'response.completed' && chunk.type !== 'response.in_progress') {
+                        console.log("chunk", JSON.stringify(chunk, null, 2))
+                    }
                     if (done) continue;
 
                     if (chunk.type === 'response.output_text.delta') {
                         yield {
                             model: "OpenAIResponse",
-                            id: uuid(),
+                            id: chunk.item_id || `msg_${uuid()}`,
                             choices: [{
                                 delta: {
                                     content: chunk.delta,
