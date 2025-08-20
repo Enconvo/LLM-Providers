@@ -3,6 +3,7 @@ import { BaseChatMessage, BaseChatMessageChunk, LLMProvider, Stream, UserMessage
 import OpenAI from 'openai';
 import { wrapOpenAI } from "langsmith/wrappers";
 import { OpenAIUtil } from './utils/openai_util.ts';
+import { codex_instructions } from './utils/instructions.ts';
 
 
 export default function main(options: any) {
@@ -13,6 +14,9 @@ export default function main(options: any) {
 export class ChatOpenAIProvider extends LLMProvider {
 
     protected async _stream(content: LLMProvider.Params): Promise<Stream<BaseChatMessageChunk>> {
+        if (this.options.credentials?.credentials_type?.value === 'oauth2') {
+            return await this._stream_v2(content)
+        }
 
         const params = this.initParams(content)
         console.log("params", JSON.stringify(params, null, 2))
@@ -25,6 +29,52 @@ export class ChatOpenAIProvider extends LLMProvider {
         const ac = new AbortController()
         //@ts-ignore
         const stream = OpenAIUtil.streamFromOpenAI(chatCompletion, ac)
+        return stream
+    }
+
+    protected async _stream_v2(content: LLMProvider.Params): Promise<Stream<BaseChatMessageChunk>> {
+        const response = await this.client.responses.create({
+            "model": this.options.modelName.value || 'gpt-5',
+            "instructions": codex_instructions,
+            "input": [
+                {
+                    "type": "message",
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "input_text",
+                            "text": "# You are at 2025 and current time is 08:48:53 GMT+0800 (China Standard Time) Wed Aug 20 2025.\n# Language: same as the input text: hello\n\n\nThis is my additional instruction, if the instruction is conflict with the above instruction, please follow the instruction below:\nYou are an efficient assistant running on MacOS, you can use the tools to help you complete the task."
+                        }
+                    ]
+                },
+                {
+                    "type": "message",
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "input_text",
+                            "text": "hello"
+                        }
+                    ]
+                }
+            ],
+            "tools": [],
+            "tool_choice": "auto",
+            "parallel_tool_calls": false,
+            "store": false,
+            "stream": true,
+            "include": [
+            ],
+            "prompt_cache_key": "d36d744d-0c64-4b25-9c5a-3e132dbb2e18",
+            "reasoning": {
+                "effort": "minimal",
+                "summary": "auto"
+            }
+        });
+
+        const ac = new AbortController()
+        //@ts-ignore
+        const stream = OpenAIUtil.streamFromOpenAIResponse(response, ac)
         return stream
     }
 
@@ -97,6 +147,24 @@ export class ChatOpenAIProvider extends LLMProvider {
     }
 
     private _createOpenaiClient(options: LLMProvider.LLMOptions): OpenAI {
+        const credentials = options.credentials
+        // console.log("credentials", credentials)
+        if (credentials?.credentials_type?.value === 'oauth2') {
+            const client = new OpenAI({
+                apiKey: 'key',
+                defaultHeaders: {
+                    "Authorization": `Bearer ${credentials.access_token}`,
+                    "chatgpt-account-id": credentials.account_id,
+                    "OpenAI-Beta": "responses=experimental",
+                    "session_id": "a55064f6-4010-4e60-876d-a7ca1cb8d401"
+                },
+                fetch: async (url, init) => {
+                    // console.log("url", url, init)
+                    return fetch("https://chatgpt.com/backend-api/codex/responses", init)
+                }
+            });
+            return client
+        }
 
         let headers = {}
 
@@ -132,7 +200,6 @@ export class ChatOpenAIProvider extends LLMProvider {
         if (options.baseUrl === 'http://127.0.0.1:5001') {
             options.frequencyPenalty = 0.0001
         }
-        const credentials = options.credentials
 
         const client = new OpenAI({
             apiKey: credentials?.apiKey, // This is the default and can be omitted

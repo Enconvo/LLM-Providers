@@ -1,7 +1,8 @@
-import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, BaseChatMessageLike, ChatMessageContent, FileUtil, LLMProvider, LLMTool, Runtime, Stream } from "@enconvo/api"
+import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, BaseChatMessageLike, ChatMessageContent, FileUtil, LLMProvider, LLMTool, Runtime, Stream, uuid } from "@enconvo/api"
 import OpenAI from "openai"
 import path from "path"
 import fs from "fs"
+import { ResponseStreamEvent } from "openai/resources/responses/responses.mjs"
 export namespace OpenAIUtil {
 
     function isSupportedImageType(url: string) {
@@ -422,5 +423,49 @@ export namespace OpenAIUtil {
         const stream = new Stream(iterator, controller);
 
         return stream
+    }
+
+
+    export function streamFromOpenAIResponse(response: Stream<ResponseStreamEvent>, controller: AbortController): Stream<BaseChatMessageChunk> {
+        let consumed = false;
+
+        async function* iterator(): AsyncIterator<BaseChatMessageChunk, any, undefined> {
+            if (consumed) {
+                throw new Error('Cannot iterate over a consumed stream, use `.tee()` to split the stream.');
+            }
+            consumed = true;
+            let done = false;
+            try {
+
+                for await (const chunk of response) {
+                    console.log("chunk", JSON.stringify(chunk, null, 2))
+                    if (done) continue;
+
+                    if (chunk.type === 'response.output_text.delta') {
+                        yield {
+                            model: "OpenAIResponse",
+                            id: uuid(),
+                            choices: [{
+                                delta: {
+                                    content: chunk.delta,
+                                    role: "assistant"
+                                },
+                                finish_reason: null,
+                                index: 0
+                            }],
+                            created: Date.now(),
+                            object: "chat.completion.chunk"
+                        }
+                    }
+                }
+                done = true;
+            } catch (e) {
+                if (e instanceof Error && e.name === 'AbortError') return;
+                throw e;
+            } finally {
+                if (!done) controller.abort();
+            }
+        }
+        return new Stream(iterator, controller);
     }
 }
