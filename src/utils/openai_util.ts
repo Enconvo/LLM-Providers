@@ -1,8 +1,8 @@
-import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, BaseChatMessageLike, ChatMessageContent, FileUtil, LLMProvider, LLMTool, Runtime, Stream, uuid } from "@enconvo/api"
+import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, BaseChatMessageLike, ChatMessageContent, FileUtil, LLMProvider, LLMTool, Runtime, Stream, ToolMessage, uuid } from "@enconvo/api"
 import OpenAI from "openai"
 import path from "path"
 import fs from "fs"
-import { EasyInputMessage, ResponseInputContent, ResponseInputItem, ResponseInputMessageContentList, ResponseOutputItem, ResponseOutputRefusal, ResponseOutputText, ResponseStreamEvent } from "openai/resources/responses/responses.mjs"
+import { EasyInputMessage, ResponseInputContent, ResponseInputItem, ResponseInputMessageContentList, ResponseOutputItem, ResponseOutputRefusal, ResponseOutputText, ResponseStreamEvent, Tool } from "openai/resources/responses/responses.mjs"
 import mime from "mime"
 export namespace OpenAIUtil {
 
@@ -59,25 +59,37 @@ export namespace OpenAIUtil {
         let role = message.role
 
         if (message.role === "tool") {
-            let content: (string | ChatMessageContent)[] = []
-            try {
-                content = JSON.parse(message.content as string)
-            } catch (e) {
-                console.log("toolMessage content error", message.content)
+            const rawToolMessage: ToolMessage = message as ToolMessage
+
+            // let content: (string | ChatMessageContent)[] = []
+            // try {
+            //     content = JSON.parse(message.content as string)
+            // } catch (e) {
+            //     console.log("toolMessage content error", message.content)
+            // }
+            // const toolAdditionalMessages = convertToolResults(content, options)
+
+            const toolCallMessage: ResponseInputItem = {
+                type: "function_call_output",
+                call_id: rawToolMessage.tool_call_id,
+                output: typeof rawToolMessage.content === "string" ? rawToolMessage.content : JSON.stringify(rawToolMessage.content)
             }
 
-            const toolAdditionalMessages = convertToolResults(content, options)
-
-            //@ts-ignore
-            return [message, ...toolAdditionalMessages]
+            return [toolCallMessage]
         }
 
 
         if (message.role === "assistant") {
             const aiMessage = message as AssistantMessage
             if (aiMessage.tool_calls && aiMessage.tool_calls.length > 0) {
-                //@ts-ignore
-                return [aiMessage]
+                const firstToolCall = aiMessage.tool_calls[0]
+                const toolCallMessage: ResponseOutputItem = {
+                    type: "function_call",
+                    call_id: firstToolCall.id,
+                    name: firstToolCall.function.name,
+                    arguments: firstToolCall.function.arguments
+                }
+                return [toolCallMessage]
             }
         }
 
@@ -511,6 +523,34 @@ export namespace OpenAIUtil {
         }
     }
 
+    export const convertToolsToOpenAIResponseTools = (tools?: LLMTool[]): Tool[] | undefined => {
+        if (!tools) {
+            return undefined
+        }
+
+        let newTools: Tool[] | undefined = tools?.map((tool) => {
+            if (tool.parameters === undefined || tool.parameters?.type === undefined || tool.parameters?.properties === undefined) {
+                tool.parameters = {
+                    type: "object",
+                    properties: {},
+                    required: []
+                }
+            }
+
+            const newTool: Tool = {
+                type: "function",
+                name: tool.name,
+                description: tool.description,
+                parameters: tool.parameters,
+                strict: false
+            }
+            return newTool
+        })
+
+        // console.log("newTools", JSON.stringify(newTools, null, 2))
+
+        return newTools
+    }
 
     export const convertToolsToOpenAITools = (tools?: LLMTool[]): OpenAI.Chat.ChatCompletionTool[] | undefined => {
         if (!tools) {
@@ -696,7 +736,7 @@ export namespace OpenAIUtil {
             try {
                 for await (const chunk of response) {
                     if (chunk.type !== 'response.created' && chunk.type !== 'response.completed' && chunk.type !== 'response.in_progress') {
-                        console.log("chunk", JSON.stringify(chunk, null, 2))
+                        // console.log("chunk", JSON.stringify(chunk, null, 2))
                     }
                     if (done) continue;
 
@@ -707,6 +747,56 @@ export namespace OpenAIUtil {
                             choices: [{
                                 delta: {
                                     content: chunk.delta,
+                                    role: "assistant"
+                                },
+                                finish_reason: null,
+                                index: 0
+                            }],
+                            created: Date.now(),
+                            object: "chat.completion.chunk"
+                        }
+                    } else if (chunk.type === 'response.output_item.added') {
+                        if (chunk.item.type === 'function_call') {
+                            yield {
+                                model: "OpenAIResponse",
+                                id: uuid(),
+                                choices: [{
+                                    delta: {
+                                        tool_calls: [
+                                            {
+                                                type: "function",
+                                                index: 0,
+                                                id: chunk.item.call_id,
+                                                function: {
+                                                    name: chunk.item.name,
+                                                }
+                                            }
+                                        ],
+                                        role: "assistant"
+                                    },
+                                    finish_reason: null,
+                                    index: 0
+                                }],
+                                created: Date.now(),
+                                object: "chat.completion.chunk"
+                            }
+                        }
+
+                    } else if (chunk.type === 'response.function_call_arguments.delta') {
+
+                        yield {
+                            model: "OpenAIResponse",
+                            id: uuid(),
+                            choices: [{
+                                delta: {
+                                    tool_calls: [
+                                        {
+                                            index: 0,
+                                            function: {
+                                                arguments: chunk.delta
+                                            }
+                                        }
+                                    ],
                                     role: "assistant"
                                 },
                                 finish_reason: null,

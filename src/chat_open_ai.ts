@@ -98,14 +98,13 @@ export class ChatOpenAIProvider extends LLMProvider {
 
         const messages = OpenAIUtil.convertMessagesToOpenAIResponseMessages(this.options, content.messages)
 
-        const tools = OpenAIUtil.convertToolsToOpenAITools(content.tools)
+        const tools = OpenAIUtil.convertToolsToOpenAIResponseTools(content.tools)
 
         let params: OpenAI.Responses.ResponseCreateParamsStreaming = {
             model: modelOptions?.value,
             instructions: codex_instructions,
             input: messages,
             stream: true,
-            tools: [],
             tool_choice: "auto",
             parallel_tool_calls: false,
             store: false,
@@ -122,9 +121,10 @@ export class ChatOpenAIProvider extends LLMProvider {
         }
 
         if (tools && tools.length > 0 && modelOptions?.toolUse === true) {
-            // params.tools = tools
+            params.tools = tools
         }
 
+        // console.log("params", JSON.stringify(params, null, 2))
 
         return params
     }
