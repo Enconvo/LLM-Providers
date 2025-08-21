@@ -1,5 +1,5 @@
 import { ListCache, RequestOptions } from '@enconvo/api'
-import { openai_models_data } from './utils/openai_models_data.ts'
+import { openai_codex_models_data, openai_models_data } from './utils/openai_models_data.ts'
 import axios from 'axios'
 
 
@@ -12,14 +12,20 @@ import axios from 'axios'
  * @returns Promise<ModelOutput[]> - Array of processed model data
  */
 async function fetchModels(options: RequestOptions): Promise<ListCache.ListItem[]> {
-    const { url, api_key } = options
-    console.log("openai models options", url, api_key)
-    if (!url || !api_key) {
+    const credentials = options.credentials
+    if (credentials?.credentials_type?.value === 'oauth2') {
+        return openai_codex_models_data
+    }
+
+    let url = credentials?.baseUrl?.endsWith('/') ? credentials?.baseUrl : `${credentials?.baseUrl}/`
+    url = `${url}models`
+
+    if (!url || !credentials?.apiKey) {
         return []
     }
     const resp = await axios.get(url, {
         headers: {
-            'Authorization': `Bearer ${api_key}`
+            'Authorization': `Bearer ${credentials?.apiKey}`
         }
     })
 
@@ -81,18 +87,6 @@ async function fetchModels(options: RequestOptions): Promise<ListCache.ListItem[
  */
 export default async function main(req: Request): Promise<string> {
     const options = await req.json()
-
-    const credentials = options.credentials
-
-    // console.log("openai models credentials", credentials)
-
-    options.api_key = credentials?.apiKey
-
-    let url
-    url = credentials.baseUrl?.endsWith('/') ? credentials?.baseUrl : `${credentials?.baseUrl}/`
-    url = `${url}models`
-
-    options.url = url
 
     const modelCache = new ListCache(fetchModels)
 

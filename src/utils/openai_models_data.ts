@@ -1,9 +1,27 @@
+
+
+
 // OpenAI Models Data - Configuration for all available OpenAI models
 // This file contains pricing, capabilities, and specifications for each model
+export const openai_codex_models_data = [
+    {
+        "title": "GPT-5",
+        "value": "gpt-5",
+        "context": 400000,
+        "maxTokens": 128000,
+        "inputPrice": 1.25,
+        "outputPrice": 10,
+        "toolUse": true,
+        "visionEnable": true,
+        "systemMessageEnable": true,
+        "speed": 3,
+        "reasoning": 4
+    }
+]
 export const openai_models_data = [
     // GPT-5 Series - Frontier models
     {
-        "title": "gpt-5",
+        "title": "GPT-5",
         "value": "gpt-5",
         "context": 400000,
         "maxTokens": 128000,
@@ -16,7 +34,7 @@ export const openai_models_data = [
         "reasoning": 4
     },
     {
-        "title": "gpt-5-mini",
+        "title": "GPT-5-mini",
         "value": "gpt-5-mini",
         "context": 400000,
         "maxTokens": 128000,
@@ -29,7 +47,7 @@ export const openai_models_data = [
         "reasoning": 3
     },
     {
-        "title": "gpt-5-nano",
+        "title": "GPT-5-nano",
         "value": "gpt-5-nano",
         "context": 400000,
         "maxTokens": 128000,
@@ -42,7 +60,7 @@ export const openai_models_data = [
         "reasoning": 3
     },
     {
-        "title": "gpt-5-chat-latest",
+        "title": "GPT-5-chat-latest",
         "value": "gpt-5-chat-latest",
         "context": 400000,
         "maxTokens": 128000,
@@ -55,7 +73,7 @@ export const openai_models_data = [
         "reasoning": 4
     },
     {
-        "title": "gpt-5-2025-08-07",
+        "title": "GPT-5-2025-08-07",
         "value": "gpt-5-2025-08-07",
         "context": 400000,
         "maxTokens": 128000,
@@ -67,7 +85,7 @@ export const openai_models_data = [
         "speed": 3
     },
     {
-        "title": "gpt-5-mini-2025-08-07",
+        "title": "GPT-5-mini-2025-08-07",
         "value": "gpt-5-mini-2025-08-07",
         "context": 400000,
         "maxTokens": 128000,
@@ -80,7 +98,7 @@ export const openai_models_data = [
         "reasoning": 3
     },
     {
-        "title": "gpt-5-nano-2025-08-07",
+        "title": "GPT-5-nano-2025-08-07",
         "value": "gpt-5-nano-2025-08-07",
         "context": 400000,
         "maxTokens": 128000,
@@ -95,7 +113,7 @@ export const openai_models_data = [
 
     // GPT-4.1 Series
     {
-        "title": "gpt-4.1",
+        "title": "GPT-4.1",
         "value": "gpt-4.1",
         "context": 1047576,
         "maxTokens": 32768,
@@ -108,7 +126,7 @@ export const openai_models_data = [
         "intelligence": 4
     },
     {
-        "title": "gpt-4.1-mini",
+        "title": "GPT-4.1-mini",
         "value": "gpt-4.1-mini",
         "context": 1047576,
         "maxTokens": 32768,
@@ -121,7 +139,7 @@ export const openai_models_data = [
         "intelligence": 3
     },
     {
-        "title": "gpt-4.1-nano",
+        "title": "GPT-4.1-nano",
         "value": "gpt-4.1-nano",
         "context": 1047576,
         "maxTokens": 32768,
@@ -134,7 +152,7 @@ export const openai_models_data = [
         "intelligence": 2
     },
     {
-        "title": "gpt-4.1-2025-04-14",
+        "title": "GPT-4.1-2025-04-14",
         "value": "gpt-4.1-2025-04-14",
         "context": 1047576,
         "maxTokens": 32768,
@@ -147,7 +165,7 @@ export const openai_models_data = [
         "intelligence": 4
     },
     {
-        "title": "gpt-4.1-mini-2025-04-14",
+        "title": "GPT-4.1-mini-2025-04-14",
         "value": "gpt-4.1-mini-2025-04-14",
         "context": 1047576,
         "maxTokens": 32768,
@@ -160,7 +178,7 @@ export const openai_models_data = [
         "intelligence": 3
     },
     {
-        "title": "gpt-4.1-nano-2025-04-14",
+        "title": "GPT-4.1-nano-2025-04-14",
         "value": "gpt-4.1-nano-2025-04-14",
         "context": 1047576,
         "maxTokens": 32768,
@@ -389,7 +407,7 @@ export const openai_models_data = [
 
     // GPT-4o Series
     {
-        "title": "gpt-4o",
+        "title": "GPT-4o",
         "value": "gpt-4o",
         "context": 128000,
         "maxTokens": 16384,
@@ -402,7 +420,7 @@ export const openai_models_data = [
         "intelligence": 3
     },
     {
-        "title": "gpt-4o-mini",
+        "title": "GPT-4o-mini",
         "value": "gpt-4o-mini",
         "context": 128000,
         "maxTokens": 16384,
@@ -415,7 +433,7 @@ export const openai_models_data = [
         "intelligence": 2
     },
     {
-        "title": "gpt-4o-2024-05-13",
+        "title": "GPT-4o-2024-05-13",
         "value": "gpt-4o-2024-05-13",
         "context": 128000,
         "maxTokens": 4096,
@@ -428,7 +446,7 @@ export const openai_models_data = [
         "intelligence": 3
     },
     {
-        "title": "gpt-4o-2024-08-06",
+        "title": "GPT-4o-2024-08-06",
         "value": "gpt-4o-2024-08-06",
         "context": 128000,
         "maxTokens": 16384,
@@ -441,7 +459,7 @@ export const openai_models_data = [
         "intelligence": 3
     },
     {
-        "title": "gpt-4o-2024-11-20",
+        "title": "GPT-4o-2024-11-20",
         "value": "gpt-4o-2024-11-20",
         "context": 128000,
         "maxTokens": 16384,
@@ -454,7 +472,7 @@ export const openai_models_data = [
         "intelligence": 3
     },
     {
-        "title": "gpt-4o-mini-2024-07-18",
+        "title": "GPT-4o-mini-2024-07-18",
         "value": "gpt-4o-mini-2024-07-18",
         "context": 128000,
         "maxTokens": 16384,
@@ -482,7 +500,7 @@ export const openai_models_data = [
 
     // GPT-4o Audio and Realtime Models
     {
-        "title": "gpt-4o-audio-preview",
+        "title": "GPT-4o-audio-preview",
         "value": "gpt-4o-audio-preview",
         "context": 128000,
         "maxTokens": 16384,
@@ -495,7 +513,7 @@ export const openai_models_data = [
         "intelligence": 3
     },
     {
-        "title": "gpt-4o-mini-audio-preview",
+        "title": "GPT-4o-mini-audio-preview",
         "value": "gpt-4o-mini-audio-preview",
         "context": 128000,
         "maxTokens": 16384,
@@ -508,7 +526,7 @@ export const openai_models_data = [
         "intelligence": 2
     },
     {
-        "title": "gpt-4o-realtime-preview",
+        "title": "GPT-4o-realtime-preview",
         "value": "gpt-4o-realtime-preview",
         "context": 128000,
         "maxTokens": 16384,
@@ -521,7 +539,7 @@ export const openai_models_data = [
         "intelligence": 3
     },
     {
-        "title": "gpt-4o-mini-realtime-preview",
+        "title": "GPT-4o-mini-realtime-preview",
         "value": "gpt-4o-mini-realtime-preview",
         "context": 128000,
         "maxTokens": 16384,
@@ -536,7 +554,7 @@ export const openai_models_data = [
 
     // Search Models
     {
-        "title": "gpt-4o-search-preview",
+        "title": "GPT-4o-search-preview",
         "value": "gpt-4o-search-preview",
         "context": 128000,
         "maxTokens": 16384,
@@ -549,7 +567,7 @@ export const openai_models_data = [
         "intelligence": 3
     },
     {
-        "title": "gpt-4o-mini-search-preview",
+        "title": "GPT-4o-mini-search-preview",
         "value": "gpt-4o-mini-search-preview",
         "context": 128000,
         "maxTokens": 16384,
@@ -592,7 +610,7 @@ export const openai_models_data = [
 
     // Transcription Models
     {
-        "title": "gpt-4o-transcribe",
+        "title": "GPT-4o-transcribe",
         "value": "gpt-4o-transcribe",
         "context": 128000,
         "maxTokens": 16384,
@@ -604,7 +622,7 @@ export const openai_models_data = [
         "speed": 4
     },
     {
-        "title": "gpt-4o-mini-transcribe",
+        "title": "GPT-4o-mini-transcribe",
         "value": "gpt-4o-mini-transcribe",
         "context": 128000,
         "maxTokens": 16384,
@@ -618,7 +636,7 @@ export const openai_models_data = [
 
     // TTS Models
     {
-        "title": "gpt-4o-mini-tts",
+        "title": "GPT-4o-mini-tts",
         "value": "gpt-4o-mini-tts",
         "context": 128000,
         "maxTokens": 16384,
@@ -632,7 +650,7 @@ export const openai_models_data = [
 
     // Legacy GPT-4 Models
     {
-        "title": "gpt-4-turbo",
+        "title": "GPT-4-turbo",
         "value": "gpt-4-turbo",
         "context": 128000,
         "maxTokens": 4096,
@@ -645,7 +663,7 @@ export const openai_models_data = [
         "intelligence": 4
     },
     {
-        "title": "gpt-4-turbo-2024-04-09",
+        "title": "GPT-4-turbo-2024-04-09",
         "value": "gpt-4-turbo-2024-04-09",
         "context": 128000,
         "maxTokens": 4096,
@@ -658,7 +676,7 @@ export const openai_models_data = [
         "intelligence": 4
     },
     {
-        "title": "gpt-4-turbo-preview",
+        "title": "GPT-4-turbo-preview",
         "value": "gpt-4-turbo-preview",
         "context": 128000,
         "maxTokens": 4096,
@@ -671,7 +689,7 @@ export const openai_models_data = [
         "intelligence": 4
     },
     {
-        "title": "gpt-4",
+        "title": "GPT-4",
         "value": "gpt-4",
         "context": 8192,
         "maxTokens": 8192,
@@ -684,7 +702,7 @@ export const openai_models_data = [
         "intelligence": 4
     },
     {
-        "title": "gpt-4-0613",
+        "title": "GPT-4-0613",
         "value": "gpt-4-0613",
         "context": 8192,
         "maxTokens": 8192,
@@ -697,7 +715,7 @@ export const openai_models_data = [
         "intelligence": 4
     },
     {
-        "title": "gpt-4-32k",
+        "title": "GPT-4-32k",
         "value": "gpt-4-32k",
         "context": 32768,
         "maxTokens": 8192,
@@ -710,7 +728,7 @@ export const openai_models_data = [
         "intelligence": 4
     },
     {
-        "title": "gpt-4-1106-preview",
+        "title": "GPT-4-1106-preview",
         "value": "gpt-4-1106-preview",
         "context": 128000,
         "maxTokens": 4096,
@@ -723,7 +741,7 @@ export const openai_models_data = [
         "intelligence": 4
     },
     {
-        "title": "gpt-4-vision-preview",
+        "title": "GPT-4-vision-preview",
         "value": "gpt-4-vision-preview",
         "context": 128000,
         "maxTokens": 4096,
@@ -738,7 +756,7 @@ export const openai_models_data = [
 
     // GPT-3.5 Series
     {
-        "title": "gpt-3.5-turbo",
+        "title": "GPT-3.5-turbo",
         "value": "gpt-3.5-turbo",
         "context": 16385,
         "maxTokens": 4096,
@@ -751,7 +769,7 @@ export const openai_models_data = [
         "intelligence": 2
     },
     {
-        "title": "gpt-3.5-turbo-0125",
+        "title": "GPT-3.5-turbo-0125",
         "value": "gpt-3.5-turbo-0125",
         "context": 16385,
         "maxTokens": 4096,
@@ -764,7 +782,7 @@ export const openai_models_data = [
         "intelligence": 2
     },
     {
-        "title": "gpt-3.5-turbo-1106",
+        "title": "GPT-3.5-turbo-1106",
         "value": "gpt-3.5-turbo-1106",
         "context": 16385,
         "maxTokens": 4096,
@@ -777,7 +795,7 @@ export const openai_models_data = [
         "intelligence": 2
     },
     {
-        "title": "gpt-3.5-turbo-0613",
+        "title": "GPT-3.5-turbo-0613",
         "value": "gpt-3.5-turbo-0613",
         "context": 4096,
         "maxTokens": 4096,
@@ -790,7 +808,7 @@ export const openai_models_data = [
         "intelligence": 2
     },
     {
-        "title": "gpt-3.5-turbo-instruct",
+        "title": "GPT-3.5-turbo-instruct",
         "value": "gpt-3.5-turbo-instruct",
         "context": 4096,
         "maxTokens": 4096,
@@ -805,7 +823,7 @@ export const openai_models_data = [
 
     // Image Generation Models
     {
-        "title": "gpt-image-1",
+        "title": "GPT-image-1",
         "value": "gpt-image-1",
         "context": 128000,
         "maxTokens": 16384,

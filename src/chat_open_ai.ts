@@ -34,31 +34,7 @@ export class ChatOpenAIProvider extends LLMProvider {
 
     protected async _stream_v2(content: LLMProvider.Params): Promise<Stream<BaseChatMessageChunk>> {
         const params = this.initResponseParams(content)
-        const response = await this.client.responses.create({
-            "input": [
-                {
-                    "type": "message",
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "input_text",
-                            "text": "# You are at 2025 and current time is 08:48:53 GMT+0800 (China Standard Time) Wed Aug 20 2025.\n# Language: same as the input text: hello\n\n\nThis is my additional instruction, if the instruction is conflict with the above instruction, please follow the instruction below:\nYou are an efficient assistant running on MacOS, you can use the tools to help you complete the task."
-                        }
-                    ]
-                },
-                {
-                    "type": "message",
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "input_text",
-                            "text": "hello"
-                        }
-                    ]
-                }
-            ],
-            ...params
-        });
+        const response = await this.client.responses.create(params);
 
         const ac = new AbortController()
         //@ts-ignore
