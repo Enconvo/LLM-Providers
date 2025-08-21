@@ -68,10 +68,11 @@ export class StraicoProvider extends LLMProvider {
         }
 
         const newMessages = await this.convertMessagesToStraicoMessages(messages)
-
-        const files = newMessages.map((message) => {
-            return message.files
+        console.log("newMessages", newMessages)
+        const images = newMessages.map((message) => {
+            return message.images
         }).flat()
+        console.log("images",  images)
 
         const lastMessage = newMessages.pop();
         const userInput = lastMessage?.text.text()
@@ -82,17 +83,17 @@ export class StraicoProvider extends LLMProvider {
 
 
         const prompt = `history messages:\n${history}\n\nuser input:\n${userInput}`
-        console.log("prompt", prompt)
 
         var data = JSON.stringify({
             "models": [
                 this.options.modelName.value,
             ],
             "message": prompt,
-            "temperature": this.options.temperature.value
+            "temperature": this.options.temperature.value,
+            "images": images
         });
 
-        // console.log("data", this.options)
+        // console.log("data", data)
 
         var config = {
             method: 'post',
@@ -120,14 +121,14 @@ export class StraicoProvider extends LLMProvider {
     }
 
 
-    private async convertMessageToStraicoMessage(message: BaseChatMessageLike): Promise<{ text: BaseChatMessage; files: string[]; }> {
+    private async convertMessageToStraicoMessage(message: BaseChatMessageLike): Promise<{ text: BaseChatMessage; images: string[]; }> {
         let role = message.role
 
         if (typeof message.content === "string") {
 
             return {
                 text: new BaseChatMessage(role, [ChatMessageContent.text(message.content)]),
-                files: []
+                images: []
             }
         } else {
 
@@ -143,23 +144,27 @@ export class StraicoProvider extends LLMProvider {
 
             const images = message.content.filter((item) => {
                 return item.type === "image_url"
-            }).filter((item) => item.image_url.url.startsWith("file://")).map(async (item) => {
-                const url = item.image_url.url
-                return await this.uploadFile(url)
+            }).map(async (item) => {
+                const url = item.image_url.url.replace("file://", "")
+                if (url.startsWith("http://") || url.startsWith("https://")) {
+                    return url
+                } else {
+                    const fileUrl = await this.uploadFile(url)
+                    return fileUrl
+                }
             })
             const files = await Promise.all(images)
-
             return {
                 text: new BaseChatMessage(role, [ChatMessageContent.text(content.join("\n"))]),
-                files: files
+                images: files
             }
         }
     }
 
 
-    private async convertMessagesToStraicoMessages(messages: BaseChatMessageLike[]): Promise<{ text: BaseChatMessage; files: string[]; }[]> {
+    private async convertMessagesToStraicoMessages(messages: BaseChatMessageLike[]): Promise<{ text: BaseChatMessage; images: string[]; }[]> {
 
-        let newMessages = messages.map((message) => this.convertMessageToStraicoMessage(message))
+        let newMessages = messages.map(async (message) => await this.convertMessageToStraicoMessage(message))
         return await Promise.all(newMessages)
     }
 
@@ -175,7 +180,7 @@ export class StraicoProvider extends LLMProvider {
             maxBodyLength: Infinity,
             url: 'https://api.straico.com/v0/file/upload',
             headers: {
-                'Authorization': `Bearer ${this.options.api_key}`,
+                'Authorization': `Bearer ${this.options.credentials?.apiKey}`,
                 'Content-Type': 'multipart/form-data',
                 ...data.getHeaders()
             },

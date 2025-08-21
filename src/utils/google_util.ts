@@ -1,7 +1,6 @@
-import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, BaseChatMessageLike, ChatMessageContent, environment, FileUtil, LLMProvider, LLMTool, Runtime, Stream, ToolMessage, uuid } from "@enconvo/api"
+import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, BaseChatMessageLike, ChatMessageContent, environment, FileUtil, ImageUtil, LLMProvider, LLMTool, Runtime, Stream, ToolMessage, uuid } from "@enconvo/api"
 import path from "path"
 import { writeFile } from "fs/promises"
-import fs from "fs"
 import wav from 'wav';
 
 import mime from "mime"
@@ -82,47 +81,8 @@ function isSupportedImageType(url: string) {
     return supportedTypes.includes(mimeType)
 }
 
-const convertToolResults = (results: (string | ChatMessageContent)[], options: LLMProvider.LLMOptions) => {
-    if (typeof results !== "string") {
-        const contents = results as ChatMessageContent[]
-        // Convert array content to messages, extracting images into separate message
-        let messageContents: Part[] = []
 
-        // Process each content item
-        for (const item of contents) {
-            if (item.type === 'image_url') {
-                // Handle image content
-                const url = item.image_url.url
-                if (url.startsWith("file://") && options.modelName.visionEnable && isSupportedImageType(url)) {
-                    const base64 = FileUtil.convertFileUrlToBase64(url)
-                    const mimeType = mime.getType(url)
-                    messageContents.push({
-                        inlineData: {
-                            data: base64,
-                            mimeType: mimeType as string
-                        },
-                    })
-                }
-                messageContents.push({
-                    text: `This is a image file , url is ${url} , only used for reference when you use tool, if not , ignore this .`
-                })
-            }
-        }
-
-        if (messageContents.length > 0) {
-            const imageMessage: Content = {
-                role: "user",
-                parts: messageContents
-            }
-
-            return [imageMessage]
-        }
-        return []
-    }
-    return []
-}
-
-export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, options: LLMProvider.LLMOptions): Content[] => {
+export const convertMessageToGoogleMessage = async (message: BaseChatMessageLike, options: LLMProvider.LLMOptions): Promise<Content[]> => {
 
     if (message.role === "tool") {
         const toolMessage = message as ToolMessage
@@ -133,7 +93,6 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
             console.log("toolMessage content error", message.content)
         }
 
-        const toolAdditionalMessages = convertToolResults(response, options)
 
         const content: Content = {
             role: "function",
@@ -148,14 +107,12 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
                 }
             ]
         }
-        return [content, ...toolAdditionalMessages]
+        return [content]
     }
 
     if (message.role === "assistant") {
         const aiMessage = message as AssistantMessage
         if (aiMessage.tool_calls && aiMessage.tool_calls.length > 0) {
-
-
             let args = {}
             try {
                 args = JSON.parse(aiMessage.tool_calls[0].function.arguments)
@@ -189,15 +146,14 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
     } else {
         let parts: Part[] = []
         const contents: Content[] = []
-        const isAgentMode = Runtime.isAgentMode() && options.modelName.toolUse === true
+        const isAgentMode = Runtime.isAgentMode()
         for (const item of message.content) {
             if (item.type === "image_url") {
-                const url = item.image_url.url
+                let url = item.image_url.url.replace("file://", "")
+                url = await ImageUtil.compressImage(url)
                 const mimeType = mime.getType(url)
-                const fileExists = url.startsWith("file://") && fs.existsSync(url.replace("file://", ""))
-
-                if (url.startsWith("file://") && options.modelName.visionEnable === true && fileExists && isSupportedImageType(url)) {
-                    const base64 = FileUtil.convertFileUrlToBase64(url)
+                const base64 = await FileUtil.convertUrlToBase64(url)
+                if (message.role === 'user' && options.modelName.visionEnable === true && base64) {
                     const image: Part = {
                         inlineData: {
                             data: base64,
@@ -206,7 +162,6 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
                     }
                     parts.push(image)
                 }
-
 
                 if (isAgentMode) {
                     const text: Part = {
@@ -273,8 +228,6 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
                     contents.push(functionCall)
                     contents.push(functionResponse)
 
-                    const toolAdditionalMessages = convertToolResults(results, options)
-                    contents.push(...toolAdditionalMessages)
                 } else {
                     parts.push({
                         text: "This is a function call , name is " + item.flowName + " , args is " + JSON.stringify(args) + " , results is " + JSON.stringify(results)
@@ -289,19 +242,13 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
                 }
             } else if (item.type === "audio") {
                 const url = item.file_url.url
-                const mimeType = path.extname(url).slice(1)
-                // Check if the audio format is supported by Gemini
-                function isSupportAudioType(mimeType: string): boolean {
-                    const supportedFormats = ['wav', 'mp3', 'aiff', 'aac', 'ogg', 'flac'];
-                    return supportedFormats.includes(mimeType)
-                }
-                const isSupport = isSupportAudioType(mimeType)
-                if (message.role === "user" && url.startsWith("file://") && options.modelName.audioEnable === true && isSupport) {
-                    const base64 = FileUtil.convertFileUrlToBase64(url)
+                const mimeType = mime.getType(url)
+                const base64 = await FileUtil.convertUrlToBase64(url)
+                if (message.role === "user" && options.modelName.audioEnable === true && mimeType && base64) {
                     const audio: Part = {
                         inlineData: {
                             data: base64,
-                            mimeType: `audio/${mimeType}`
+                            mimeType: mimeType
                         },
                     }
                     parts.push(audio)
@@ -309,32 +256,29 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
 
                 if (isAgentMode) {
                     parts.push({
-                        text: "This is a audio file , url is " + url
+                        text: "This is a audio file , url is " + url + " , only used for reference when you use tool, if not , ignore this ."
                     })
                 }
 
             } else if (item.type === "video") {
-                const url = item.file_url.url
-                const mimeType = path.extname(url).slice(1)
+                const url = item.file_url.url.replace("file://", "")
+                const mimeType = mime.getType(url)
 
-                function isSupportAudioType(mimeType: string): boolean {
-                    const supportedFormats = ['mp4'];
-                    return supportedFormats.includes(mimeType)
-                }
-                const isSupport = isSupportAudioType(mimeType)
-                if (message.role === "user" && url.startsWith("file://") && options.modelName.videoEnable === true && isSupport) {
-                    const base64 = FileUtil.convertFileUrlToBase64(url)
-                    const video: Part = {
-                        inlineData: {
-                            data: base64,
-                            mimeType: `video/${mimeType}`
-                        },
+                if (message.role === "user" && options.modelName.videoEnable === true) {
+                    const base64 = await FileUtil.convertUrlToBase64(url)
+                    if (base64) {
+                        const video: Part = {
+                            inlineData: {
+                                data: base64,
+                                mimeType: mimeType as string
+                            },
+                        }
+                        parts.push(video)
                     }
-                    parts.push(video)
                 }
 
                 const text: Part = {
-                    text: "This is a video file , url is " + url
+                    text: "This is a video file , url is " + url + " , only used for reference when you use tool, if not , ignore this ."
                 }
                 parts.push(text)
 
@@ -342,7 +286,7 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
                 const url = item.file_url.url
 
                 parts.push({
-                    text: "This is a file , url is " + url
+                    text: "This is a file , url is " + url + " , only used for reference when you use tool, if not , ignore this ."
                 })
             } else if (item.type === "thinking") {
                 // do nothing
@@ -369,9 +313,9 @@ export const convertMessageToGoogleMessage = (message: BaseChatMessageLike, opti
     }
 }
 
-export const convertMessagesToGoogleMessages = (messages: BaseChatMessageLike[], options: LLMProvider.LLMOptions): Content[] => {
-    const newMessages = messages.map((message) => convertMessageToGoogleMessage(message, options)).flat()
-    console.log("newMessages", JSON.stringify(newMessages, null, 2))
+export const convertMessagesToGoogleMessages = async (messages: BaseChatMessageLike[], options: LLMProvider.LLMOptions): Promise<Content[]> => {
+    const newMessages = (await Promise.all(messages.map((message) => convertMessageToGoogleMessage(message, options)))).flat()
+    // console.log("newMessages", JSON.stringify(newMessages, null, 2))
     return newMessages
 }
 
@@ -415,7 +359,7 @@ export function streamFromGoogle(response: AsyncGenerator<GenerateContentRespons
         let done = false;
         try {
             for await (const chunk of response) {
-                console.log("google chunk", JSON.stringify(chunk, null, 2))
+                // console.log("google chunk", JSON.stringify(chunk, null, 2))
                 if (done) continue;
                 const candidate = chunk.candidates?.[0]
                 if (candidate?.finishReason === "STOP") {

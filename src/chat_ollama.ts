@@ -16,7 +16,7 @@ export class OllamaProvider extends LLMProvider {
         console.log("ollama credentials", credentials)
 
         const customHeaders: Record<string, string> = {}
-        if (credentials.customHeaders) {
+        if (credentials?.customHeaders) {
             const headerString = credentials.customHeaders as string
             const headerPairs = headerString.split('\n').filter(line => line.trim() && line.trim().includes('='))
             for (const pair of headerPairs) {
@@ -28,17 +28,17 @@ export class OllamaProvider extends LLMProvider {
         }
 
         this.ollama = new Ollama({
-            host: credentials.baseUrl,
+            host: credentials?.baseUrl,
             headers: {
                 ...customHeaders,
-                Authorization: `Bearer ${credentials.apiKey || ''}`,
+                Authorization: `Bearer ${credentials?.apiKey || ''}`,
                 'User-Agent': 'Enconvo/1.0',
             }
         })
     }
 
     protected async _call(content: LLMProvider.Params): Promise<BaseChatMessage> {
-        const newMessages = OllamaUtil.convertMessagesToOllamaMessages(content.messages)
+        const newMessages = await OllamaUtil.convertMessagesToOllamaMessages(content.messages, this.options)
 
         const params = this.initParams()
 
@@ -48,7 +48,7 @@ export class OllamaProvider extends LLMProvider {
     }
 
     protected async _stream(content: LLMProvider.Params): Promise<Stream<BaseChatMessageChunk>> {
-        const newMessages = OllamaUtil.convertMessagesToOllamaMessages(content.messages)
+        const newMessages = await OllamaUtil.convertMessagesToOllamaMessages(content.messages, this.options)
 
         const params = this.initParams()
 

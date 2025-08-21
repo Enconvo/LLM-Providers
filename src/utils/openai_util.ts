@@ -1,4 +1,4 @@
-import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, BaseChatMessageLike, ChatMessageContent, FileUtil, LLMProvider, LLMTool, Runtime, Stream, ToolMessage, uuid } from "@enconvo/api"
+import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, BaseChatMessageLike, ChatMessageContent, environment, Extension, FileUtil, ImageUtil, LLMProvider, LLMTool, NativeAPI, Runtime, Stream, ToolMessage, uuid } from "@enconvo/api"
 import OpenAI from "openai"
 import path from "path"
 import fs from "fs"
@@ -13,7 +13,7 @@ export namespace OpenAIUtil {
     }
 
 
-    export const convertMessageToOpenAIResponseMessage = (options: LLMProvider.LLMOptions, message: BaseChatMessageLike): (ResponseOutputItem | ResponseInputItem)[] => {
+    export const convertMessageToOpenAIResponseMessage = async (options: LLMProvider.LLMOptions, message: BaseChatMessageLike): Promise<(ResponseOutputItem | ResponseInputItem)[]> => {
         let role = message.role
 
         if (message.role === "tool") {
@@ -90,7 +90,7 @@ export namespace OpenAIUtil {
 
             for (const item of message.content) {
                 if (item.type === "image_url") {
-                    const url = item.image_url.url.replace("file://", "")
+                    let url = item.image_url.url.replace("file://", "")
                     if (role === "user" && options.modelName.visionEnable === true && isSupportedImageType(url)) {
                         if (url.startsWith("http://") || url.startsWith("https://")) {
                             messageContents.push({
@@ -99,10 +99,9 @@ export namespace OpenAIUtil {
                                 image_url: url
                             })
                         } else {
-                            const fileExists = fs.existsSync(url)
-
-                            if (fileExists) {
-                                const base64 = FileUtil.convertFileUrlToBase64(url)
+                            url = await ImageUtil.compressImage(url)
+                            const base64 = await FileUtil.convertUrlToBase64(url)
+                            if (base64) {
                                 const mimeType = mime.getType(url) || "image/png"
                                 messageContents.push({
                                     type: 'input_image',
@@ -251,7 +250,7 @@ export namespace OpenAIUtil {
         return []
     }
 
-    export const convertMessageToOpenAIMessage = (options: LLMProvider.LLMOptions, message: BaseChatMessageLike): OpenAI.Chat.ChatCompletionMessageParam[] => {
+    export const convertMessageToOpenAIMessage = async (options: LLMProvider.LLMOptions, message: BaseChatMessageLike): Promise<OpenAI.Chat.ChatCompletionMessageParam[]> => {
         let role = message.role
         if (options.modelName && options.modelName.systemMessageEnable === false && message.role === "system") {
             message.role = "user"
@@ -308,7 +307,7 @@ export namespace OpenAIUtil {
             for (const item of message.content) {
                 let role = message.role as 'user' | 'assistant'
                 if (item.type === "image_url") {
-                    const url = item.image_url.url.replace("file://", "")
+                    let url = item.image_url.url.replace("file://", "")
 
                     // Check if the URL is valid and if vision is enabled for processing images
                     if (role === "user" && options.modelName.visionEnable === true && isSupportedImageType(url)) {
@@ -321,11 +320,12 @@ export namespace OpenAIUtil {
                                 }
                             })
                         } else {
-                            // Handle local file URLs
-                            const fileExists = fs.existsSync(url)
 
-                            if (fileExists) {
-                                const base64 = FileUtil.convertFileUrlToBase64(url)
+
+                            url = await ImageUtil.compressImage(url)
+
+                            const base64 = await FileUtil.convertUrlToBase64(url)
+                            if (base64) {
                                 const mimeType = mime.getType(url) || "image/png"
                                 messageContents.push({
                                     type: "image_url",
@@ -395,13 +395,15 @@ export namespace OpenAIUtil {
                     const mimeType = mime.getType(url) || "mp3"
                     if (role === "user" && options.modelName.audioEnable === true) {
                         const base64 = FileUtil.convertFileUrlToBase64(url)
-                        messageContents.push({
-                            type: "input_audio",
-                            input_audio: {
-                                data: base64,
-                                format: mimeType as "mp3" | "wav"
-                            }
-                        })
+                        if (base64) {
+                            messageContents.push({
+                                type: "input_audio",
+                                input_audio: {
+                                    data: base64,
+                                    format: mimeType as "mp3" | "wav"
+                                }
+                            })
+                        }
                     } else {
                         messageContents.push({
                             type: "text",
@@ -522,7 +524,7 @@ export namespace OpenAIUtil {
         return newTools
     }
 
-    export const convertMessagesToOpenAIMessages = (options: LLMProvider.LLMOptions, messages: BaseChatMessageLike[]): OpenAI.Chat.ChatCompletionMessageParam[] => {
+    export const convertMessagesToOpenAIMessages = async (options: LLMProvider.LLMOptions, messages: BaseChatMessageLike[]): Promise<OpenAI.Chat.ChatCompletionMessageParam[]> => {
 
         if (options.modelName && (options.modelName.visionImageCountLimit !== undefined && options.modelName.visionImageCountLimit > 0 && options.modelName.visionEnable === true)) {
             if (options.modelName.visionImageCountLimit !== undefined && options.modelName.visionEnable === true) {
@@ -559,7 +561,7 @@ export namespace OpenAIUtil {
             }
         }
 
-        let newMessages = messages.map((message) => convertMessageToOpenAIMessage(options, message)).flat().filter((message) => {
+        let newMessages = (await Promise.all(messages.map((message) => convertMessageToOpenAIMessage(options, message)))).flat().filter((message) => {
             if (typeof message.content === "string" && message.content === "") {
                 return false
             } else {
@@ -624,9 +626,9 @@ export namespace OpenAIUtil {
     }
 
 
-    export const convertMessagesToOpenAIResponseMessages = (options: LLMProvider.LLMOptions, messages: BaseChatMessageLike[]): ResponseInputItem[] => {
+    export const convertMessagesToOpenAIResponseMessages = async (options: LLMProvider.LLMOptions, messages: BaseChatMessageLike[]): Promise<ResponseInputItem[]> => {
 
-        let newMessages = messages.map((message) => convertMessageToOpenAIResponseMessage(options, message)).flat()
+        let newMessages = (await Promise.all(messages.map((message) => convertMessageToOpenAIResponseMessage(options, message)))).flat()
 
         console.log("newMessages", JSON.stringify(newMessages, null, 2))
         return newMessages

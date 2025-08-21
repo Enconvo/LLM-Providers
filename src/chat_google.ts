@@ -23,7 +23,7 @@ export class GoogleGeminiProvider extends LLMProvider {
     }
 
     protected async _call(content: LLMProvider.Params): Promise<BaseChatMessage> {
-        const params = this.initParams(content)
+        const params = await this.initParams(content)
 
         const result = await this.ai.models.generateContent(params)
 
@@ -32,7 +32,7 @@ export class GoogleGeminiProvider extends LLMProvider {
 
     protected async _stream(content: LLMProvider.Params): Promise<Stream<BaseChatMessageChunk>> {
 
-        const params = this.initParams(content)
+        const params = await this.initParams(content)
 
         const result = await this.ai.models.generateContentStream(params)
 
@@ -41,7 +41,7 @@ export class GoogleGeminiProvider extends LLMProvider {
 
 
 
-    initParams(content: LLMProvider.Params): GenerateContentParameters {
+    async initParams(content: LLMProvider.Params): Promise<GenerateContentParameters> {
         const credentials = this.options.credentials
         if (!credentials?.apiKey) {
             throw new Error("Google API key is required")
@@ -78,7 +78,7 @@ export class GoogleGeminiProvider extends LLMProvider {
 
         const fixedMessages = makeFirstMessageBeUserRole(userMessages)
 
-        let newMessages = convertMessagesToGoogleMessages(fixedMessages, this.options)
+        let newMessages = await convertMessagesToGoogleMessages(fixedMessages, this.options)
 
         let headers = {}
         let baseUrl = credentials.baseUrl
@@ -157,7 +157,7 @@ export class GoogleGeminiProvider extends LLMProvider {
             }
         }
 
-        console.log("gemini params", JSON.stringify(params, null, 2))
+        // console.log("gemini params", JSON.stringify(params.contents, null, 2))
         return params
     }
 

@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk"
-import { AssistantMessage, BaseChatMessageChunk, BaseChatMessageLike, ChatMessageContent, FileUtil, LLMProvider, LLMTool, Runtime, Stream, ToolMessage, uuid } from "@enconvo/api"
+import { AssistantMessage, BaseChatMessageChunk, BaseChatMessageLike, ChatMessageContent, FileUtil, ImageUtil, LLMProvider, LLMTool, Runtime, Stream, ToolMessage, uuid } from "@enconvo/api"
 import fs from "fs"
 import path from "path"
 import mime from "mime"
@@ -81,8 +81,8 @@ export namespace AnthropicUtil {
 
 type MessageContentType = Anthropic.TextBlockParam | Anthropic.ImageBlockParam | Anthropic.ToolUseBlockParam | Anthropic.ToolResultBlockParam
 
-const convertToolResults = (results: (string | ChatMessageContent)[]) => {
-    return results.map((result) => {
+const convertToolResults = async (results: (string | ChatMessageContent)[]) => {
+    return (await Promise.all(results.map(async (result) => {
 
         if (typeof result === "string") {
             const text: Anthropic.TextBlockParam = {
@@ -97,7 +97,7 @@ const convertToolResults = (results: (string | ChatMessageContent)[]) => {
             }
             return [text]
         } else if (result.type === "image_url") {
-            const url = result.image_url.url
+            let url = result.image_url.url.replace("file://", "")
             let parts: (Anthropic.ImageBlockParam | Anthropic.TextBlockParam)[] = []
             if (isSupportedImageType(url)) {
                 if (url.startsWith("http://") || url.startsWith("https://")) {
@@ -111,12 +111,10 @@ const convertToolResults = (results: (string | ChatMessageContent)[]) => {
                     })
                 } else {
                     // Handle local file URLs
-                    const fileUrl = url.startsWith("file://") ? url.replace("file://", "") : url
-                    const fileExists = fs.existsSync(fileUrl)
-
-                    if (fileExists) {
-                        const base64 = FileUtil.convertFileUrlToBase64(fileUrl)
-                        const mimeType = mime.getType(fileUrl) as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp'
+                    url = await ImageUtil.compressImage(url)
+                    const base64 = FileUtil.convertFileUrlToBase64(url)
+                    if (base64) {
+                        const mimeType = mime.getType(url) as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp'
 
                         parts.push({
                             type: "image",
@@ -142,7 +140,7 @@ const convertToolResults = (results: (string | ChatMessageContent)[]) => {
             }
             return [text]
         }
-    }).flat()
+    }))).flat()
 }
 
 function isSupportedImageType(url: string) {
@@ -153,7 +151,7 @@ function isSupportedImageType(url: string) {
 
 
 
-export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, options: LLMProvider.LLMOptions): Anthropic.Messages.MessageParam[] => {
+export const convertMessageToAnthropicMessage = async (message: BaseChatMessageLike, options: LLMProvider.LLMOptions): Promise<Anthropic.Messages.MessageParam[]> => {
 
     let role = message.role
 
@@ -171,7 +169,7 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
             console.log("toolMessage content error", toolMessage.content)
         }
 
-        const toolResultMessages = convertToolResults(content)
+        const toolResultMessages = await convertToolResults(content)
 
         let toolResultMessage: Anthropic.ToolResultBlockParam = {
             type: "tool_result",
@@ -246,7 +244,7 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
             role = role as 'user' | 'assistant'
 
             if (item.type === "image_url") {
-                const url = item.image_url.url
+                let url = item.image_url.url.replace("file://", "")
                 if (role === "user" && options.modelName.visionEnable === true && isSupportedImageType(url)) {
                     if (url.startsWith("http://") || url.startsWith("https://")) {
                         const mimeType = mime.getType(url) as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp' || "image/png"
@@ -259,12 +257,11 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
                             }
                         })
                     } else {
-                        const fileUrl = url.startsWith("file://") ? url.replace("file://", "") : url
-                        const fileExists = fs.existsSync(fileUrl)
+                        url = await ImageUtil.compressImage(url)
 
-                        if (fileExists) {
-                            const base64 = FileUtil.convertFileUrlToBase64(fileUrl)
-                            const mimeType = mime.getType(fileUrl) as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp' || "image/png"
+                        const base64 = FileUtil.convertFileUrlToBase64(url)
+                        if (base64) {
+                            const mimeType = mime.getType(url) as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp' || "image/png"
                             parts.push({
                                 type: "image",
                                 source: {
@@ -300,7 +297,7 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
                 }).flat()
 
 
-                const toolResultMessages = convertToolResults(results)
+                const toolResultMessages = await convertToolResults(results)
 
 
 
@@ -404,7 +401,9 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
 }
 
 export const convertMessagesToAnthropicMessages = async (messages: BaseChatMessageLike[], options: LLMProvider.LLMOptions): Promise<Anthropic.Messages.MessageParam[]> => {
-    let newMessages = messages.map((message) => convertMessageToAnthropicMessage(message, options)).flat().filter((message) => {
+    let newMessages = (await Promise.all(messages.map((message) => convertMessageToAnthropicMessage(message, options)))).flat()
+
+    newMessages = newMessages.filter((message) => {
         if (typeof message.content === "string" && message.content.trim() === "") {
             console.log("message.content is empty", message)
             return false
@@ -455,25 +454,6 @@ export const convertMessagesToAnthropicMessages = async (messages: BaseChatMessa
             return message
         })
     }
-
-    const newToolUseCount = newMessages.filter((message) => {
-        if (message.content && Array.isArray(message.content)) {
-            return message.content.some((content) => {
-                const isToolUse = content.type === "tool_use"
-                const isToolResult = content.type === "tool_result"
-                if (isToolUse || isToolResult) {
-                    if (content.cache_control !== undefined) {
-                        return true
-                    }
-                }
-                return false
-            })
-        }
-        return false
-    }).length
-
-    // console.log("newMessages", JSON.stringify(newMessages, null, 2))
-    // fs.writeFileSync(`${homedir()}/Desktop/newMessages.json`, JSON.stringify(newMessages, null, 2))
 
     newMessages = newMessages.slice(-20)
 

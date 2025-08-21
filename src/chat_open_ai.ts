@@ -18,7 +18,7 @@ export class ChatOpenAIProvider extends LLMProvider {
             console.log("_stream_v2")
             return await this._stream_v2(content)
         }
-        const params = this.initParams(content)
+        const params = await this.initParams(content)
         let chatCompletion: any
         chatCompletion = await this.client.chat.completions.create({
             ...params,
@@ -32,7 +32,7 @@ export class ChatOpenAIProvider extends LLMProvider {
     }
 
     protected async _stream_v2(content: LLMProvider.Params): Promise<Stream<BaseChatMessageChunk>> {
-        const params = this.initResponseParams(content)
+        const params = await this.initResponseParams(content)
         const response = await this.client.responses.create(params);
 
         const ac = new AbortController()
@@ -48,7 +48,7 @@ export class ChatOpenAIProvider extends LLMProvider {
     }
 
     protected async _call(content: { messages: BaseChatMessage[]; }): Promise<BaseChatMessage> {
-        const params = this.initParams(content)
+        const params = await this.initParams(content)
 
         const chatCompletion = await this.client.chat.completions.create({
             ...params,
@@ -61,7 +61,7 @@ export class ChatOpenAIProvider extends LLMProvider {
 
 
 
-    private initResponseParams(content: LLMProvider.Params): OpenAI.Responses.ResponseCreateParamsStreaming {
+    private async initResponseParams(content: LLMProvider.Params): Promise<OpenAI.Responses.ResponseCreateParamsStreaming> {
         // console.log("openai options", JSON.stringify(content.messages, null, 2))
         const credentials = this.options.credentials
         // console.log("openai credentials", credentials)
@@ -71,7 +71,7 @@ export class ChatOpenAIProvider extends LLMProvider {
 
         const modelOptions = this.options.modelName
 
-        const messages = OpenAIUtil.convertMessagesToOpenAIResponseMessages(this.options, content.messages)
+        const messages = await OpenAIUtil.convertMessagesToOpenAIResponseMessages(this.options, content.messages)
 
         const tools = OpenAIUtil.convertToolsToOpenAIResponseTools(content.tools)
 
@@ -105,7 +105,7 @@ export class ChatOpenAIProvider extends LLMProvider {
     }
 
 
-    private initParams(content: LLMProvider.Params) {
+    private async initParams(content: LLMProvider.Params) {
         // console.log("openai options", JSON.stringify(this.options, null, 2))
         const credentials = this.options.credentials
         // console.log("openai credentials", credentials)
@@ -114,7 +114,7 @@ export class ChatOpenAIProvider extends LLMProvider {
         }
         const modelOptions = this.options.modelName
 
-        const messages = OpenAIUtil.convertMessagesToOpenAIMessages(this.options, content.messages)
+        const messages = await OpenAIUtil.convertMessagesToOpenAIMessages(this.options, content.messages)
 
         const tools = OpenAIUtil.convertToolsToOpenAITools(content.tools)
 

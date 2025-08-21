@@ -1,4 +1,4 @@
-import { BaseChatMessage, ChatMessageContent, LLMTool } from "@enconvo/api";
+import { BaseChatMessage, LLMTool } from "@enconvo/api";
 
 export namespace MinaiUtil {
     /**

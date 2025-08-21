@@ -1,11 +1,9 @@
-import { BaseChatMessageLike, FileUtil } from "@enconvo/api"
-import fs from "fs"
+import { BaseChatMessageLike, FileUtil, LLMProvider } from "@enconvo/api"
 
 export namespace OllamaUtil {
 
 
-
-    export const convertMessageToOllamaMessage = (message: BaseChatMessageLike): Message => {
+    export const convertMessageToOllamaMessage = async (message: BaseChatMessageLike, options: LLMProvider.LLMOptions): Promise<Message> => {
 
         if (typeof message.content === "string") {
             return {
@@ -14,18 +12,16 @@ export namespace OllamaUtil {
             }
         } else {
 
-            const images = message.content.filter((item) => item.type === "image_url").map((item) => {
+            const images = (await Promise.all(message.content.filter((item) => item.type === "image_url").map(async (item) => {
                 if (item.type === "image_url") {
-                    const url = item.image_url.url
-                    const fileExists = url.startsWith("file://") && fs.existsSync(url.replace("file://", ""))
-
-                    if (url.startsWith("file://") && fileExists) {
-                        const base64 = FileUtil.convertFileUrlToBase64(url)
+                    const url = item.image_url.url.replace("file://", "")
+                    if (options.modelName.visionEnable === true) {
+                        const base64 = await FileUtil.convertUrlToBase64(url)
                         return base64
                     }
                 }
-                return ""
-            }).filter((item) => item !== "")
+                return null
+            }))).filter((item) => item !== null)
 
             const text = message.content.filter((item) => item.type === "text").map((item) => {
                 return item.text
@@ -39,8 +35,8 @@ export namespace OllamaUtil {
         }
     }
 
-    export const convertMessagesToOllamaMessages = (messages: BaseChatMessageLike[]): Message[] => {
-        return messages.map((message) => convertMessageToOllamaMessage(message))
+    export const convertMessagesToOllamaMessages = async (messages: BaseChatMessageLike[], options: LLMProvider.LLMOptions): Promise<Message[]> => {
+        return await Promise.all(messages.map((message) => convertMessageToOllamaMessage(message, options)))
     }
 
 
