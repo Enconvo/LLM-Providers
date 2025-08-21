@@ -99,18 +99,35 @@ const convertToolResults = (results: (string | ChatMessageContent)[]) => {
         } else if (result.type === "image_url") {
             const url = result.image_url.url
             let parts: (Anthropic.ImageBlockParam | Anthropic.TextBlockParam)[] = []
-            if (url.startsWith("file://") && isSupportedImageType(url)) {
-                const base64 = FileUtil.convertFileUrlToBase64(url)
-                const mimeType = mime.getType(url) as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp'
+            if (isSupportedImageType(url)) {
+                if (url.startsWith("http://") || url.startsWith("https://")) {
+                    parts.push({
+                        type: 'image',
+                        source: {
+                            type: 'base64',
+                            media_type: 'image/jpeg',
+                            data: url
+                        }
+                    })
+                } else {
+                    // Handle local file URLs
+                    const fileUrl = url.startsWith("file://") ? url.replace("file://", "") : url
+                    const fileExists = fs.existsSync(fileUrl)
 
-                parts.push({
-                    "type": "image",
-                    "source": {
-                        "type": "base64",
-                        "media_type": `${mimeType}`,
-                        "data": base64
+                    if (fileExists) {
+                        const base64 = FileUtil.convertFileUrlToBase64(fileUrl)
+                        const mimeType = mime.getType(fileUrl) as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp'
+
+                        parts.push({
+                            type: "image",
+                            source: {
+                                type: "base64",
+                                media_type: `${mimeType}`,
+                                data: base64
+                            }
+                        })
                     }
-                })
+                }
             }
 
             parts.push({
@@ -230,20 +247,34 @@ export const convertMessageToAnthropicMessage = (message: BaseChatMessageLike, o
 
             if (item.type === "image_url") {
                 const url = item.image_url.url
-                // fs exists
-                const fileExists = url.startsWith("file://") && fs.existsSync(url.replace("file://", ""))
+                if (role === "user" && options.modelName.visionEnable === true && isSupportedImageType(url)) {
+                    if (url.startsWith("http://") || url.startsWith("https://")) {
+                        const mimeType = mime.getType(url) as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp' || "image/png"
+                        parts.push({
+                            type: "image",
+                            source: {
+                                type: "base64",
+                                media_type: mimeType,
+                                data: url
+                            }
+                        })
+                    } else {
+                        const fileUrl = url.startsWith("file://") ? url.replace("file://", "") : url
+                        const fileExists = fs.existsSync(fileUrl)
 
-                if (role === "user" && url.startsWith("file://") && fileExists && isSupportedImageType(url)) {
-                    const base64 = FileUtil.convertFileUrlToBase64(url)
-                    const mimeType = mime.getType(url) as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp'
-                    parts.push({
-                        "type": "image",
-                        "source": {
-                            "type": "base64",
-                            "media_type": `${mimeType}`,
-                            "data": base64
+                        if (fileExists) {
+                            const base64 = FileUtil.convertFileUrlToBase64(fileUrl)
+                            const mimeType = mime.getType(fileUrl) as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp' || "image/png"
+                            parts.push({
+                                type: "image",
+                                source: {
+                                    type: "base64",
+                                    media_type: mimeType,
+                                    data: base64
+                                }
+                            })
                         }
-                    })
+                    }
                 }
 
                 if (Runtime.isAgentMode()) {

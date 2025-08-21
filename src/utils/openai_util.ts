@@ -12,48 +12,6 @@ export namespace OpenAIUtil {
         return supportedTypes.includes(mimeType)
     }
 
-    const convertToolResults = (results: (string | ChatMessageContent)[], options: LLMProvider.LLMOptions) => {
-        if (typeof results !== "string") {
-            const contents = results as ChatMessageContent[]
-            // Convert array content to messages, extracting images into separate message
-            let messageContents: OpenAI.Chat.ChatCompletionContentPart[] = []
-
-            // Process each content item
-            for (const item of contents) {
-                if (item.type === 'image_url') {
-                    // Handle image content
-                    const url = item.image_url.url
-                    if (url.startsWith("file://") && options.modelName.visionEnable && isSupportedImageType(url)) {
-                        const base64 = FileUtil.convertFileUrlToBase64(url)
-                        const mimeType = url.split(".").pop()
-                        messageContents.push({
-                            type: "image_url",
-                            image_url: {
-                                url: `data:image/${mimeType};base64,${base64}`
-                            }
-                        })
-                    }
-
-                    messageContents.push({
-                        type: "text",
-                        text: `This is a image file , url is ${url} , only used for reference when you use tool, if not , ignore this .`
-                    })
-                }
-            }
-
-            if (messageContents.length > 0) {
-                const imageMessage: OpenAI.Chat.ChatCompletionMessageParam = {
-                    role: "user",
-                    content: messageContents
-                }
-
-                return [imageMessage]
-            }
-            return []
-        }
-        return []
-    }
-
 
     export const convertMessageToOpenAIResponseMessage = (options: LLMProvider.LLMOptions, message: BaseChatMessageLike): (ResponseOutputItem | ResponseInputItem)[] => {
         let role = message.role
@@ -95,7 +53,9 @@ export namespace OpenAIUtil {
                     role: 'user'
                 }
             } else {
+                const id = message.id || `msg_${uuid()}`
                 newMessage = {
+                    id: id.startsWith('msg_') ? id : `msg_${id}`,
                     type: "message",
                     content: message.content,
                     role: 'assistant'
@@ -115,12 +75,13 @@ export namespace OpenAIUtil {
                             role: role === 'system' ? 'user' : role as EasyInputMessage['role']
                         })
                     } else if (role === 'assistant') {
+                        const id = message.id || `msg_${uuid()}`
                         newMessages.push({
                             type: "message",
                             content: messageContents as Array<ResponseOutputText | ResponseOutputRefusal>,
                             role: 'assistant',
                             status: 'completed',
-                            id: message.id || `msg_${uuid()}`
+                            id: id.startsWith('msg_') ? id : `msg_${id}`
                         })
                     }
                     messageContents = []
@@ -129,7 +90,7 @@ export namespace OpenAIUtil {
 
             for (const item of message.content) {
                 if (item.type === "image_url") {
-                    const url = item.image_url.url
+                    const url = item.image_url.url.replace("file://", "")
                     if (role === "user" && options.modelName.visionEnable === true && isSupportedImageType(url)) {
                         if (url.startsWith("http://") || url.startsWith("https://")) {
                             messageContents.push({
@@ -138,12 +99,11 @@ export namespace OpenAIUtil {
                                 image_url: url
                             })
                         } else {
-                            const fileUrl = url.startsWith("file://") ? url.replace("file://", "") : url
-                            const fileExists = fs.existsSync(fileUrl)
+                            const fileExists = fs.existsSync(url)
 
                             if (fileExists) {
-                                const base64 = FileUtil.convertFileUrlToBase64(fileUrl)
-                                const mimeType = mime.getType(fileUrl) || "image/png"
+                                const base64 = FileUtil.convertFileUrlToBase64(url)
+                                const mimeType = mime.getType(url) || "image/png"
                                 messageContents.push({
                                     type: 'input_image',
                                     detail: 'auto',
@@ -224,7 +184,7 @@ export namespace OpenAIUtil {
                     //         text: "This is a audio file , url is " + url || ""
                     //     })
                     // }
-                    const url = item.file_url.url.startsWith("file://") ? item.file_url.url.replace("file://", '') : item.file_url.url
+                    const url = item.file_url.url.replace("file://", "")
                     if (role === 'user' || role === 'system') {
                         messageContents.push({
                             type: "input_text",
@@ -239,7 +199,7 @@ export namespace OpenAIUtil {
                     }
 
                 } else if (item.type === "video") {
-                    const url = item.file_url.url.startsWith("file://") ? item.file_url.url.replace("file://", '') : item.file_url.url
+                    const url = item.file_url.url.replace("file://", "")
                     if (role === 'user' || role === 'system') {
                         messageContents.push({
                             type: "input_text",
@@ -253,7 +213,7 @@ export namespace OpenAIUtil {
                         })
                     }
                 } else if (item.type === "file") {
-                    const url = item.file_url.url.startsWith("file://") ? item.file_url.url.replace("file://", '') : item.file_url.url
+                    const url = item.file_url.url.replace("file://", "")
                     if (role === 'user' || role === 'system') {
                         messageContents.push({
                             type: "input_text",
@@ -302,17 +262,25 @@ export namespace OpenAIUtil {
         }
 
         if (message.role === "tool") {
-            let content: (string | ChatMessageContent)[] = []
+            const toolMessage = message as ToolMessage
+            let content: (ChatMessageContent[]) = []
             try {
                 content = JSON.parse(message.content as string)
+                toolMessage.content = content.filter((item) => {
+                    if (item.type === "image_url") {
+                        return false
+                    }
+                    return true
+                })
             } catch (e) {
                 console.log("toolMessage content error", message.content)
             }
-
-            const toolAdditionalMessages = convertToolResults(content, options)
+            // const toolAdditionalMessages = convertToolResults(content, options)
+            toolMessage.content = JSON.stringify(content)
+            console.log("toolMessage", JSON.stringify(toolMessage, null, 2))
 
             //@ts-ignore
-            return [message, ...toolAdditionalMessages]
+            return [message]
         }
 
 
@@ -340,19 +308,33 @@ export namespace OpenAIUtil {
             for (const item of message.content) {
                 let role = message.role as 'user' | 'assistant'
                 if (item.type === "image_url") {
-                    const url = item.image_url.url
+                    const url = item.image_url.url.replace("file://", "")
 
-                    const fileExists = url.startsWith("file://") && fs.existsSync(url.replace("file://", ""))
+                    // Check if the URL is valid and if vision is enabled for processing images
+                    if (role === "user" && options.modelName.visionEnable === true && isSupportedImageType(url)) {
+                        if (url.startsWith("http://") || url.startsWith("https://")) {
+                            // Handle remote URLs directly
+                            messageContents.push({
+                                type: "image_url",
+                                image_url: {
+                                    url: url
+                                }
+                            })
+                        } else {
+                            // Handle local file URLs
+                            const fileExists = fs.existsSync(url)
 
-                    if (role === "user" && url.startsWith("file://") && options.modelName.visionEnable === true && fileExists && isSupportedImageType(url)) {
-                        const base64 = FileUtil.convertFileUrlToBase64(url)
-                        const mimeType = url.split(".").pop()
-                        messageContents.push({
-                            type: "image_url",
-                            image_url: {
-                                url: `data:image/${mimeType};base64,${base64}`
+                            if (fileExists) {
+                                const base64 = FileUtil.convertFileUrlToBase64(url)
+                                const mimeType = mime.getType(url) || "image/png"
+                                messageContents.push({
+                                    type: "image_url",
+                                    image_url: {
+                                        url: `data:${mimeType};base64,${base64}`
+                                    }
+                                })
                             }
-                        })
+                        }
                     }
 
                     if (Runtime.isAgentMode()) {
@@ -363,10 +345,6 @@ export namespace OpenAIUtil {
                     }
 
                 } else if (item.type === "flow_step") {
-
-
-
-
                     const results = item.flowResults.map((message: any) => {
                         return message.content
                     }).flat()
@@ -395,18 +373,7 @@ export namespace OpenAIUtil {
 
                     if (options.modelName.toolUse === true) {
 
-                        if (messageContents.length > 0) {
-                            //@ts-ignore
-                            newMessages.push({
-                                role: role,
-                                content: messageContents
-                            })
-                            messageContents = []
-                        }
-
-                        const toolAdditionalMessages = convertToolResults(results, options)
-
-                        newMessages.push(...msgs, ...toolAdditionalMessages)
+                        newMessages.push(...msgs)
                     } else {
                         messageContents.push({
                             type: "text",
@@ -424,13 +391,9 @@ export namespace OpenAIUtil {
                     }
 
                 } else if (item.type === "audio") {
-                    function isSupportAudioType(mimeType: string): boolean {
-                        return mimeType === "mp3" || mimeType === "wav"
-                    }
-                    const url = item.file_url.url
-                    const mimeType = path.extname(url).slice(1)
-                    const isSupport = isSupportAudioType(mimeType)
-                    if (role === "user" && url.startsWith("file://") && options.modelName.audioEnable === true && isSupport) {
+                    const url = item.file_url.url.replace("file://", "")
+                    const mimeType = mime.getType(url) || "mp3"
+                    if (role === "user" && options.modelName.audioEnable === true) {
                         const base64 = FileUtil.convertFileUrlToBase64(url)
                         messageContents.push({
                             type: "input_audio",
@@ -442,21 +405,21 @@ export namespace OpenAIUtil {
                     } else {
                         messageContents.push({
                             type: "text",
-                            text: "This is a audio file , url is " + url || ""
+                            text: "This is a audio file , url is " + url + " , only used for reference when you use tool, if not , ignore this . " || ""
                         })
                     }
 
                 } else if (item.type === "video") {
-                    const url = item.file_url.url
+                    const url = item.file_url.url.replace("file://", "")
                     messageContents.push({
                         type: "text",
-                        text: "This is a video file , url is " + url || ""
+                        text: `This is a video file , url is ${url} , only used for reference when you use tool, if not , ignore this .` || ""
                     })
                 } else if (item.type === "file") {
-                    const url = item.file_url.url
+                    const url = item.file_url.url.replace("file://", "")
                     messageContents.push({
                         type: "text",
-                        text: "This is a file , url is " + url || ""
+                        text: `This is a file , url is ${url} , only used for reference when you use tool, if not , ignore this .` || ""
                     })
                 } else if (item.type === "thinking") {
                     // do nothing

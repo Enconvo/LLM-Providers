@@ -1,5 +1,5 @@
 import { env } from 'process';
-import { BaseChatMessage, BaseChatMessageChunk, LLMProvider, Stream, UserMessage } from '@enconvo/api';
+import { BaseChatMessage, BaseChatMessageChunk, LLMProvider, res, Stream, UserMessage } from '@enconvo/api';
 import OpenAI from 'openai';
 import { wrapOpenAI } from "langsmith/wrappers";
 import { OpenAIUtil } from './utils/openai_util.ts';
@@ -15,17 +15,16 @@ export class ChatOpenAIProvider extends LLMProvider {
 
     protected async _stream(content: LLMProvider.Params): Promise<Stream<BaseChatMessageChunk>> {
         if (this.options.credentials?.credentials_type?.value === 'oauth2') {
+            console.log("_stream_v2")
             return await this._stream_v2(content)
         }
-
         const params = this.initParams(content)
-        console.log("params", JSON.stringify(params, null, 2))
-        console.time("chatCompletion")
-        const chatCompletion = await this.client.chat.completions.create({
+        let chatCompletion: any
+        chatCompletion = await this.client.chat.completions.create({
             ...params,
             stream: true,
         });
-        console.timeEnd("chatCompletion")
+
         const ac = new AbortController()
         //@ts-ignore
         const stream = OpenAIUtil.streamFromOpenAI(chatCompletion, ac)
