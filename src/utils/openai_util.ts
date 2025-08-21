@@ -2,7 +2,7 @@ import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, BaseChatMessag
 import OpenAI from "openai"
 import path from "path"
 import fs from "fs"
-import { EasyInputMessage, ResponseInputContent, ResponseInputItem, ResponseInputMessageContentList, ResponseOutputItem, ResponseOutputRefusal, ResponseOutputText, ResponseStreamEvent, Tool } from "openai/resources/responses/responses.mjs"
+import { EasyInputMessage, ResponseFunctionToolCall, ResponseInputContent, ResponseInputItem, ResponseInputMessageContentList, ResponseOutputItem, ResponseOutputRefusal, ResponseOutputText, ResponseStreamEvent, Tool } from "openai/resources/responses/responses.mjs"
 import mime from "mime"
 export namespace OpenAIUtil {
 
@@ -61,14 +61,6 @@ export namespace OpenAIUtil {
         if (message.role === "tool") {
             const rawToolMessage: ToolMessage = message as ToolMessage
 
-            // let content: (string | ChatMessageContent)[] = []
-            // try {
-            //     content = JSON.parse(message.content as string)
-            // } catch (e) {
-            //     console.log("toolMessage content error", message.content)
-            // }
-            // const toolAdditionalMessages = convertToolResults(content, options)
-
             const toolCallMessage: ResponseInputItem = {
                 type: "function_call_output",
                 call_id: rawToolMessage.tool_call_id,
@@ -114,6 +106,27 @@ export namespace OpenAIUtil {
             let newMessages: ResponseInputItem[] = []
             let messageContents: (ResponseInputContent | ResponseOutputText | ResponseOutputRefusal)[] = []
 
+            const handleMessageContent = () => {
+                if (messageContents.length > 0) {
+                    if (role === 'user' || role === 'system') {
+                        newMessages.push({
+                            type: "message",
+                            content: messageContents as ResponseInputMessageContentList,
+                            role: role === 'system' ? 'user' : role as EasyInputMessage['role']
+                        })
+                    } else if (role === 'assistant') {
+                        newMessages.push({
+                            type: "message",
+                            content: messageContents as Array<ResponseOutputText | ResponseOutputRefusal>,
+                            role: 'assistant',
+                            status: 'completed',
+                            id: message.id || `msg_${uuid()}`
+                        })
+                    }
+                    messageContents = []
+                }
+            }
+
             for (const item of message.content) {
                 if (item.type === "image_url") {
                     const url = item.image_url.url
@@ -149,53 +162,33 @@ export namespace OpenAIUtil {
 
                 } else if (item.type === "flow_step") {
 
-                    // const results = item.flowResults.map((message: any) => {
-                    //     return message.content
-                    // }).flat()
+                    const results = item.flowResults.map((message: any) => {
+                        return message.content
+                    }).flat()
 
 
-                    // const msgs: OpenAI.Chat.ChatCompletionMessageParam[] = [
-                    //     {
-                    //         role: "assistant",
-                    //         tool_calls: [
-                    //             {
-                    //                 type: "function",
-                    //                 id: item.flowId,
-                    //                 function: {
-                    //                     name: item.flowName.replace("|", "-"),
-                    //                     arguments: item.flowParams || ''
-                    //                 }
-                    //             }
-                    //         ]
-                    //     }
-                    //     ,
-                    //     {
-                    //         role: "tool",
-                    //         tool_call_id: item.flowId,
-                    //         content: JSON.stringify(results)
-                    //     }]
+                    console.log("flow_step", JSON.stringify(results, null, 2))
 
-                    // if (options.modelName.toolUse === true) {
+                    const toolCallOutputMessage: ResponseInputItem = {
+                        type: "function_call_output",
+                        call_id: item.flowId,
+                        output: JSON.stringify(results)
+                    }
 
-                    //     if (messageContents.length > 0) {
-                    //         //@ts-ignore
-                    //         newMessages.push({
-                    //             role: role,
-                    //             content: messageContents
-                    //         })
-                    //         messageContents = []
-                    //     }
+                    const toolCallMessage: ResponseFunctionToolCall = {
+                        type: "function_call",
+                        call_id: item.flowId,
+                        name: item.flowName.replace("|", "--"),
+                        arguments: item.flowParams || ''
+                    }
 
-                    //     const toolAdditionalMessages = convertToolResults(results, options)
+                    const msgs: ResponseInputItem[] = [
+                        toolCallOutputMessage,
+                        toolCallMessage
+                    ]
 
-                    //     newMessages.push(...msgs, ...toolAdditionalMessages)
-                    // } else {
-                    //     messageContents.push({
-                    //         type: "text",
-                    //         text: "This is a tool call , name is " + item.flowName + " , args is " + JSON.stringify(item.flowParams) + " , results is " + JSON.stringify(results)
-                    //     })
-                    // }
-
+                    handleMessageContent()
+                    newMessages.push(...msgs)
                 } else if (item.type === "text" && item.text.trim() !== "") {
                     if (role === 'user' || role === 'system') {
                         messageContents.push({
@@ -291,23 +284,7 @@ export namespace OpenAIUtil {
                 }
             }
 
-            if (messageContents.length > 0) {
-                if (role === 'user' || role === 'system') {
-                    newMessages.push({
-                        type: "message",
-                        content: messageContents as ResponseInputMessageContentList,
-                        role: role === 'system' ? 'user' : role as EasyInputMessage['role']
-                    })
-                } else if (role === 'assistant') {
-                    newMessages.push({
-                        type: "message",
-                        content: messageContents as Array<ResponseOutputText | ResponseOutputRefusal>,
-                        role: 'assistant',
-                        status: 'completed',
-                        id: message.id || `msg_${uuid()}`
-                    })
-                }
-            }
+            handleMessageContent()
 
             return newMessages
         }
