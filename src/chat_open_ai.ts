@@ -112,6 +112,7 @@ export class ChatOpenAIProvider extends LLMProvider {
         if (!credentials?.apiKey) {
             throw new Error("API key is required")
         }
+
         const modelOptions = this.options.modelName
 
         const messages = await OpenAIUtil.convertMessagesToOpenAIMessages(this.options, content.messages)

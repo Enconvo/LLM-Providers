@@ -98,6 +98,7 @@ async function fetchModels(options: RequestOptions): Promise<ListCache.ListItem[
         const google = new GoogleGenAI({ apiKey: options.api_key });
         const pager = await google.models.list()
         const models: ListCache.ListItem[] = []
+        console.log("gemini models", JSON.stringify(pager, null, 2))
         
         for await (const model of pager) {
             console.log(model)
@@ -115,12 +116,10 @@ async function fetchModels(options: RequestOptions): Promise<ListCache.ListItem[
                 
                 // Identify special model types
                 const isThinking = model.name?.includes('thinking')
-                const isImageGeneration = model.name?.includes('image-generation')
                 const isTTS = model.name?.includes('tts')
                 const isEmbedding = model.name?.includes('embedding')
                 
-                // Skip non-chat models
-                if (isImageGeneration || isTTS || isEmbedding) {
+                if (isTTS || isEmbedding) {
                     continue
                 }
                 

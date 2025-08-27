@@ -97,7 +97,6 @@ export class GoogleGeminiProvider extends LLMProvider {
             model = model.split('/')[1]
         }
 
-
         let tools = GoogleUtil.convertToolsToGoogleTools(content.tools)
 
         let toolConfig: any = undefined
@@ -117,7 +116,7 @@ export class GoogleGeminiProvider extends LLMProvider {
         }
 
         let responseModalities = [Modality.TEXT]
-        if (this.options.modelName.value.includes('image-generation')) {
+        if (this.options.modelName.value.includes('gemini-2.5-flash-image-preview')) {
             responseModalities.push(Modality.IMAGE)
             system = undefined
             tools = undefined

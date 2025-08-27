@@ -75,11 +75,6 @@ function convertRole(role: BaseChatMessage["role"]) {
     return "user"
 }
 
-function isSupportedImageType(url: string) {
-    const supportedTypes = ["jpeg", 'jpg', "png", "webp"]
-    const mimeType = path.extname(url).toLowerCase().slice(1)
-    return supportedTypes.includes(mimeType)
-}
 
 
 export const convertMessageToGoogleMessage = async (message: BaseChatMessageLike, options: LLMProvider.LLMOptions): Promise<Content[]> => {
@@ -153,7 +148,7 @@ export const convertMessageToGoogleMessage = async (message: BaseChatMessageLike
                 url = await ImageUtil.compressImage(url)
                 const mimeType = mime.getType(url)
                 const base64 = await FileUtil.convertUrlToBase64(url)
-                if (message.role === 'user' && options.modelName.visionEnable === true && base64) {
+                if (options.modelName.visionEnable === true && base64) {
                     const image: Part = {
                         inlineData: {
                             data: base64,
