@@ -429,7 +429,7 @@ export function streamFromGoogle(response: AsyncGenerator<GenerateContentRespons
                                 id: uuid(),
                                 choices: [{
                                     delta: {
-                                        message_content: ChatMessageContent.imageUrl({ url: "file://" + filePath }),
+                                        message_content: ChatMessageContent.imageUrl({ url:  filePath }),
                                         role: "assistant"
                                     },
                                     finish_reason: null,
@@ -453,7 +453,7 @@ export function streamFromGoogle(response: AsyncGenerator<GenerateContentRespons
                                 id: uuid(),
                                 choices: [{
                                     delta: {
-                                        message_content: ChatMessageContent.audio({ url: "file://" + filePath }),
+                                        message_content: ChatMessageContent.audio({ url:  filePath }),
                                         role: "assistant"
                                     },
                                     finish_reason: null,

@@ -116,11 +116,11 @@ export class GoogleGeminiProvider extends LLMProvider {
         }
 
         let responseModalities = [Modality.TEXT]
-        if (this.options.modelName.value.includes('gemini-2.5-flash-image-preview')) {
+        if (this.options.modelName.imageGeneration) {
             responseModalities.push(Modality.IMAGE)
             system = undefined
             tools = undefined
-        } else if (this.options.modelName.value.includes('tts')) {
+        } else if (this.options.modelName.audioGeneration) {
             responseModalities = [Modality.AUDIO]
             const lastMessage = newMessages.pop()
             newMessages = lastMessage ? [lastMessage] : []
