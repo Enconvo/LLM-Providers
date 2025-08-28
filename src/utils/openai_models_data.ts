@@ -16,6 +16,19 @@ export const openai_codex_models_data = [
         "systemMessageEnable": true,
         "speed": 3,
         "reasoning": 4
+    },
+    {
+        "title": "Codex Mini Latest",
+        "value": "codex-mini-latest",
+        "context": 400000,
+        "maxTokens": 128000,
+        "inputPrice": 1.25,
+        "outputPrice": 10,
+        "toolUse": true,
+        "visionEnable": true,
+        "systemMessageEnable": true,
+        "speed": 3,
+        "reasoning": 4
     }
 ]
 export const openai_models_data = [

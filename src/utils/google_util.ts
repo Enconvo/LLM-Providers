@@ -4,7 +4,7 @@ import { writeFile } from "fs/promises"
 import wav from 'wav';
 
 import mime from "mime"
-import { Content, Part, FunctionDeclaration, Tool, GenerateContentResponse } from "@google/genai"
+import { Content, Part, FunctionDeclaration, Tool, GenerateContentResponse, FinishReason } from "@google/genai"
 export namespace GoogleUtil {
 
 
@@ -359,7 +359,24 @@ export function streamFromGoogle(response: AsyncGenerator<GenerateContentRespons
                 const candidate = chunk.candidates?.[0]
                 if (candidate?.finishReason === "STOP") {
                     done = true;
+                } else if (candidate?.finishReason === FinishReason.PROHIBITED_CONTENT) {
+                    done = true;
+                    yield {
+                        model: "Google",
+                        id: uuid(),
+                        choices: [{
+                            delta: {
+                                content: "The content is prohibited",
+                                role: "assistant"
+                            },
+                            finish_reason: "content_filter",
+                            index: 0
+                        }],
+                        created: Date.now(),
+                        object: "chat.completion.chunk"
+                    }
                 }
+
 
                 const functionCalls = chunk.functionCalls
 
