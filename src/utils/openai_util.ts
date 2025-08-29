@@ -621,7 +621,7 @@ export namespace OpenAIUtil {
 
         newMessages = ensureFirstMessageIsUser(newMessages)
 
-        // console.log("newMessages", JSON.stringify(newMessages, null, 2))
+        console.log("newMessages", JSON.stringify(newMessages, null, 2))
         return newMessages
     }
 
@@ -630,11 +630,9 @@ export namespace OpenAIUtil {
 
         let newMessages = (await Promise.all(messages.map((message) => convertMessageToOpenAIResponseMessage(options, message)))).flat()
 
-        console.log("newMessages", JSON.stringify(newMessages, null, 2))
+        // console.log("newMessages", JSON.stringify(newMessages, null, 2))
         return newMessages
     }
-
-
 
     export function streamFromOpenAI(response: AsyncIterable<OpenAI.Chat.ChatCompletionChunk>, controller: AbortController): Stream<BaseChatMessageChunk> {
         let consumed = false;
@@ -708,7 +706,6 @@ export namespace OpenAIUtil {
                                             {
                                                 type: "function",
                                                 index: 0,
-                                                id: chunk.item.call_id,
                                                 function: {
                                                     name: chunk.item.name,
                                                 }

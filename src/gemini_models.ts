@@ -29,7 +29,8 @@ const geminiModelsData: Preference.LLMModel[] = [
     {
         title: "Gemini 2.5 Flash Image Preview",
         value: "gemini-2.5-flash-image-preview",
-        context: 1048576,
+        context: 32768,
+        maxTokens:32768,
         inputPrice: 100,
         outputPrice: 0.40,
         speed: 5,
