@@ -12,7 +12,7 @@ class ChatOpenAIProvider extends LLMProvider {
 
     protected async _stream(content: LLMProvider.Params): Promise<Stream<BaseChatMessageChunk>> {
 
-        const params = this.initParams(content)
+        const params = await this.initParams(content)
         // console.log("params", params)
 
         const chatCompletion = await this.client.chat.completions.create({
@@ -35,7 +35,7 @@ class ChatOpenAIProvider extends LLMProvider {
     }
 
     protected async _call(content: { messages: BaseChatMessage[]; }): Promise<BaseChatMessage> {
-        const params = this.initParams(content)
+        const params = await this.initParams(content)
 
         const chatCompletion = await this.client.chat.completions.create({
             ...params,
@@ -46,16 +46,16 @@ class ChatOpenAIProvider extends LLMProvider {
         return new UserMessage(result?.message?.content || '')
     }
 
-    private initParams(content: LLMProvider.Params) {
-        if (!this.options.azureOpenAIApiKey) {
+    private async initParams(content: LLMProvider.Params) {
+        if (!this.options.credentials?.azureOpenAIApiKey) {
             throw new Error("API key is required")
         }
 
-        if (!this.options.azureOpenAIApiEndpoint) {
+        if (!this.options.credentials?.azureOpenAIApiEndpoint) {
             throw new Error("Endpoint is required")
         }
 
-        if (!this.options.azureOpenAIApiVersion) {
+        if (!this.options.credentials?.azureOpenAIApiVersion) {
             throw new Error("API version is required")
         }
 
@@ -64,11 +64,10 @@ class ChatOpenAIProvider extends LLMProvider {
             throw new Error("Model name is required")
         }
 
-        const messages = OpenAIUtil.convertMessagesToOpenAIMessages(this.options, content.messages)
+        const messages = await OpenAIUtil.convertMessagesToOpenAIMessages(this.options, content.messages)
 
         const tools = OpenAIUtil.convertToolsToOpenAITools(content.tools)
 
-        let reasoning_effort = this.options?.reasoning_effort?.value === "off" ? null : this.options?.reasoning_effort?.value
 
 
         let temperature = this.options.temperature.value
@@ -78,14 +77,21 @@ class ChatOpenAIProvider extends LLMProvider {
             temperature = 0.5
         }
 
+        if (modelOptions?.value.includes('gpt-5')) {
+            temperature = 1
+        }
+
+
         let params: any = {
             temperature: temperature,
             messages
         }
 
-        if (reasoning_effort) {
+        let reasoning_effort = this.options?.reasoning_effort?.value || this.options?.reasoning_effort_new?.value
+        if (reasoning_effort && reasoning_effort !== "off") {
             params.reasoning_effort = reasoning_effort
         }
+        console.log("tools", tools?.length, modelOptions.toolUse)
 
         if (tools && tools.length > 0 && modelOptions.toolUse === true) {
             params = {
@@ -96,22 +102,17 @@ class ChatOpenAIProvider extends LLMProvider {
             }
         }
 
-
         return params
     }
 
     private _createOpenaiClient(options: LLMProvider.LLMOptions): AzureOpenAI {
 
         const client = new AzureOpenAI({
-            apiKey: options.azureOpenAIApiKey,
-            apiVersion: options.azureOpenAIApiVersion,
-            endpoint: options.azureOpenAIApiEndpoint,
+            apiKey: options.credentials?.azureOpenAIApiKey,
+            apiVersion: options.credentials?.azureOpenAIApiVersion,
+            endpoint: options.credentials?.azureOpenAIApiEndpoint,
             deployment: options.modelName.value,
         });
-
-        // if (env['LANGCHAIN_TRACING_V2'] === 'true') {
-        //     return wrapOpenAI(client)
-        // }
 
         return client
     }

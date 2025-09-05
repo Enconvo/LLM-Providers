@@ -461,6 +461,7 @@ export const convertMessagesToAnthropicMessages = async (messages: BaseChatMessa
         newMessages = newMessages.slice(1)
     }
 
+    console.log("newMessages", JSON.stringify(newMessages, null, 2))
 
     return newMessages
 }

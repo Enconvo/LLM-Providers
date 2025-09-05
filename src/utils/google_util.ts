@@ -310,7 +310,7 @@ export const convertMessageToGoogleMessage = async (message: BaseChatMessageLike
 
 export const convertMessagesToGoogleMessages = async (messages: BaseChatMessageLike[], options: LLMProvider.LLMOptions): Promise<Content[]> => {
     const newMessages = (await Promise.all(messages.map((message) => convertMessageToGoogleMessage(message, options)))).flat()
-    // console.log("newMessages", JSON.stringify(newMessages, null, 2))
+    console.log("newMessages", JSON.stringify(newMessages, null, 2))
     return newMessages
 }
 
