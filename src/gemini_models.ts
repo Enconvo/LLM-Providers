@@ -30,7 +30,7 @@ const geminiModelsData: Preference.LLMModel[] = [
         title: "Gemini 2.5 Flash Image Preview",
         value: "gemini-2.5-flash-image-preview",
         context: 32768,
-        maxTokens:32768,
+        maxTokens: 32768,
         inputPrice: 100,
         outputPrice: 0.40,
         speed: 5,
@@ -115,10 +115,10 @@ async function fetchModels(options: RequestOptions): Promise<ListCache.ListItem[
         const google = new GoogleGenAI({ apiKey: options.api_key });
         const pager = await google.models.list()
         const models: ListCache.ListItem[] = []
-        console.log("gemini models", JSON.stringify(pager, null, 2))
+        // console.log("gemini models", JSON.stringify(pager, null, 2))
 
         for await (const model of pager) {
-            console.log(model)
+            // console.log(model)
 
             // Check if model supports content generation
             if (model.supportedActions?.some(action => action === 'generateContent' || action === 'bidiGenerateContent')) {
@@ -143,7 +143,7 @@ async function fetchModels(options: RequestOptions): Promise<ListCache.ListItem[
                 const modelId = model.name?.replace('models/', '') || ''
 
                 // Find matching model data or use defaults
-                const modelData = geminiModelsData.find(data => modelId.includes(data.value)) || {
+                const modelData = geminiModelsData.find(data => modelId === data.value) || {
                     inputPrice: 0.10,
                     outputPrice: 0.40,
                     speed: 4,
