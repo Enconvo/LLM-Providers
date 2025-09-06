@@ -1,5 +1,5 @@
 import { env } from 'process';
-import { BaseChatMessage, BaseChatMessageChunk, LLMProvider, res, Stream, UserMessage } from '@enconvo/api';
+import { AuthProvider, BaseChatMessage, BaseChatMessageChunk, LLMProvider, res, Stream, UserMessage } from '@enconvo/api';
 import OpenAI from 'openai';
 import { OpenAIUtil } from './utils/openai_util.ts';
 import { codex_instructions } from './utils/instructions.ts';
@@ -13,6 +13,7 @@ export default function main(options: any) {
 export class ChatOpenAIProvider extends LLMProvider {
 
     protected async _stream(content: LLMProvider.Params): Promise<Stream<BaseChatMessageChunk>> {
+        this.client = await this._createOpenaiClient(this.options)
         // console.log("this.options", this.options)
         const credentialsType = this.options.credentials?.credentials_type?.value
         if (credentialsType === 'oauth2' && this.options.commandName === 'chat_open_ai') {
@@ -44,12 +45,9 @@ export class ChatOpenAIProvider extends LLMProvider {
     }
 
     client: OpenAI
-    constructor(options: LLMProvider.LLMOptions) {
-        super(options)
-        this.client = this._createOpenaiClient(this.options)
-    }
 
     protected async _call(content: { messages: BaseChatMessage[]; }): Promise<BaseChatMessage> {
+        this.client = await this._createOpenaiClient(this.options)
         const params = await this.initParams(content)
 
         const chatCompletion = await this.client.chat.completions.create({
@@ -162,8 +160,8 @@ export class ChatOpenAIProvider extends LLMProvider {
         return params
     }
 
-    private _createOpenaiClient(options: LLMProvider.LLMOptions): OpenAI {
-        const credentials = options.credentials
+    private async _createOpenaiClient(options: LLMProvider.LLMOptions): Promise<OpenAI> {
+        let credentials = options.credentials || null
         // console.log("credentials", credentials)
         if (credentials?.credentials_type?.value === 'oauth2' && options.commandName === 'chat_open_ai') {
             const client = new OpenAI({
@@ -203,6 +201,12 @@ export class ChatOpenAIProvider extends LLMProvider {
             headers = {
                 'User-Agent': userAgent,
             };
+
+            if (credentials?.credentials_type?.value === 'oauth2') {
+                const authProvider = await AuthProvider.create('qwen')
+                credentials = await authProvider.authenticate()
+                console.log("loaded credentials", credentials)
+            }
         }
 
 
