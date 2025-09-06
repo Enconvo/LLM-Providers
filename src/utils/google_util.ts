@@ -44,17 +44,17 @@ export namespace GoogleUtil {
         ]);
         let functionDeclarations: FunctionDeclaration[] | undefined = tools?.map(
             (tool) => {
+                // console.log("tool", tool.name, tool.parameters?.properties)
 
                 Object.entries(tool.parameters?.properties || {}).forEach(
-                    ([key, value]: [string, any]) => {
+                    ([_, value]: [string, any]) => {
                         // Recursively check and remove additionalProperties from nested objects
                         const removeAdditionalProps = (obj: any) => {
                             if (typeof obj !== "object" || obj === null) return;
-
-
                             // Remove all unsupported fields
                             Object.keys(obj).forEach(key => {
                                 if (!supportedFields.has(key)) {
+                                    // console.log("delete key", key)
                                     delete obj[key];
                                 }
                             });
@@ -84,12 +84,9 @@ export namespace GoogleUtil {
                 );
 
 
-                // Remove all unsupported fields
-                Object.keys(tool.parameters).forEach(key => {
-                    if (!supportedFields.has(key)) {
-                        delete tool.parameters[key];
-                    }
-                });
+                // // Remove all unsupported fields
+                delete tool.parameters?.additionalProperties;
+                delete tool.parameters?.$schema
 
                 if (Object.keys(tool.parameters?.properties || {}).length === 0) {
                     delete tool.parameters;
