@@ -1,7 +1,6 @@
 import { env } from 'process';
 import { BaseChatMessage, BaseChatMessageChunk, LLMProvider, res, Stream, UserMessage } from '@enconvo/api';
 import OpenAI from 'openai';
-import { wrapOpenAI } from "langsmith/wrappers";
 import { OpenAIUtil } from './utils/openai_util.ts';
 import { codex_instructions } from './utils/instructions.ts';
 
@@ -14,10 +13,13 @@ export default function main(options: any) {
 export class ChatOpenAIProvider extends LLMProvider {
 
     protected async _stream(content: LLMProvider.Params): Promise<Stream<BaseChatMessageChunk>> {
-        if (this.options.credentials?.credentials_type?.value === 'oauth2') {
+        // console.log("this.options", this.options)
+        const credentialsType = this.options.credentials?.credentials_type?.value
+        if (credentialsType === 'oauth2' && this.options.commandName === 'chat_open_ai') {
             console.log("_stream_v2")
             return await this._stream_v2(content)
         }
+
         const params = await this.initParams(content)
         let chatCompletion: any
         chatCompletion = await this.client.chat.completions.create({
@@ -108,10 +110,15 @@ export class ChatOpenAIProvider extends LLMProvider {
     private async initParams(content: LLMProvider.Params) {
         // console.log("openai options", JSON.stringify(this.options, null, 2))
         const credentials = this.options.credentials
-        // console.log("openai credentials", credentials)
-        if (!credentials?.apiKey) {
+        const credentialsType = credentials?.credentials_type?.value
+        if (!credentials?.apiKey && credentialsType === 'apiKey') {
             throw new Error("API key is required")
         }
+
+        if (!credentials?.access_token && credentialsType === 'oauth2') {
+            throw new Error("Please authorize with OAuth2 first")
+        }
+
 
         const modelOptions = this.options.modelName
 
@@ -152,14 +159,13 @@ export class ChatOpenAIProvider extends LLMProvider {
             }
         }
 
-
         return params
     }
 
     private _createOpenaiClient(options: LLMProvider.LLMOptions): OpenAI {
         const credentials = options.credentials
         // console.log("credentials", credentials)
-        if (credentials?.credentials_type?.value === 'oauth2') {
+        if (credentials?.credentials_type?.value === 'oauth2' && options.commandName === 'chat_open_ai') {
             const client = new OpenAI({
                 apiKey: 'key',
                 defaultHeaders: {
@@ -180,7 +186,6 @@ export class ChatOpenAIProvider extends LLMProvider {
 
         if (options.originCommandName === 'enconvo_ai') {
             // Encode commandTitle to handle special characters in HTTP headers
-
             headers = {
                 "accessToken": `${env['accessToken']}`,
                 "client_id": `${env['client_id']}`,
@@ -193,8 +198,13 @@ export class ChatOpenAIProvider extends LLMProvider {
                 'HTTP-Referer': 'https://enconvo.ai',
                 'X-Title': 'Enconvo',
             }
+        } else if (options.originCommandName === 'chat_qwen') {
+            const userAgent = `QwenCode/0.0.10 (${process.platform}; ${process.arch})`;
+            headers = {
+                'User-Agent': userAgent,
+            };
         }
-        // console.log("headers", headers)
+
 
         if (
             options.modelName &&
@@ -211,17 +221,23 @@ export class ChatOpenAIProvider extends LLMProvider {
             options.frequencyPenalty = 0.0001
         }
 
-        const client = new OpenAI({
-            apiKey: credentials?.apiKey, // This is the default and can be omitted
-            // baseURL: "http://127.0.0.1:8181/v1",
-            baseURL: credentials?.baseUrl || "https://api.openai.com/v1",
-            defaultHeaders: headers,
-
-        });
-
-        if (env['LANGCHAIN_TRACING_V2'] === 'true') {
-            return wrapOpenAI(client)
+        const credentialsType = credentials?.credentials_type?.value
+        const apiKey = credentialsType === 'apiKey' ? credentials?.apiKey : credentials?.access_token
+        let baseURL = credentials?.baseUrl || "https://api.openai.com/v1"
+        if (options.originCommandName === 'chat_qwen') {
+            baseURL = `https://${credentials?.resource_url}/v1`
         }
+
+        console.log("headers", headers)
+        console.log("apiKey", apiKey)
+        console.log("baseURL", baseURL, credentials)
+
+        const client = new OpenAI({
+            apiKey: apiKey, // This is the default and can be omitted
+            // baseURL: "http://127.0.0.1:8181/v1",
+            baseURL: baseURL,
+            defaultHeaders: headers,
+        });
 
         return client
     }
