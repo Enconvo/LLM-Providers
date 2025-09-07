@@ -16,7 +16,7 @@ export class ChatOpenAIProvider extends LLMProvider {
         this.client = await this._createOpenaiClient(this.options)
         // console.log("this.options", this.options)
         const credentialsType = this.options.credentials?.credentials_type?.value
-        if (credentialsType === 'oauth2' && this.options.commandName === 'chat_open_ai') {
+        if (credentialsType === 'oauth2' && this.options.originCommandName === 'chat_open_ai') {
             console.log("_stream_v2")
             return await this._stream_v2(content)
         }
@@ -108,7 +108,7 @@ export class ChatOpenAIProvider extends LLMProvider {
     private async initParams(content: LLMProvider.Params) {
         // console.log("openai options", JSON.stringify(this.options, null, 2))
         const credentials = this.options.credentials
-        const credentialsType = credentials?.credentials_type?.value
+        const credentialsType = credentials?.credentials_type?.value || 'apiKey'
         if (!credentials?.apiKey && credentialsType === 'apiKey') {
             throw new Error("API key is required")
         }
@@ -162,8 +162,8 @@ export class ChatOpenAIProvider extends LLMProvider {
 
     private async _createOpenaiClient(options: LLMProvider.LLMOptions): Promise<OpenAI> {
         let credentials = options.credentials || null
-        // console.log("credentials", credentials)
-        if (credentials?.credentials_type?.value === 'oauth2' && options.commandName === 'chat_open_ai') {
+        console.log("credentials", options.originCommandName, credentials?.credentials_type?.value)
+        if (credentials?.credentials_type?.value === 'oauth2' && options.originCommandName === 'chat_open_ai') {
             const client = new OpenAI({
                 apiKey: 'key',
                 defaultHeaders: {
@@ -225,8 +225,8 @@ export class ChatOpenAIProvider extends LLMProvider {
             options.frequencyPenalty = 0.0001
         }
 
-        const credentialsType = credentials?.credentials_type?.value
-        const apiKey = credentialsType === 'apiKey' ? credentials?.apiKey : credentials?.access_token
+        const credentialsType = credentials?.credentials_type?.value || 'apiKey'
+        const apiKey = credentialsType === 'oauth2' ? credentials?.access_token : credentials?.apiKey
         let baseURL = credentials?.baseUrl || "https://api.openai.com/v1"
         if (options.originCommandName === 'chat_qwen') {
             baseURL = `https://${credentials?.resource_url}/v1`
@@ -234,7 +234,7 @@ export class ChatOpenAIProvider extends LLMProvider {
 
         console.log("headers", headers)
         console.log("apiKey", apiKey)
-        console.log("baseURL", baseURL, credentials)
+        console.log("baseURL", baseURL)
 
         const client = new OpenAI({
             apiKey: apiKey, // This is the default and can be omitted
