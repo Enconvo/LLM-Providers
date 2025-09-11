@@ -26,11 +26,14 @@ export class ChatOpenAIProvider extends LLMProvider {
         chatCompletion = await this.client.chat.completions.create({
             ...params,
             stream: true,
+            stream_options: {
+                include_usage: true,
+            }
         });
 
         const ac = new AbortController()
         //@ts-ignore
-        const stream = OpenAIUtil.streamFromOpenAI(chatCompletion, ac)
+        const stream = OpenAIUtil.streamFromOpenAI(chatCompletion, ac,this.options)
         return stream
     }
 
@@ -162,13 +165,13 @@ export class ChatOpenAIProvider extends LLMProvider {
 
     private async _createOpenaiClient(options: LLMProvider.LLMOptions): Promise<OpenAI> {
         let credentials = options.credentials || null
-        console.log("credentials", options.originCommandName, credentials?.credentials_type?.value)
-        if (credentials?.credentials_type?.value === 'oauth2' && options.originCommandName === 'chat_open_ai') {
+        const credentialsType = credentials?.credentials_type?.value || 'apiKey'
+        if (credentialsType === 'oauth2' && options.originCommandName === 'chat_open_ai') {
             const client = new OpenAI({
                 apiKey: 'key',
                 defaultHeaders: {
-                    "Authorization": `Bearer ${credentials.access_token}`,
-                    "chatgpt-account-id": credentials.account_id,
+                    "Authorization": `Bearer ${credentials?.access_token}`,
+                    "chatgpt-account-id": credentials?.account_id,
                     "OpenAI-Beta": "responses=experimental",
                     "session_id": "a55064f6-4010-4e60-876d-a7ca1cb8d401"
                 },
@@ -202,8 +205,9 @@ export class ChatOpenAIProvider extends LLMProvider {
                 'User-Agent': userAgent,
             };
 
-            if (credentials?.credentials_type?.value === 'oauth2') {
+            if (credentialsType === 'oauth2') {
                 const authProvider = await AuthProvider.create('qwen')
+                //@ts-ignore
                 credentials = await authProvider.authenticate()
                 console.log("loaded credentials", credentials)
             }
@@ -224,8 +228,7 @@ export class ChatOpenAIProvider extends LLMProvider {
         if (options.baseUrl === 'http://127.0.0.1:5001') {
             options.frequencyPenalty = 0.0001
         }
-
-        const credentialsType = credentials?.credentials_type?.value || 'apiKey'
+        console.log("credentials", options.originCommandName, credentialsType)
         const apiKey = credentialsType === 'oauth2' ? credentials?.access_token : credentials?.apiKey
         let baseURL = credentials?.baseUrl || "https://api.openai.com/v1"
         if (options.originCommandName === 'chat_qwen') {

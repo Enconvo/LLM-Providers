@@ -1,4 +1,4 @@
-import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, BaseChatMessageLike, ChatMessageContent, environment, Extension, FileUtil, ImageUtil, LLMProvider, LLMTool, NativeAPI, Runtime, Stream, ToolMessage, uuid } from "@enconvo/api"
+import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, BaseChatMessageLike, ChatMessageContent, environment, Extension, FileUtil, ImageUtil, LLMProvider, LLMTool, NativeAPI, RequestOptions, Runtime, Stream, ToolMessage, uuid } from "@enconvo/api"
 import OpenAI from "openai"
 import path from "path"
 import fs from "fs"
@@ -634,7 +634,7 @@ export namespace OpenAIUtil {
         return newMessages
     }
 
-    export function streamFromOpenAI(response: AsyncIterable<OpenAI.Chat.ChatCompletionChunk>, controller: AbortController): Stream<BaseChatMessageChunk> {
+    export function streamFromOpenAI(response: AsyncIterable<OpenAI.Chat.ChatCompletionChunk>, controller: AbortController, options?: RequestOptions): Stream<BaseChatMessageChunk> {
         let consumed = false;
 
         async function* iterator(): AsyncIterator<BaseChatMessageChunk, any, undefined> {
@@ -644,7 +644,13 @@ export namespace OpenAIUtil {
             consumed = true;
             let done = false;
             try {
+                let lastChunk: any = undefined
                 for await (const chunk of response) {
+                    if (options?.commandName === 'chat_qwen' && lastChunk === undefined) {
+                        lastChunk = chunk
+                        continue
+                    }
+                    console.log("chunk", JSON.stringify(chunk, null, 2), options?.commandName)
                     if (done) continue;
                     yield chunk
                 }
