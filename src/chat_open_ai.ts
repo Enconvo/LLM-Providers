@@ -232,9 +232,9 @@ export class ChatOpenAIProvider extends LLMProvider {
             baseURL = `https://${credentials?.resource_url}/v1`
         }
 
-        console.log("headers", headers)
-        console.log("apiKey", apiKey)
-        console.log("baseURL", baseURL)
+        // console.log("headers", headers)
+        // console.log("apiKey", apiKey)
+        // console.log("baseURL", baseURL)
 
         const client = new OpenAI({
             apiKey: apiKey, // This is the default and can be omitted
