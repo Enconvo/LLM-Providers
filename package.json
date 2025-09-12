@@ -275,6 +275,11 @@
           "default": "auto",
           "data": [
             {
+              "title": "Disabled",
+              "value": "disabled",
+              "description": "Model does not think"
+            },
+            {
               "title": "Auto",
               "value": "auto",
               "description": "Model decides when and how much to think"
@@ -322,14 +327,14 @@
           "default": "auto",
           "data": [
             {
-              "title": "Auto",
-              "value": "auto",
-              "description": "Model decides when and how much to think"
-            },
-            {
               "title": "Disabled",
               "value": "disabled",
               "description": "Model does not think"
+            },
+            {
+              "title": "Auto",
+              "value": "auto",
+              "description": "Model decides when and how much to think"
             },
             {
               "title": "Minimal",
@@ -846,7 +851,7 @@
           "type": "dropdown",
           "required": false,
           "title": "Model Name",
-          "default": "gemini-2.5-flash-preview-04-17",
+          "default": "gemini-2.5-flash",
           "dataProxy": "llm|gemini_models"
         },
         {
@@ -855,7 +860,7 @@
           "type": "dropdown",
           "required": false,
           "title": "Temperature",
-          "default": 1,
+          "default": 0,
           "data": [
             {
               "title": "none",
@@ -887,6 +892,11 @@
           "title": "Gemini thinking",
           "default": "auto",
           "data": [
+            {
+              "title": "Disabled",
+              "value": "disabled",
+              "description": "Model does not think"
+            },
             {
               "title": "Auto",
               "value": "auto",
@@ -935,14 +945,14 @@
           "default": "auto",
           "data": [
             {
-              "title": "Auto",
-              "value": "auto",
-              "description": "Model decides when and how much to think"
-            },
-            {
               "title": "Disabled",
               "value": "disabled",
               "description": "Model does not think"
+            },
+            {
+              "title": "Auto",
+              "value": "auto",
+              "description": "Model decides when and how much to think"
             },
             {
               "title": "Minimal",
@@ -3647,6 +3657,11 @@
           "default": "auto",
           "data": [
             {
+              "title": "Disabled",
+              "value": "disabled",
+              "description": "Model does not think"
+            },
+            {
               "title": "Auto",
               "value": "auto",
               "description": "Model decides when and how much to think"
@@ -3694,14 +3709,14 @@
           "default": "auto",
           "data": [
             {
-              "title": "Auto",
-              "value": "auto",
-              "description": "Model decides when and how much to think"
-            },
-            {
               "title": "Disabled",
               "value": "disabled",
               "description": "Model does not think"
+            },
+            {
+              "title": "Auto",
+              "value": "auto",
+              "description": "Model decides when and how much to think"
             },
             {
               "title": "Minimal",
@@ -3760,6 +3775,7 @@
     "ai": "^5.0.15",
     "axios": "^1.7.9",
     "form-data": "^4.0.1",
+    "google-auth-library": "^10.3.0",
     "langchain": "^0.3.7",
     "langsmith": "^0.3.28",
     "mime": "^4.0.6",

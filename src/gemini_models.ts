@@ -49,6 +49,8 @@ export const geminiModelsData: Preference.LLMModel[] = [
   {
     title: "Gemini 2.5 Flash-Lite",
     value: "gemini-2.5-flash-lite",
+    context: 1048576,
+    maxTokens: 1048576,
     inputPrice: 0.1, // text/image/video
     outputPrice: 0.4,
     speed: 5,
@@ -116,6 +118,57 @@ export const geminiModelsData: Preference.LLMModel[] = [
 async function fetchModels(
   options: RequestOptions,
 ): Promise<ListCache.ListItem[]> {
+
+  const credentials = options.credentials;
+  const credentialsType = credentials?.credentials_type?.value || 'apiKey'
+  if (credentialsType === 'oauth2') {
+    return [
+      {
+        title: "Gemini 2.5 Pro",
+        value: "gemini-2.5-pro",
+        inputPrice: 1.25, // prompts <= 200k tokens
+        context: 200000,
+        visionEnable: true,
+        toolUse: true,
+        maxTokens: 200000,
+        outputPrice: 10.0,
+        speed: 3,
+        intelligence: 5,
+        reasoning: 5,
+        type: "llm_model",
+      },
+      {
+        title: "Gemini 2.5 Flash",
+        value: "gemini-2.5-flash",
+        inputPrice: 0.3, // text/image/video
+        context: 1000000,
+        visionEnable: true,
+        toolUse: true,
+        maxTokens: 1000000,
+        outputPrice: 2.5,
+        speed: 4,
+        intelligence: 4,
+        reasoning: 4,
+        type: "llm_model",
+      },
+      {
+        title: "Gemini 2.5 Flash-Lite",
+        value: "gemini-2.5-flash-lite",
+        context: 1048576,
+        visionEnable: true,
+        toolUse: true,
+        maxTokens: 1048576,
+        inputPrice: 0.1, // text/image/video
+        outputPrice: 0.4,
+        speed: 5,
+        intelligence: 3,
+        reasoning: 3,
+        type: "llm_model",
+      }
+    ];
+  }
+
+
   try {
     const google = new GoogleGenAI({ apiKey: options.api_key });
     const pager = await google.models.list();

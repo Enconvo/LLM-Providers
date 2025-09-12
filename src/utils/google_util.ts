@@ -396,7 +396,7 @@ export const convertMessagesToGoogleMessages = async (
       ),
     )
   ).flat();
-  console.log("newMessages", JSON.stringify(newMessages, null, 2));
+  // console.log("google newMessages", JSON.stringify(newMessages, null, 2));
   return newMessages;
 };
 

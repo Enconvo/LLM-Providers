@@ -18,49 +18,86 @@ import {
   GoogleGenAI,
   Modality,
 } from "@google/genai";
-import { wrapSDK } from "langsmith/wrappers";
+import { getCodeAssistServer } from "./utils/gemini-cli/code_assist/codeAssist.ts";
+import { DEFAULT_GEMINI_FLASH_LITE_MODEL } from "./utils/gemini-cli/core/contentGenerator.ts";
+import { Config } from "./utils/gemini-cli/code_assist/oauth2.ts";
+import { CodeAssistServer } from "./utils/gemini-cli/code_assist/server.ts";
 export default function main(options: any) {
   return new GoogleGeminiProvider(options);
 }
 
 export class GoogleGeminiProvider extends LLMProvider {
   ai: GoogleGenAI;
+  server: CodeAssistServer | undefined;
 
   constructor(options: LLMProvider.LLMOptions) {
     super(options);
+    console.log("GoogleGeminiProvider constructor");
     const credentials = options.credentials;
     const google = new GoogleGenAI({ apiKey: credentials?.apiKey });
 
-    if (env["LANGCHAIN_TRACING_V2"] === "true") {
-      this.ai = wrapSDK(google);
-    } else {
-      this.ai = google;
-    }
+    this.ai = google;
   }
+
+
+  async initCodeAssistServer() {
+    const configParams = {
+      sessionId: 'Enconvo',
+      model: DEFAULT_GEMINI_FLASH_LITE_MODEL,
+    };
+    const config = new Config(configParams);
+
+    this.server = await getCodeAssistServer(config);
+  }
+
 
   protected async _call(content: LLMProvider.Params): Promise<BaseChatMessage> {
     const params = await this.initParams(content);
 
-    const result = await this.ai.models.generateContent(params);
+    const credentialsType = this.options.credentials?.credentials_type?.value || 'apiKey'
+    let result
+    if (credentialsType === 'oauth2') {
+      if (!this.server) {
+        await this.initCodeAssistServer();
+      }
+      result = await this.server!.generateContent(params, "Enconvo");
+      return new AssistantMessage(result.text || "");
+    } else {
+      result = await this.ai.models.generateContent(params);
+    }
+
 
     return new AssistantMessage(result.text || "");
   }
+
 
   protected async _stream(
     content: LLMProvider.Params,
   ): Promise<Stream<BaseChatMessageChunk>> {
     const params = await this.initParams(content);
+    const credentialsType = this.options.credentials?.credentials_type?.value || 'apiKey'
+    console.log("google credentialsType", credentialsType, this.options.session_id);
 
-    const result = await this.ai.models.generateContentStream(params);
+    let result
+    if (credentialsType === 'oauth2') {
+      console.log("is server", this.server === undefined);
+      if (!this.server) {
+        await this.initCodeAssistServer();
+      }
+      result = await this.server!.generateContentStream(params, "Enconvo");
+    } else {
+      result = await this.ai.models.generateContentStream(params);
+    }
 
-    return streamFromGoogle(result, new AbortController());
+    return streamFromGoogle(result!, new AbortController());
   }
 
   async initParams(
     content: LLMProvider.Params,
   ): Promise<GenerateContentParameters> {
     const credentials = this.options.credentials;
-    if (!credentials?.apiKey) {
+    const credentialsType = credentials?.credentials_type?.value || 'apiKey'
+    if (!credentials?.apiKey && credentialsType === 'apiKey') {
       throw new Error("Google API key is required");
     }
 
@@ -74,21 +111,21 @@ export class GoogleGeminiProvider extends LLMProvider {
     let system =
       systemMessages.length > 0
         ? systemMessages
-            .map((message) => {
-              if (typeof message.content === "string") {
-                return message.content;
-              } else {
-                return message.content
-                  .map((item) => {
-                    if (item.type === "text") {
-                      return item.text;
-                    }
-                    return JSON.stringify(item);
-                  })
-                  .join("\n\n");
-              }
-            })
-            .join("\n\n")
+          .map((message) => {
+            if (typeof message.content === "string") {
+              return message.content;
+            } else {
+              return message.content
+                .map((item) => {
+                  if (item.type === "text") {
+                    return item.text;
+                  }
+                  return JSON.stringify(item);
+                })
+                .join("\n\n");
+            }
+          })
+          .join("\n\n")
         : undefined;
 
     function makeFirstMessageBeUserRole(messages: BaseChatMessageLike[]) {
@@ -111,7 +148,7 @@ export class GoogleGeminiProvider extends LLMProvider {
     );
 
     let headers = {};
-    let baseUrl = credentials.baseUrl;
+    let baseUrl = credentials?.baseUrl;
 
     let model = this.options.modelName.value;
 
@@ -172,7 +209,8 @@ export class GoogleGeminiProvider extends LLMProvider {
         tools: tools,
         toolConfig: toolConfig,
         maxOutputTokens: maxTokens,
-        temperature: temperature,
+        "topP": 1,
+        temperature: 0,
         httpOptions: {
           baseUrl: baseUrl,
           headers: headers,
