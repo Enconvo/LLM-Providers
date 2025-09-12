@@ -1,4 +1,4 @@
-import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, BaseChatMessageLike, ChatMessageContent, environment, Extension, FileUtil, ImageUtil, LLMProvider, LLMTool, NativeAPI, RequestOptions, Runtime, Stream, ToolMessage, uuid } from "@enconvo/api"
+import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, BaseChatMessageLike, ChatMessageContent, environment, Extension, FileUtil, ImageUtil, LLMProvider, AITool, NativeAPI, RequestOptions, Runtime, Stream, ToolMessage, uuid } from "@enconvo/api"
 import OpenAI from "openai"
 import path from "path"
 import fs from "fs"
@@ -465,7 +465,7 @@ export namespace OpenAIUtil {
         }
     }
 
-    export const convertToolsToOpenAIResponseTools = (tools?: LLMTool[]): Tool[] | undefined => {
+    export const convertToolsToOpenAIResponseTools = (tools?: AITool[]): Tool[] | undefined => {
         if (!tools) {
             return undefined
         }
@@ -494,7 +494,7 @@ export namespace OpenAIUtil {
         return newTools
     }
 
-    export const convertToolsToOpenAITools = (tools?: LLMTool[]): OpenAI.Chat.ChatCompletionTool[] | undefined => {
+    export const convertToolsToOpenAITools = (tools?: AITool[]): OpenAI.Chat.ChatCompletionTool[] | undefined => {
         if (!tools) {
             return undefined
         }
@@ -650,7 +650,7 @@ export namespace OpenAIUtil {
                         lastChunk = chunk
                         continue
                     }
-                    console.log("chunk", JSON.stringify(chunk, null, 2), options?.commandName)
+                    // console.log("chunk", JSON.stringify(chunk, null, 2), options?.commandName)
                     if (done) continue;
                     yield chunk
                 }

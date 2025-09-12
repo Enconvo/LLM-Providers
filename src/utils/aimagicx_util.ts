@@ -1,4 +1,4 @@
-import { BaseChatMessageLike, LLMTool } from "@enconvo/api";
+import { BaseChatMessageLike, AITool } from "@enconvo/api";
 
 export namespace AimagicxUtil {
     /**
@@ -65,7 +65,7 @@ export namespace AimagicxUtil {
     /**
      * Converts Enconvo tools to AIMagicX API tools format (simple string array)
      */
-    export function convertToolsToAimagicxTools(tools?: LLMTool[]): string[] | undefined {
+    export function convertToolsToAimagicxTools(tools?: AITool[]): string[] | undefined {
         if (!tools || tools.length === 0) {
             return undefined;
         }

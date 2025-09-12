@@ -1,4 +1,4 @@
-import { BaseChatMessage, LLMTool } from "@enconvo/api";
+import { BaseChatMessage, AITool } from "@enconvo/api";
 
 export namespace MinaiUtil {
     /**
@@ -66,7 +66,7 @@ export namespace MinaiUtil {
      * Converts tools to 1min AI format
      * Note: 1min AI has limited tool support, mainly for specific features
      */
-    export function convertToolsToMinaiTools(tools?: LLMTool[]): any[] | undefined {
+    export function convertToolsToMinaiTools(tools?: AITool[]): any[] | undefined {
         if (!tools || tools.length === 0) {
             return undefined;
         }

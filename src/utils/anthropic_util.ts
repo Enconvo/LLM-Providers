@@ -1,10 +1,9 @@
 import Anthropic from "@anthropic-ai/sdk"
-import { AssistantMessage, BaseChatMessageChunk, BaseChatMessageLike, ChatMessageContent, FileUtil, ImageUtil, LLMProvider, LLMTool, Runtime, Stream, ToolMessage, uuid } from "@enconvo/api"
-import fs from "fs"
+import { AssistantMessage, BaseChatMessageChunk, BaseChatMessageLike, ChatMessageContent, FileUtil, ImageUtil, LLMProvider, AITool, Runtime, Stream, ToolMessage, uuid } from "@enconvo/api"
 import path from "path"
 import mime from "mime"
 export namespace AnthropicUtil {
-    export const convertToolsToAnthropicTools = (tools?: LLMTool[]): Anthropic.Tool[] | undefined => {
+    export const convertToolsToAnthropicTools = (tools?: AITool[]): Anthropic.Tool[] | undefined => {
         if (!tools) {
             return undefined
         }
@@ -522,11 +521,6 @@ export function streamFromAnthropic(response: AsyncIterable<Anthropic.Messages.M
                         continue
                     }
                 }
-
-                // if (chunk.type === "message_stop") {
-                //     done = true;
-                //     continue
-                // }
 
                 if (chunk.type === "content_block_start") {
                     if (chunk.content_block.type === "tool_use") {

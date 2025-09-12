@@ -3016,6 +3016,32 @@
       ]
     },
     {
+      "name": "vercel_ai_gateway_models",
+      "title": "vercel_ai_gateway Models",
+      "description": "get vercel_ai_gateway model list",
+      "icon": "vercel.png",
+      "showInCommandList": false,
+      "commandType": "function_command",
+      "mode": "no-view",
+      "preferences": [
+        {
+          "name": "credentials",
+          "description": "The key management provider to use",
+          "type": "extension",
+          "required": false,
+          "default": "vercel_ai_gateway",
+          "extensionType": "credentials-provider",
+          "extensionFilter": {
+            "targetCommands": [
+              "credentials|vercel_ai_gateway"
+            ]
+          },
+          "title": "Credential Provider",
+          "defaultProxy": "llm|chat_vercel_ai_gateway"
+        }
+      ]
+    },
+    {
       "name": "openai_models",
       "title": "openai Models",
       "description": "get openai model list",
@@ -3359,9 +3385,89 @@
           "title": "Credential Provider"
         }
       ]
+    },
+    {
+      "name": "chat_vercel_ai_gateway",
+      "title": "Vercel AI Gateway",
+      "description": "Chat using Vercel AI Gateway with support for multiple AI providers, learn more: [vercel.com/ai-gateway](https://vercel.com/ai-gateway)",
+      "icon": "vercel.png",
+      "mode": "no-view",
+      "commandType": "provider",
+      "preferences": [
+        {
+          "name": "credentials",
+          "description": "The key management provider to use",
+          "type": "extension",
+          "required": false,
+          "default": "vercel_ai_gateway",
+          "extensionType": "credentials-provider",
+          "extensionFilter": {
+            "targetCommands": [
+              "credentials|vercel_ai_gateway"
+            ]
+          },
+          "title": "Credential Provider"
+        },
+        {
+          "name": "modelName",
+          "description": "The model to generate the completion. Format: provider/model (e.g., openai/gpt-5, anthropic/claude-sonnet-4)",
+          "type": "dropdown",
+          "required": false,
+          "title": "Model Name",
+          "default": "openai/gpt-5",
+          "dataProxy": "llm|vercel_ai_gateway_models"
+        },
+        {
+          "name": "temperature",
+          "description": "What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Temperature",
+          "default": 1,
+          "data": [
+            {
+              "title": "none",
+              "value": 0
+            },
+            {
+              "title": "low",
+              "value": 0.5
+            },
+            {
+              "title": "medium",
+              "value": 1
+            },
+            {
+              "title": "high",
+              "value": 1.5
+            },
+            {
+              "title": "maximum",
+              "value": 2
+            }
+          ]
+        },
+        {
+          "name": "vercel_provider_order",
+          "description": "Comma-separated list of provider slugs to specify routing order (e.g., bedrock,anthropic). See docs for available providers.",
+          "type": "textfield",
+          "required": false,
+          "title": "Provider Order",
+          "placeholder": "e.g., bedrock,anthropic,vertex"
+        },
+        {
+          "name": "vercel_provider_only",
+          "description": "Comma-separated list of provider slugs to restrict routing (e.g., anthropic,vertex). Only these providers will be considered.",
+          "type": "textfield",
+          "required": false,
+          "title": "Provider Only",
+          "placeholder": "e.g., anthropic,vertex"
+        }
+      ]
     }
   ],
   "dependencies": {
+    "@ai-sdk/gateway": "^1.0.21",
     "@ai-sdk/openai": "^2.0.15",
     "@anthropic-ai/sdk": "^0.60.0",
     "@enconvo/api": "link:/Users/ysnows/Documents/Project/enconvo.nodejs/enconvo_api",

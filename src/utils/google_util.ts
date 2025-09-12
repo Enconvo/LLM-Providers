@@ -8,7 +8,7 @@ import {
     FileUtil,
     ImageUtil,
     LLMProvider,
-    LLMTool,
+    AITool,
     Runtime,
     Stream,
     ToolMessage,
@@ -29,7 +29,7 @@ import {
 } from "@google/genai";
 export namespace GoogleUtil {
     export const convertToolsToGoogleTools = (
-        tools?: LLMTool[],
+        tools?: AITool[],
     ): Tool[] | undefined => {
         if (!tools || tools.length === 0) {
             return undefined;

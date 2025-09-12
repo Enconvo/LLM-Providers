@@ -57,7 +57,7 @@ export class AnthropicProvider extends LLMProvider {
         const stream = await this._stream(content)
         let message = ""
         for await (const chunk of stream) {
-            console.log("chunk", chunk)
+            // console.log("chunk", chunk)
             if (chunk.choices?.[0]?.delta?.content) {
                 message += chunk.choices[0].delta.content
             }
