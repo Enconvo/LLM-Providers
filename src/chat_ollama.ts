@@ -1,118 +1,145 @@
-import { AssistantMessage, BaseChatMessage, BaseChatMessageChunk, LLMProvider, Stream, uuid } from "@enconvo/api";
-import { Ollama } from 'ollama'
+import {
+  AssistantMessage,
+  BaseChatMessage,
+  BaseChatMessageChunk,
+  LLMProvider,
+  Stream,
+  uuid,
+} from "@enconvo/api";
+import { Ollama } from "ollama";
 import { OllamaUtil } from "./utils/ollama_util.ts";
 
-
 export default function main(options: any) {
-    return new OllamaProvider(options)
+  return new OllamaProvider(options);
 }
 
 export class OllamaProvider extends LLMProvider {
-    ollama: Ollama
+  ollama: Ollama;
 
-    constructor(options: LLMProvider.LLMOptions) {
-        super(options)
-        const credentials = this.options.credentials
-        console.log("ollama credentials", credentials)
+  constructor(options: LLMProvider.LLMOptions) {
+    super(options);
+    const credentials = this.options.credentials;
+    console.log("ollama credentials", credentials);
 
-        const customHeaders: Record<string, string> = {}
-        if (credentials?.customHeaders) {
-            const headerString = credentials.customHeaders as string
-            const headerPairs = headerString.split('\n').filter(line => line.trim() && line.trim().includes('='))
-            for (const pair of headerPairs) {
-                const [key, value] = pair.split('=')
-                if (key && value) {
-                    customHeaders[key.trim()] = value.trim()
-                }
-            }
+    const customHeaders: Record<string, string> = {};
+    if (credentials?.customHeaders) {
+      const headerString = credentials.customHeaders as string;
+      const headerPairs = headerString
+        .split("\n")
+        .filter((line) => line.trim() && line.trim().includes("="));
+      for (const pair of headerPairs) {
+        const [key, value] = pair.split("=");
+        if (key && value) {
+          customHeaders[key.trim()] = value.trim();
         }
-
-        this.ollama = new Ollama({
-            host: credentials?.baseUrl,
-            headers: {
-                ...customHeaders,
-                Authorization: `Bearer ${credentials?.apiKey || ''}`,
-                'User-Agent': 'Enconvo/1.0',
-            }
-        })
+      }
     }
 
-    protected async _call(content: LLMProvider.Params): Promise<BaseChatMessage> {
-        const newMessages = await OllamaUtil.convertMessagesToOllamaMessages(content.messages, this.options)
+    this.ollama = new Ollama({
+      host: credentials?.baseUrl,
+      headers: {
+        ...customHeaders,
+        Authorization: `Bearer ${credentials?.apiKey || ""}`,
+        "User-Agent": "Enconvo/1.0",
+      },
+    });
+  }
 
-        const params = this.initParams()
+  protected async _call(content: LLMProvider.Params): Promise<BaseChatMessage> {
+    const newMessages = await OllamaUtil.convertMessagesToOllamaMessages(
+      content.messages,
+      this.options,
+    );
 
-        const response = await this.ollama.chat({ ...params, messages: newMessages })
+    const params = this.initParams();
 
-        return new AssistantMessage(response.message.content)
-    }
+    const response = await this.ollama.chat({
+      ...params,
+      messages: newMessages,
+    });
 
-    protected async _stream(content: LLMProvider.Params): Promise<Stream<BaseChatMessageChunk>> {
-        const newMessages = await OllamaUtil.convertMessagesToOllamaMessages(content.messages, this.options)
+    return new AssistantMessage(response.message.content);
+  }
 
-        const params = this.initParams()
+  protected async _stream(
+    content: LLMProvider.Params,
+  ): Promise<Stream<BaseChatMessageChunk>> {
+    const newMessages = await OllamaUtil.convertMessagesToOllamaMessages(
+      content.messages,
+      this.options,
+    );
 
-        const response = await this.ollama.chat({ ...params, messages: newMessages, stream: true })
+    const params = this.initParams();
 
-        let consumed = false;
+    const response = await this.ollama.chat({
+      ...params,
+      messages: newMessages,
+      stream: true,
+    });
 
-        async function* iterator(): AsyncIterator<BaseChatMessageChunk, any, undefined> {
-            if (consumed) {
-                throw new Error('Cannot iterate over a consumed stream, use `.tee()` to split the stream.');
-            }
-            consumed = true;
-            let done = false;
-            try {
-                for await (const chunk of response) {
-                    if (done) continue;
+    let consumed = false;
 
-                    if (chunk.done) {
-                        done = true;
-                        continue
-                    }
+    async function* iterator(): AsyncIterator<
+      BaseChatMessageChunk,
+      any,
+      undefined
+    > {
+      if (consumed) {
+        throw new Error(
+          "Cannot iterate over a consumed stream, use `.tee()` to split the stream.",
+        );
+      }
+      consumed = true;
+      let done = false;
+      try {
+        for await (const chunk of response) {
+          if (done) continue;
 
-                    const newChunk: BaseChatMessageChunk = {
-                        model: "Ollama",
-                        id: uuid(),
-                        choices: [{
-                            delta: {
-                                content: chunk.message.content,
-                                role: "assistant"
-                            },
-                            finish_reason: null,
-                            index: 0
-                        }],
-                        created: Date.now(),
-                        object: "chat.completion.chunk"
-                    }
+          if (chunk.done) {
+            done = true;
+            continue;
+          }
 
-                    yield newChunk
-                }
-                done = true;
-            } catch (e) {
-                if (e instanceof Error && e.name === 'AbortError') return;
-                throw e;
-            } finally {
-                if (!done) response.abort();
-            }
+          const newChunk: BaseChatMessageChunk = {
+            model: "Ollama",
+            id: uuid(),
+            choices: [
+              {
+                delta: {
+                  content: chunk.message.content,
+                  role: "assistant",
+                },
+                finish_reason: null,
+                index: 0,
+              },
+            ],
+            created: Date.now(),
+            object: "chat.completion.chunk",
+          };
+
+          yield newChunk;
         }
-
-        const controller = new AbortController();
-        controller.signal.addEventListener('abort', () => {
-            response.abort();
-        });
-
-        return new Stream(iterator, controller);
-
+        done = true;
+      } catch (e) {
+        if (e instanceof Error && e.name === "AbortError") return;
+        throw e;
+      } finally {
+        if (!done) response.abort();
+      }
     }
 
-    initParams() {
+    const controller = new AbortController();
+    controller.signal.addEventListener("abort", () => {
+      response.abort();
+    });
 
-        return {
-            model: this.options.modelName.value,
-            temperature: this.options.temperature.value
-        }
+    return new Stream(iterator, controller);
+  }
 
-
-    }
+  initParams() {
+    return {
+      model: this.options.modelName.value,
+      temperature: this.options.temperature.value,
+    };
+  }
 }

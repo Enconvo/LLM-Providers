@@ -1,45 +1,44 @@
-import { ListCache, RequestOptions } from "@enconvo/api"
-
+import { ListCache, RequestOptions } from "@enconvo/api";
 
 const models: ListCache.ListItem[] = [
-    {
-        "title": "Qwen-Max-Latest",
-        "value": "qwen-max-latest",
-        "context": 32000
-    },
-    {
-        "title": "Qwen-Plus-Latest",
-        "value": "qwen-plus-latest",
-        "context": 128000
-    },
-    {
-        "title": "Qwen-Turbo-Latest",
-        "value": "qwen-turbo-latest",
-        "context": 128000
-    },
-    {
-        "title": "Qwen-VL-Max-Latest",
-        "value": "qwen-vl-max-latest",
-        "context": 8000,
-        "visionEnable": true
-    },
-    {
-        "title": "Qwen-VL-Max-Plus",
-        "value": "qwen-vl-max-plus",
-        "context": 8000,
-        "visionEnable": true
-    },
-    {
-        "title": "Qwen2.5-72B",
-        "value": "qwen2.5-72b-instruct",
-        "context": 128000
-    },
-    {
-        "title": "Qwen2.5-32B",
-        "value": "qwen2.5-32b-instruct",
-        "context": 128000
-    }
-]
+  {
+    title: "Qwen-Max-Latest",
+    value: "qwen-max-latest",
+    context: 32000,
+  },
+  {
+    title: "Qwen-Plus-Latest",
+    value: "qwen-plus-latest",
+    context: 128000,
+  },
+  {
+    title: "Qwen-Turbo-Latest",
+    value: "qwen-turbo-latest",
+    context: 128000,
+  },
+  {
+    title: "Qwen-VL-Max-Latest",
+    value: "qwen-vl-max-latest",
+    context: 8000,
+    visionEnable: true,
+  },
+  {
+    title: "Qwen-VL-Max-Plus",
+    value: "qwen-vl-max-plus",
+    context: 8000,
+    visionEnable: true,
+  },
+  {
+    title: "Qwen2.5-72B",
+    value: "qwen2.5-72b-instruct",
+    context: 128000,
+  },
+  {
+    title: "Qwen2.5-32B",
+    value: "qwen2.5-32b-instruct",
+    context: 128000,
+  },
+];
 
 /**
  * Fetches models from the API and transforms them into ModelOutput format
@@ -47,50 +46,51 @@ const models: ListCache.ListItem[] = [
  * @param api_key - API authentication key
  * @returns Promise<ModelOutput[]> - Array of processed model data
  */
-async function fetchModels(options: RequestOptions): Promise<ListCache.ListItem[]> {
-    // console.log("fetchModels", url, api_key, type)
-    try {
-        const resp = await fetch(options.url, {
-            headers: {
-                'Authorization': `Bearer ${options.api_key}`
-            }
-        })
+async function fetchModels(
+  options: RequestOptions,
+): Promise<ListCache.ListItem[]> {
+  // console.log("fetchModels", url, api_key, type)
+  try {
+    const resp = await fetch(options.url, {
+      headers: {
+        Authorization: `Bearer ${options.api_key}`,
+      },
+    });
 
-        if (!resp.ok) {
-            throw new Error(`API request failed with status ${resp.status}`)
-        }
-
-        const data = await resp.json()
-        const result = data.data.map((item: any) => {
-            const model = models.find((m) => {
-                return m.value === item.id
-            })
-
-            const context = model?.context || 8000
-            const visionEnable = model?.visionEnable || item.id.includes('-vl')
-            const toolUse = model?.toolUse || true
-            const title = model?.title || item.id
-            const value = model?.value || item.id
-            const inputPrice = model?.inputPrice || 0
-            const outputPrice = model?.outputPrice || 0
-            return {
-                title: title,
-                value: value,
-                context: context,
-                inputPrice: inputPrice,
-                outputPrice: outputPrice,
-                toolUse: toolUse,
-                visionEnable: visionEnable
-            }
-        })
-
-        // console.log("Total models fetched:", result)
-        return result
-
-    } catch (error) {
-        console.error('Error fetching models:', error)
-        return []
+    if (!resp.ok) {
+      throw new Error(`API request failed with status ${resp.status}`);
     }
+
+    const data = await resp.json();
+    const result = data.data.map((item: any) => {
+      const model = models.find((m) => {
+        return m.value === item.id;
+      });
+
+      const context = model?.context || 8000;
+      const visionEnable = model?.visionEnable || item.id.includes("-vl");
+      const toolUse = model?.toolUse || true;
+      const title = model?.title || item.id;
+      const value = model?.value || item.id;
+      const inputPrice = model?.inputPrice || 0;
+      const outputPrice = model?.outputPrice || 0;
+      return {
+        title: title,
+        value: value,
+        context: context,
+        inputPrice: inputPrice,
+        outputPrice: outputPrice,
+        toolUse: toolUse,
+        visionEnable: visionEnable,
+      };
+    });
+
+    // console.log("Total models fetched:", result)
+    return result;
+  } catch (error) {
+    console.error("Error fetching models:", error);
+    return [];
+  }
 }
 
 /**
@@ -99,18 +99,17 @@ async function fetchModels(options: RequestOptions): Promise<ListCache.ListItem[
  * @returns Promise<string> - JSON string of model data
  */
 export default async function main(req: Request): Promise<string> {
-    const options = await req.json()
-    options.api_key = options.apiKey
+  const options = await req.json();
+  options.api_key = options.apiKey;
 
+  let url;
+  url = options.baseUrl.endsWith("/") ? options.baseUrl : `${options.baseUrl}/`;
+  url = `${url}models`;
 
-    let url
-    url = options.baseUrl.endsWith('/') ? options.baseUrl : `${options.baseUrl}/`
-    url = `${url}models`
+  options.url = url;
 
-    options.url = url
+  const modelCache = new ListCache(fetchModels);
 
-    const modelCache = new ListCache(fetchModels)
-
-    const models = await modelCache.getList(options)
-    return JSON.stringify(models)
+  const models = await modelCache.getList(options);
+  return JSON.stringify(models);
 }

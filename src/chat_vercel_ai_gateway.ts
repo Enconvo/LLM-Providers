@@ -6,18 +6,25 @@ import {
   LLMProvider,
   Stream,
 } from "@enconvo/api";
-import { dynamicTool, jsonSchema, JSONSchema7, streamText, Tool, ToolCallOptions, ToolSet } from "ai";
+import {
+  dynamicTool,
+  jsonSchema,
+  JSONSchema7,
+  streamText,
+  Tool,
+  ToolCallOptions,
+  ToolSet,
+} from "ai";
 import {
   convertMessagesToVercelFormat,
   streamFromVercel,
 } from "./utils/vercel_ai_gateway_util.ts";
-import { createGateway, GatewayProvider } from '@ai-sdk/gateway';
+import { createGateway, GatewayProvider } from "@ai-sdk/gateway";
 export default function main(options: any) {
   return new VercelAIGatewayProvider(options);
 }
 
 export class VercelAIGatewayProvider extends LLMProvider {
-
   gateway: GatewayProvider;
   constructor(options: LLMProvider.LLMOptions) {
     super(options);
@@ -28,9 +35,8 @@ export class VercelAIGatewayProvider extends LLMProvider {
     }
 
     this.gateway = createGateway({
-      apiKey: credentials.apiKey
+      apiKey: credentials.apiKey,
     });
-
   }
 
   protected async _call(content: LLMProvider.Params): Promise<BaseChatMessage> {
@@ -44,12 +50,10 @@ export class VercelAIGatewayProvider extends LLMProvider {
     return new AssistantMessage(message);
   }
 
-
   async tools(aiTools: AITool[]): Promise<ToolSet> {
     const tools: Record<string, Tool> = {};
 
     for (const { name, description, parameters: inputSchema } of aiTools) {
-
       const toolWithExecute = dynamicTool({
         description,
         inputSchema: jsonSchema({
@@ -60,7 +64,7 @@ export class VercelAIGatewayProvider extends LLMProvider {
         execute: async (args: any, options: ToolCallOptions) => {
           options?.abortSignal?.throwIfAborted();
         },
-      })
+      });
 
       tools[name] = toolWithExecute;
     }
@@ -77,7 +81,6 @@ export class VercelAIGatewayProvider extends LLMProvider {
     }
 
     const params = await this.initParams(content);
-
 
     const tools = await this.tools(content.tools || []);
 
@@ -98,9 +101,7 @@ export class VercelAIGatewayProvider extends LLMProvider {
     return streamFromVercel(result.fullStream);
   }
 
-
   async initParams(content: LLMProvider.Params): Promise<any> {
-
     const model = this.options.modelName.value;
     let temperature = Number(this.options.temperature.value);
     if (temperature > 1) {
@@ -118,7 +119,6 @@ export class VercelAIGatewayProvider extends LLMProvider {
       maxTokens: defaultMaxTokens,
       abortSignal: new AbortController().signal,
     };
-
 
     const providerOrder = this.options.vercel_provider_order?.value;
     const providerOnly = this.options.vercel_provider_only?.value;

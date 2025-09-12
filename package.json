@@ -3448,20 +3448,299 @@
           ]
         },
         {
-          "name": "vercel_provider_order",
-          "description": "Comma-separated list of provider slugs to specify routing order (e.g., bedrock,anthropic). See docs for available providers.",
-          "type": "textfield",
+          "name": "claude_thinking",
+          "description": "Applicable to reasoning models only, this option controls the reasoning token length.",
+          "type": "dropdown",
           "required": false,
-          "title": "Provider Order",
-          "placeholder": "e.g., bedrock,anthropic,vertex"
+          "title": "Extended thinking",
+          "default": "disabled",
+          "data": [
+            {
+              "title": "Disabled",
+              "value": "disabled",
+              "description": "Model does not think"
+            },
+            {
+              "title": "Minimal",
+              "value": "1024",
+              "description": "Thinking budget tokens: 1024"
+            },
+            {
+              "title": "Low",
+              "value": "2048",
+              "description": "Thinking budget tokens: 2048"
+            },
+            {
+              "title": "Medium",
+              "value": "5120",
+              "description": "Thinking budget tokens: 5120"
+            },
+            {
+              "title": "High",
+              "value": "10240",
+              "description": "Thinking budget tokens: 10240"
+            }
+          ],
+          "showOnlyWhen": {
+            "modelName": {
+              "operator": "or",
+              "conditions": [
+                {
+                  "condition": "eq",
+                  "value": "anthropic/claude-opus-4-1-20250805",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "anthropic/claude-opus-4-20250514",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "anthropic/claude-sonnet-4-20250514",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "anthropic/claude-3-7-sonnet-20250219",
+                  "operator": "or"
+                }
+              ]
+            }
+          }
         },
         {
-          "name": "vercel_provider_only",
-          "description": "Comma-separated list of provider slugs to restrict routing (e.g., anthropic,vertex). Only these providers will be considered.",
-          "type": "textfield",
+          "name": "reasoning_effort",
+          "description": "Applicable to reasoning models only, this option controls the reasoning token length.",
+          "type": "dropdown",
           "required": false,
-          "title": "Provider Only",
-          "placeholder": "e.g., anthropic,vertex"
+          "title": "Reasoning Effort",
+          "default": "low",
+          "data": [
+            {
+              "title": "low",
+              "value": "low",
+              "description": "Favors speed and economical token usage with basic reasoning"
+            },
+            {
+              "title": "medium",
+              "value": "medium",
+              "description": "Balance between speed and reasoning accuracy (default)"
+            },
+            {
+              "title": "high",
+              "value": "high",
+              "description": "Favors more complete reasoning with higher token usage"
+            }
+          ],
+          "showOnlyWhen": {
+            "modelName": {
+              "operator": "or",
+              "conditions": [
+                {
+                  "condition": "eq",
+                  "value": "openai/o1-mini",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "openai/o1",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "openai/o1-pro",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "openai/o3-mini",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "openai/o3",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "openai/o4-mini",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "deepseek-ai/DeepSeek-R1",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "openai-oss/gpt-oss-20b",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "openai-oss/gpt-oss-120b",
+                  "operator": "or"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "reasoning_effort_new",
+          "description": "Applicable to reasoning models only, this option controls the reasoning token length.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Reasoning Effort",
+          "default": "minimal",
+          "data": [
+            {
+              "title": "minimal",
+              "value": "minimal",
+              "description": "Favors speed and economical token usage with minimal reasoning"
+            },
+            {
+              "title": "low",
+              "value": "low",
+              "description": "Favors speed and economical token usage with basic reasoning"
+            },
+            {
+              "title": "medium",
+              "value": "medium",
+              "description": "Balance between speed and reasoning accuracy (default)"
+            },
+            {
+              "title": "high",
+              "value": "high",
+              "description": "Favors more complete reasoning with higher token usage"
+            }
+          ],
+          "showOnlyWhen": {
+            "modelName": {
+              "operator": "or",
+              "conditions": [
+                {
+                  "condition": "eq",
+                  "value": "openai/gpt-5-mini",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "openai/gpt-5",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "openai/gpt-5-nano",
+                  "operator": "or"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "gemini_thinking_pro",
+          "description": "Applicable to reasoning models only, this option controls the reasoning token length.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Gemini thinking",
+          "default": "auto",
+          "data": [
+            {
+              "title": "Auto",
+              "value": "auto",
+              "description": "Model decides when and how much to think"
+            },
+            {
+              "title": "Minimal",
+              "value": "128",
+              "description": "Thinking budgets: 128"
+            },
+            {
+              "title": "Low",
+              "value": "1024",
+              "description": "Thinking budgets: 1024"
+            },
+            {
+              "title": "Medium",
+              "value": "10000",
+              "description": "Thinking budgets: 10000"
+            },
+            {
+              "title": "High",
+              "value": "30000",
+              "description": "Thinking budgets: 30000"
+            }
+          ],
+          "showOnlyWhen": {
+            "modelName": {
+              "operator": "or",
+              "conditions": [
+                {
+                  "condition": "eq",
+                  "value": "google/gemini-2.5-pro",
+                  "operator": "or"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "gemini_thinking",
+          "description": "Applicable to reasoning models only, this option controls the reasoning token length.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Gemini thinking",
+          "default": "auto",
+          "data": [
+            {
+              "title": "Auto",
+              "value": "auto",
+              "description": "Model decides when and how much to think"
+            },
+            {
+              "title": "Disabled",
+              "value": "disabled",
+              "description": "Model does not think"
+            },
+            {
+              "title": "Minimal",
+              "value": "512",
+              "description": "Thinking budgets: 512"
+            },
+            {
+              "title": "Low",
+              "value": "1024",
+              "description": "Thinking budgets: 1024"
+            },
+            {
+              "title": "Medium",
+              "value": "10000",
+              "description": "Thinking budgets: 10000"
+            },
+            {
+              "title": "High",
+              "value": "20000",
+              "description": "Thinking budgets: 20000"
+            }
+          ],
+          "showOnlyWhen": {
+            "modelName": {
+              "operator": "or",
+              "conditions": [
+                {
+                  "condition": "eq",
+                  "value": "google/gemini-2.5-flash",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "google/gemini-2.5-flash-lite",
+                  "operator": "or"
+                }
+              ]
+            }
+          }
         }
       ]
     }

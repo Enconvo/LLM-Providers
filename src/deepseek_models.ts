@@ -1,24 +1,24 @@
-import { ListCache, RequestOptions } from "@enconvo/api"
+import { ListCache, RequestOptions } from "@enconvo/api";
 
 const models: ListCache.ListItem[] = [
-    {
-      "title": "Deepseek V3",
-      "value": "deepseek-chat",
-      "context": 64000,
-      "inputPrice": 0.14, // Price per 1M tokens
-      "outputPrice": 0.28, // Price per 1M tokens
-      "toolUse": true
-    },
-    {
-      "title": "Deepseek R1",
-      "value": "deepseek-reasoner",
-      "context": 64000,
-      "inputPrice": 0.14, // Price per 1M tokens
-      "outputPrice": 0.28, // Price per 1M tokens
-      "sequenceContentDisable": true,
-      "systemMessageEnable": false
-    }
-  ]
+  {
+    title: "Deepseek V3",
+    value: "deepseek-chat",
+    context: 64000,
+    inputPrice: 0.14, // Price per 1M tokens
+    outputPrice: 0.28, // Price per 1M tokens
+    toolUse: true,
+  },
+  {
+    title: "Deepseek R1",
+    value: "deepseek-reasoner",
+    context: 64000,
+    inputPrice: 0.14, // Price per 1M tokens
+    outputPrice: 0.28, // Price per 1M tokens
+    sequenceContentDisable: true,
+    systemMessageEnable: false,
+  },
+];
 
 /**
  * Fetches models from the API and transforms them into ModelOutput format
@@ -26,16 +26,16 @@ const models: ListCache.ListItem[] = [
  * @param api_key - API authentication key
  * @returns Promise<ModelOutput[]> - Array of processed model data
  */
-async function fetchModels(options: RequestOptions): Promise<ListCache.ListItem[]> {
-    // console.log("fetchModels", url, api_key, type)
-    try {
-
-        return models
-
-    } catch (error) {
-        console.error('Error fetching models:', error)
-        return []
-    }
+async function fetchModels(
+  options: RequestOptions,
+): Promise<ListCache.ListItem[]> {
+  // console.log("fetchModels", url, api_key, type)
+  try {
+    return models;
+  } catch (error) {
+    console.error("Error fetching models:", error);
+    return [];
+  }
 }
 
 /**
@@ -44,14 +44,14 @@ async function fetchModels(options: RequestOptions): Promise<ListCache.ListItem[
  * @returns Promise<string> - JSON string of model data
  */
 export default async function main(req: Request): Promise<string> {
-    const options = await req.json()
+  const options = await req.json();
 
-    const modelCache = new ListCache(fetchModels)
+  const modelCache = new ListCache(fetchModels);
 
-    const models = await modelCache.getList({
-        ...options,
-        input_text: 'refresh'
-    })
+  const models = await modelCache.getList({
+    ...options,
+    input_text: "refresh",
+  });
 
-    return JSON.stringify(models)
+  return JSON.stringify(models);
 }
