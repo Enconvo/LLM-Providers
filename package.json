@@ -275,11 +275,6 @@
           "default": "auto",
           "data": [
             {
-              "title": "Disabled",
-              "value": "disabled",
-              "description": "Model does not think"
-            },
-            {
               "title": "Auto",
               "value": "auto",
               "description": "Model decides when and how much to think"
@@ -324,7 +319,7 @@
           "type": "dropdown",
           "required": false,
           "title": "Gemini thinking",
-          "default": "auto",
+          "default": "disabled",
           "data": [
             {
               "title": "Disabled",
@@ -893,11 +888,6 @@
           "default": "auto",
           "data": [
             {
-              "title": "Disabled",
-              "value": "disabled",
-              "description": "Model does not think"
-            },
-            {
               "title": "Auto",
               "value": "auto",
               "description": "Model decides when and how much to think"
@@ -942,7 +932,7 @@
           "type": "dropdown",
           "required": false,
           "title": "Gemini thinking",
-          "default": "auto",
+          "default": "disabled",
           "data": [
             {
               "title": "Disabled",
@@ -3657,11 +3647,6 @@
           "default": "auto",
           "data": [
             {
-              "title": "Disabled",
-              "value": "disabled",
-              "description": "Model does not think"
-            },
-            {
               "title": "Auto",
               "value": "auto",
               "description": "Model decides when and how much to think"
@@ -3706,7 +3691,7 @@
           "type": "dropdown",
           "required": false,
           "title": "Gemini thinking",
-          "default": "auto",
+          "default": "disabled",
           "data": [
             {
               "title": "Disabled",

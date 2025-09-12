@@ -195,8 +195,8 @@ export class GoogleGeminiProvider extends LLMProvider {
       tools = undefined;
     }
 
-    const maxTokens = this.options.maxTokens?.value || 8192;
-    const temperature = this.options.temperature?.value || 0.7;
+    const maxTokens = this.options.maxTokens?.value;
+    const temperature = this.options.temperature?.value || 0;
     const geminiThinking =
       this.options.gemini_thinking_pro?.value ||
       this.options.gemini_thinking?.value;
@@ -209,8 +209,7 @@ export class GoogleGeminiProvider extends LLMProvider {
         tools: tools,
         toolConfig: toolConfig,
         maxOutputTokens: maxTokens,
-        "topP": 1,
-        temperature: 0,
+        temperature: temperature,
         httpOptions: {
           baseUrl: baseUrl,
           headers: headers,
@@ -227,7 +226,7 @@ export class GoogleGeminiProvider extends LLMProvider {
             : geminiThinking === "disabled"
               ? 0
               : parseInt(geminiThinking),
-        includeThoughts: true,
+        includeThoughts: geminiThinking !== "disabled",
       };
     }
 
