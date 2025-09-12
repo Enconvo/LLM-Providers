@@ -3487,22 +3487,22 @@
               "conditions": [
                 {
                   "condition": "eq",
-                  "value": "anthropic/claude-opus-4-1-20250805",
+                  "value": "anthropic/claude-opus-4",
                   "operator": "or"
                 },
                 {
                   "condition": "eq",
-                  "value": "anthropic/claude-opus-4-20250514",
+                  "value": "anthropic/claude-opus-4",
                   "operator": "or"
                 },
                 {
                   "condition": "eq",
-                  "value": "anthropic/claude-sonnet-4-20250514",
+                  "value": "anthropic/claude-sonnet-4",
                   "operator": "or"
                 },
                 {
                   "condition": "eq",
-                  "value": "anthropic/claude-3-7-sonnet-20250219",
+                  "value": "anthropic/claude-3-7-sonnet",
                   "operator": "or"
                 }
               ]

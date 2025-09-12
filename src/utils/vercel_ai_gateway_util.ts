@@ -288,7 +288,7 @@ export function streamFromVercel(
     undefined
   > {
     for await (const part of response) {
-      // console.log("textPart", part)
+      console.log("textPart", part)
       if (part.type === "text-delta") {
         yield {
           model: "Vercel AI Gateway",
