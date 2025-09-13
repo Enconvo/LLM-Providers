@@ -187,7 +187,6 @@ export class CodeAssistServer implements ContentGenerator {
     req: object,
     signal?: AbortSignal,
   ): Promise<AsyncGenerator<T>> {
-    console.log("requestStreamingPost",this.getMethodUrl(method), JSON.stringify(req, null, 2));
     const res = await this.client.request({
       url: this.getMethodUrl(method),
       method: 'POST',

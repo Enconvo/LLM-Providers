@@ -76,6 +76,66 @@
           ]
         },
         {
+          "name": "google_search",
+          "description": "Grounding with Google Search connects the Gemini model to real-time web content and works with all available languages. This allows Gemini to provide more accurate answers and cite verifiable sources beyond its knowledge cutoff.",
+          "type": "checkbox",
+          "required": false,
+          "title": "Google Search Tool",
+          "default": false,
+          "showOnlyWhen": {
+            "modelName": {
+              "operator": "or",
+              "conditions": [
+                {
+                  "condition": "eq",
+                  "value": "google/gemini-2.5-flash",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "google/gemini-2.5-flash-lite",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "google/gemini-2.5-pro",
+                  "operator": "or"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "url_context",
+          "description": "The URL context tool lets you provide additional context to the models in the form of URLs. By including URLs in your request, the model will access the content from those pages (as long as it's not a URL type listed in the limitations section) to inform and enhance its response.",
+          "type": "checkbox",
+          "required": false,
+          "title": "URL Context Tool",
+          "default": false,
+          "showOnlyWhen": {
+            "modelName": {
+              "operator": "or",
+              "conditions": [
+                {
+                  "condition": "eq",
+                  "value": "google/gemini-2.5-flash",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "google/gemini-2.5-flash-lite",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "google/gemini-2.5-pro",
+                  "operator": "or"
+                }
+              ]
+            }
+          }
+        },
+        {
           "name": "claude_thinking",
           "description": "Applicable to reasoning models only, this option controls the reasoning token length.",
           "type": "dropdown",
@@ -878,6 +938,66 @@
               "value": 2
             }
           ]
+        },
+        {
+          "name": "google_search",
+          "description": "Grounding with Google Search connects the Gemini model to real-time web content and works with all available languages. This allows Gemini to provide more accurate answers and cite verifiable sources beyond its knowledge cutoff.",
+          "type": "checkbox",
+          "required": false,
+          "title": "Google Search Tool",
+          "default": false,
+          "showOnlyWhen": {
+            "modelName": {
+              "operator": "or",
+              "conditions": [
+                {
+                  "condition": "eq",
+                  "value": "gemini-2.5-flash",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "gemini-2.5-flash-lite",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "gemini-2.5-pro",
+                  "operator": "or"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "url_context",
+          "description": "The URL context tool lets you provide additional context to the models in the form of URLs. By including URLs in your request, the model will access the content from those pages (as long as it's not a URL type listed in the limitations section) to inform and enhance its response.",
+          "type": "checkbox",
+          "required": false,
+          "title": "URL Context Tool",
+          "default": false,
+          "showOnlyWhen": {
+            "modelName": {
+              "operator": "or",
+              "conditions": [
+                {
+                  "condition": "eq",
+                  "value": "gemini-2.5-flash",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "gemini-2.5-flash-lite",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "gemini-2.5-pro",
+                  "operator": "or"
+                }
+              ]
+            }
+          }
         },
         {
           "name": "gemini_thinking_pro",
@@ -1886,6 +2006,66 @@
               "value": 2
             }
           ]
+        },
+        {
+          "name": "google_search",
+          "description": "Grounding with Google Search connects the Gemini model to real-time web content and works with all available languages. This allows Gemini to provide more accurate answers and cite verifiable sources beyond its knowledge cutoff.",
+          "type": "checkbox",
+          "required": false,
+          "title": "Google Search Tool",
+          "default": false,
+          "showOnlyWhen": {
+            "modelName": {
+              "operator": "or",
+              "conditions": [
+                {
+                  "condition": "eq",
+                  "value": "google/gemini-2.5-flash",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "google/gemini-2.5-flash-lite",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "google/gemini-2.5-pro",
+                  "operator": "or"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "url_context",
+          "description": "The URL context tool lets you provide additional context to the models in the form of URLs. By including URLs in your request, the model will access the content from those pages (as long as it's not a URL type listed in the limitations section) to inform and enhance its response.",
+          "type": "checkbox",
+          "required": false,
+          "title": "URL Context Tool",
+          "default": false,
+          "showOnlyWhen": {
+            "modelName": {
+              "operator": "or",
+              "conditions": [
+                {
+                  "condition": "eq",
+                  "value": "google/gemini-2.5-flash",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "google/gemini-2.5-flash-lite",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "google/gemini-2.5-pro",
+                  "operator": "or"
+                }
+              ]
+            }
+          }
         }
       ]
     },
@@ -3447,6 +3627,68 @@
             }
           ]
         },
+
+        {
+          "name": "google_search",
+          "description": "Grounding with Google Search connects the Gemini model to real-time web content and works with all available languages. This allows Gemini to provide more accurate answers and cite verifiable sources beyond its knowledge cutoff.",
+          "type": "checkbox",
+          "required": false,
+          "title": "Google Search Tool",
+          "default": false,
+          "showOnlyWhen": {
+            "modelName": {
+              "operator": "or",
+              "conditions": [
+                {
+                  "condition": "eq",
+                  "value": "google/gemini-2.5-flash",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "google/gemini-2.5-flash-lite",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "google/gemini-2.5-pro",
+                  "operator": "or"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "url_context",
+          "description": "The URL context tool lets you provide additional context to the models in the form of URLs. By including URLs in your request, the model will access the content from those pages (as long as it's not a URL type listed in the limitations section) to inform and enhance its response.",
+          "type": "checkbox",
+          "required": false,
+          "title": "URL Context Tool",
+          "default": false,
+          "showOnlyWhen": {
+            "modelName": {
+              "operator": "or",
+              "conditions": [
+                {
+                  "condition": "eq",
+                  "value": "google/gemini-2.5-flash",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "google/gemini-2.5-flash-lite",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "google/gemini-2.5-pro",
+                  "operator": "or"
+                }
+              ]
+            }
+          }
+        },
+
         {
           "name": "claude_thinking",
           "description": "Applicable to reasoning models only, this option controls the reasoning token length.",

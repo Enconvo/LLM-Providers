@@ -17,6 +17,7 @@ import {
   GenerateContentParameters,
   GoogleGenAI,
   Modality,
+  ToolConfig,
 } from "@google/genai";
 import { getCodeAssistServer } from "./utils/gemini-cli/code_assist/codeAssist.ts";
 import { DEFAULT_GEMINI_FLASH_LITE_MODEL } from "./utils/gemini-cli/core/contentGenerator.ts";
@@ -32,7 +33,6 @@ export class GoogleGeminiProvider extends LLMProvider {
 
   constructor(options: LLMProvider.LLMOptions) {
     super(options);
-    console.log("GoogleGeminiProvider constructor");
     const credentials = options.credentials;
     const google = new GoogleGenAI({ apiKey: credentials?.apiKey });
 
@@ -61,13 +61,56 @@ export class GoogleGeminiProvider extends LLMProvider {
         await this.initCodeAssistServer();
       }
       result = await this.server!.generateContent(params, "Enconvo");
-      return new AssistantMessage(result.text || "");
     } else {
       result = await this.ai.models.generateContent(params);
     }
 
+    // console.log("groundingMetadata", JSON.stringify(result, null, 2))
+    const groundingMetadata = result.candidates?.[0]?.groundingMetadata
+    let additional: BaseChatMessage['additional'] = { metadata: {} }
+    if (groundingMetadata) {
+      const searchData: BaseChatMessage.Additional.Metadata.Search = {
+        querys: groundingMetadata.webSearchQueries,
+        chunks: groundingMetadata.groundingChunks?.map(chunk => ({
+          web: {
+            url: chunk.web?.uri,
+            title: chunk.web?.title,
+            domain: chunk.web?.domain
+          }
+        })),
+        texts: groundingMetadata.groundingSupports?.map(text => ({
+          segment: text.segment,
+          groundingChunkIndices: text.groundingChunkIndices
+        }))
+      }
+      additional.metadata!.search = searchData
+    }
 
-    return new AssistantMessage(result.text || "");
+
+    // console.log("urlContextMetadata", JSON.stringify(result.candidates, null, 2))
+    // const urlContextMetadata = result.candidates?.[0]?.urlContextMetadata
+    // if (urlContextMetadata) {
+    //   const searchData: BaseChatMessage.Additional.Metadata.Search = {
+    //     querys: urlContextMetadata.webSearchQueries,
+    //     chunks: groundingMetadata.groundingChunks?.map(chunk => ({
+    //       web: {
+    //         url: chunk.web?.uri,
+    //         title: chunk.web?.title,
+    //         domain: chunk.web?.domain
+    //       }
+    //     })),
+    //     texts: urlContextMetadata.groundingSupports?.map(text => ({
+    //       segment: text.segment,
+    //       groundingChunkIndices: text.groundingChunkIndices
+    //     }))
+    //   }
+    //   additional.metadata!.search = searchData
+    // }
+
+    return new AssistantMessage({
+      content: result.text || "",
+      additional
+    });
   }
 
 
@@ -166,7 +209,7 @@ export class GoogleGeminiProvider extends LLMProvider {
 
     let tools = GoogleUtil.convertToolsToGoogleTools(content.tools);
 
-    let toolConfig: any = undefined;
+    let toolConfig: ToolConfig | undefined = undefined;
     if (typeof content.tool_choice === "object") {
       toolConfig = {
         functionCallingConfig: {
@@ -194,6 +237,35 @@ export class GoogleGeminiProvider extends LLMProvider {
       system = undefined;
       tools = undefined;
     }
+
+
+
+    console.log("google_search", this.options.google_search);
+    if (this.options.google_search === true) {
+      // Define the grounding tool
+      const groundingTool = {
+        googleSearch: {},
+      };
+
+      if (!tools) {
+        tools = [];
+        tools.push(groundingTool);
+      }
+    }
+
+    console.log("url_context", this.options.url_context);
+    if (this.options.url_context === true) {
+      // Define the grounding tool
+      const urlContextTool = {
+        urlContext: {},
+      };
+
+      if (!tools) {
+        tools = [];
+        tools.push(urlContextTool);
+      }
+    }
+
 
     const maxTokens = this.options.maxTokens?.value;
     const temperature = this.options.temperature?.value || 0;
@@ -230,7 +302,7 @@ export class GoogleGeminiProvider extends LLMProvider {
       };
     }
 
-    // console.log("gemini params", JSON.stringify(params.contents, null, 2))
+    // console.log("gemini params", JSON.stringify(params, null, 2))
     return params;
   }
 }
