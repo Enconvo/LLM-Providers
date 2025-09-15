@@ -132,7 +132,6 @@ export class AnthropicProvider extends LLMProvider {
       (message) => message.role !== "system",
     );
 
-    const tools = AnthropicUtil.convertToolsToAnthropicTools(content.tools);
 
     const newMessages = await convertMessagesToAnthropicMessages(
       conversationMessages,
@@ -166,7 +165,24 @@ export class AnthropicProvider extends LLMProvider {
       };
     }
 
-    if (tools && tools.length > 0) {
+
+    let tools: Anthropic.ToolUnion[] = [];
+    const newTools = AnthropicUtil.convertToolsToAnthropicTools(content.tools);
+    if (newTools) {
+      tools.push(...newTools);
+    }
+
+    console.log("searchToolEnabled anthropic", content.searchToolEnabled);
+    if (content.searchToolEnabled === true) {
+      tools.push({
+        type: "web_search_20250305",
+        name: "web_search",
+        max_uses: 5
+      });
+      tools = tools.filter(tool => tool.name !== "google_web_search") || [];
+    }
+
+    if (tools.length > 0) {
       params.tools = tools;
       if (content.tool_choice && typeof content.tool_choice !== "string") {
         params.tool_choice = {
@@ -182,7 +198,7 @@ export class AnthropicProvider extends LLMProvider {
       }
     }
 
-    console.log("anthropic params", JSON.stringify(params, null, 2));
+    // console.log("anthropic params", JSON.stringify(params, null, 2));
 
     return params;
   }

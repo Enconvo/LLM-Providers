@@ -12,6 +12,7 @@ import {
   Stream,
   ToolMessage,
   uuid,
+  ChatMessageContentListItem,
 } from "@enconvo/api";
 import path from "path";
 import mime from "mime";
@@ -521,7 +522,7 @@ export const convertMessagesToAnthropicMessages = async (
     newMessages = newMessages.slice(1);
   }
 
-  console.log("newMessages", JSON.stringify(newMessages, null, 2));
+  console.log("anthropic newMessages", JSON.stringify(newMessages, null, 2));
 
   return newMessages;
 };
@@ -544,6 +545,7 @@ export function streamFromAnthropic(
     }
     consumed = true;
     let done = false;
+    let content_block_start = false;
     try {
       let message: Anthropic.Message;
       for await (const chunk of response) {
@@ -597,7 +599,10 @@ export function streamFromAnthropic(
         }
 
         if (chunk.type === "content_block_start") {
-          if (chunk.content_block.type === "tool_use") {
+          if (chunk.content_block.type === "text" || chunk.content_block.type === "thinking") {
+            content_block_start = true;
+          } else if (chunk.content_block.type === "tool_use") {
+            content_block_start = true;
             yield {
               model: "Anthropic",
               id: uuid(),
@@ -623,10 +628,103 @@ export function streamFromAnthropic(
               created: Date.now(),
               object: "chat.completion.chunk",
             };
+          } else if (chunk.content_block.type === "server_tool_use") {
+            content_block_start = true;
+            console.log("server_tool_use", JSON.stringify(chunk, null, 2))
+            yield {
+              model: "Anthropic",
+              id: uuid(),
+              choices: [
+                {
+                  delta: {
+                    tool_calls: [
+                      {
+                        type: "server_tool",
+                        index: 0,
+                        id: chunk.content_block.id,
+                        status: 'running',
+                        tool: {
+                          name: chunk.content_block.name,
+                          title: 'Claude Web Search',
+                          icon: 'https://file.enconvo.com/extensions/internet_browsing/assets/icon.png',
+                          description: '',
+                          toolType: 'method',
+                        },
+                      },
+                    ],
+                    role: "assistant",
+                  },
+                  finish_reason: null,
+                  index: 0,
+                },
+              ],
+              created: Date.now(),
+              object: "chat.completion.chunk",
+            };
+
+          } else if (chunk.content_block.type === "web_search_tool_result") {
+            content_block_start = true;
+            console.log("web_search_tool_result", JSON.stringify(chunk.content_block, null, 2))
+            const groundingMetadata = chunk.content_block.content;
+            if (Array.isArray(groundingMetadata)) {
+              const items: ChatMessageContentListItem[] = groundingMetadata.map((block: Anthropic.WebSearchResultBlock) => ({
+                url: block.url,
+                title: block.title,
+                icon: `https://www.google.com/s2/favicons?domain=${block.url}&sz=${128}`,
+              })) || [];
+
+              const messageContent = ChatMessageContent.searchResultList({
+                items,
+              });
+
+              yield {
+                model: "Anthropic",
+                id: uuid(),
+                choices: [
+                  {
+                    delta: {
+                      tool_calls: [
+                        {
+                          type: "server_tool",
+                          index: 0,
+                          id: chunk.content_block.tool_use_id,
+                          status: 'success',
+                          tool_result: [messageContent],
+                          tool: {
+                            name: 'web_search',
+                            title: 'Claude Web Search',
+                            icon: 'https://file.enconvo.com/extensions/internet_browsing/assets/icon.png',
+                            description: 'Web Search',
+                            toolType: 'method',
+                          },
+                        },
+                      ],
+                      role: "assistant",
+                    },
+                    finish_reason: null,
+                    index: 0,
+                  },
+                ],
+                created: Date.now(),
+                object: "chat.completion.chunk",
+              };
+
+
+
+
+            } else {
+
+            }
           }
+        } else if (chunk.type === "content_block_stop") {
+          content_block_start = false;
         }
 
         if (chunk.type === "content_block_delta") {
+          if (!content_block_start) {
+            continue;
+          }
+
           if (chunk.delta.type === "text_delta") {
             yield {
               model: "Anthropic",

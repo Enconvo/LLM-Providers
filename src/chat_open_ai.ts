@@ -4,7 +4,6 @@ import {
   BaseChatMessage,
   BaseChatMessageChunk,
   LLMProvider,
-  res,
   Stream,
   UserMessage,
 } from "@enconvo/api";
@@ -23,12 +22,14 @@ export class ChatOpenAIProvider extends LLMProvider {
     this.client = await this._createOpenaiClient(this.options);
     // console.log("this.options", this.options)
     const credentialsType = this.options.credentials?.credentials_type?.value;
-    if (
-      credentialsType === "oauth2" &&
-      this.options.originCommandName === "chat_open_ai"
-    ) {
+    const apiType = this.options.credentials?.api_type?.value || "completions";
+    console.log("apiType", apiType)
+
+    const isCodex = credentialsType === "oauth2" && this.options.originCommandName === "chat_open_ai"
+
+    if (isCodex || apiType === "responses") {
       console.log("_stream_v2");
-      return await this._stream_v2(content);
+      return await this._stream_v2(content,isCodex);
     }
 
     const params = await this.initParams(content);
@@ -53,9 +54,12 @@ export class ChatOpenAIProvider extends LLMProvider {
 
   protected async _stream_v2(
     content: LLMProvider.Params,
+    isCodex: boolean = false,
   ): Promise<Stream<BaseChatMessageChunk>> {
-    const params = await this.initResponseParams(content);
-    const response = await this.client.responses.create(params);
+    const params = await this.initResponseParams(content,isCodex);
+    const response = await this.client.responses.create({
+      ...params
+    });
 
     const ac = new AbortController();
     //@ts-ignore
@@ -82,6 +86,7 @@ export class ChatOpenAIProvider extends LLMProvider {
 
   private async initResponseParams(
     content: LLMProvider.Params,
+    isCodex: boolean = false,
   ): Promise<OpenAI.Responses.ResponseCreateParamsStreaming> {
     // console.log("openai options", JSON.stringify(content.messages, null, 2))
     const credentials = this.options.credentials;
@@ -92,16 +97,35 @@ export class ChatOpenAIProvider extends LLMProvider {
 
     const modelOptions = this.options.modelName;
 
+    let instructions = '';
+    if (isCodex) {
+      instructions = codex_instructions;
+    } else {
+      const systemMessages = content.messages.filter(message => message.role === "system");
+      content.messages = content.messages.filter(message => message.role !== "system");
+      instructions = systemMessages.map(message => {
+        if (typeof message.content === "string") {
+          return message.content;
+        } else {
+          return message.content.map(item => {
+            if (item.type === "text") {
+              return item.text;
+            }
+            return JSON.stringify(item);
+          }).join("\n\n");
+        }
+      }).join("\n\n");
+    }
+
     const messages = await OpenAIUtil.convertMessagesToOpenAIResponseMessages(
       this.options,
       content.messages,
     );
 
-    const tools = OpenAIUtil.convertToolsToOpenAIResponseTools(content.tools);
 
     let params: OpenAI.Responses.ResponseCreateParamsStreaming = {
       model: modelOptions?.value,
-      instructions: codex_instructions,
+      instructions: instructions,
       input: messages,
       stream: true,
       tool_choice: "auto",
@@ -111,22 +135,42 @@ export class ChatOpenAIProvider extends LLMProvider {
       prompt_cache_key: "d36d744d-0c64-4b25-9c5a-3e132dbb2e18",
     };
 
-    let reasoning_effort =
-      this.options?.reasoning_effort?.value ||
-      this.options?.reasoning_effort_new?.value;
-    if (reasoning_effort && reasoning_effort !== "off") {
-      params.reasoning = {
-        effort: reasoning_effort,
-        summary: "auto",
-      };
+
+
+    let tools: OpenAI.Responses.Tool[] = []
+
+    const newTools = OpenAIUtil.convertToolsToOpenAIResponseTools(content.tools);
+    if (newTools) {
+      tools.push(...newTools);
     }
 
-    if (tools && tools.length > 0 && modelOptions?.toolUse === true) {
+    console.log("searchToolEnabled openai", content.searchToolEnabled);
+    if (content.searchToolEnabled === true) {
+      tools.push({
+        type: "web_search_preview",
+      });
+      tools = tools.filter(tool => !(tool.type === 'function' && tool.name === "google_web_search")) || [];
+    }
+
+
+    if (tools.length > 0) {
       params.tools = tools;
     }
 
-    // console.log("params", JSON.stringify(params, null, 2))
+    let reasoning_effort = this.options?.reasoning_effort?.value || this.options?.reasoning_effort_new?.value;
+    if (reasoning_effort && reasoning_effort !== "off") {
+      if (reasoning_effort === 'minimal' && tools.some(tool => tool.type === 'web_search_preview')) {
+        reasoning_effort = 'low';
+      }
 
+      params.reasoning = {
+        effort: reasoning_effort,
+        summary: null,
+      };
+    }
+
+
+    console.log("tools", JSON.stringify(params, null, 2))
     return params;
   }
 
@@ -193,6 +237,7 @@ export class ChatOpenAIProvider extends LLMProvider {
   ): Promise<OpenAI> {
     let credentials = options.credentials || null;
     const credentialsType = credentials?.credentials_type?.value || "apiKey";
+    // console.log("options.originCommandName", options.originCommandName)
     if (
       credentialsType === "oauth2" &&
       options.originCommandName === "chat_open_ai"
@@ -257,7 +302,7 @@ export class ChatOpenAIProvider extends LLMProvider {
     if (options.baseUrl === "http://127.0.0.1:5001") {
       options.frequencyPenalty = 0.0001;
     }
-    console.log("credentials", options.originCommandName, credentialsType);
+    // console.log("credentials", options.originCommandName, credentialsType);
     const apiKey =
       credentialsType === "oauth2"
         ? credentials?.access_token

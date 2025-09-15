@@ -16,6 +16,7 @@ import {
   Stream,
   ToolMessage,
   uuid,
+  ChatMessageContentListItem,
 } from "@enconvo/api";
 import OpenAI from "openai";
 import path from "path";
@@ -465,8 +466,8 @@ export namespace OpenAIUtil {
               type: "text",
               text:
                 "This is a audio file , url is " +
-                  url +
-                  " , only used for reference when you use tool, if not , ignore this . " ||
+                url +
+                " , only used for reference when you use tool, if not , ignore this . " ||
                 "",
             });
           }
@@ -524,10 +525,10 @@ export namespace OpenAIUtil {
           return message;
         });
       }
-
       return newMessages;
     }
   };
+
 
   export const convertToolsToOpenAIResponseTools = (
     tools?: AITool[],
@@ -696,23 +697,23 @@ export namespace OpenAIUtil {
     const systemMessage =
       allSystemMessages.length > 1
         ? {
-            role: "system",
-            content: allSystemMessages
-              .map((message) => {
-                if (typeof message.content === "string") {
-                  return message.content;
-                } else {
-                  return message.content
-                    .map((item) => {
-                      if (item.type === "text") {
-                        return item.text;
-                      }
-                    })
-                    .join("\n\n");
-                }
-              })
-              .join("\n\n"),
-          }
+          role: "system",
+          content: allSystemMessages
+            .map((message) => {
+              if (typeof message.content === "string") {
+                return message.content;
+              } else {
+                return message.content
+                  .map((item) => {
+                    if (item.type === "text") {
+                      return item.text;
+                    }
+                  })
+                  .join("\n\n");
+              }
+            })
+            .join("\n\n"),
+        }
         : allSystemMessages.length > 0
           ? allSystemMessages[0]
           : undefined;
@@ -767,7 +768,7 @@ export namespace OpenAIUtil {
       )
     ).flat();
 
-    // console.log("newMessages", JSON.stringify(newMessages, null, 2))
+    console.log("openai newMessages", JSON.stringify(newMessages, null, 2))
     return newMessages;
   };
 
@@ -836,6 +837,7 @@ export namespace OpenAIUtil {
       let done = false;
       try {
         for await (const chunk of response) {
+          // console.log("chunk", JSON.stringify(chunk, null, 2))
           if (
             chunk.type !== "response.created" &&
             chunk.type !== "response.completed" &&
@@ -862,6 +864,132 @@ export namespace OpenAIUtil {
               created: Date.now(),
               object: "chat.completion.chunk",
             };
+          } else if (chunk.type === "response.reasoning_summary_text.delta") {
+            yield {
+              model: "OpenAIResponse",
+              id: chunk.item_id || `msg_${uuid()}`,
+              choices: [
+                {
+                  delta: {
+                    reasoning_content: chunk.delta,
+                    role: "assistant",
+                  },
+                  finish_reason: null,
+                  index: 0,
+                },
+              ],
+              created: Date.now(),
+              object: "chat.completion.chunk",
+            };
+          } else if (chunk.type === "response.web_search_call.in_progress") {
+            yield {
+              model: "OpenAIResponse",
+              id: uuid(),
+              choices: [
+                {
+                  delta: {
+                    tool_calls: [
+                      {
+                        type: "server_tool",
+                        index: 0,
+                        id: chunk.item_id,
+                        status: 'running',
+                        tool: {
+                          name: 'web_search',
+                          title: 'OpenAI Web Search',
+                          icon: 'https://file.enconvo.com/extensions/internet_browsing/assets/icon.png',
+                          description: '',
+                          toolType: 'method',
+                        },
+                      },
+                    ],
+                    role: "assistant",
+                  },
+                  finish_reason: null,
+                  index: 0,
+                },
+              ],
+              created: Date.now(),
+              object: "chat.completion.chunk",
+            };
+
+          } else if (chunk.type === "response.output_item.done") {
+            if (chunk.item.type === 'web_search_call') {
+
+              yield {
+                model: "OpenAIResponse",
+                id: uuid(),
+                choices: [
+                  {
+                    delta: {
+                      tool_calls: [
+                        {
+                          type: "server_tool",
+                          index: 0,
+                          id: chunk.item.id,
+                          status: 'success',
+                          tool_result: [],
+                          //@ts-ignore
+                          tool_arguments: chunk.item.status === 'completed' ? JSON.stringify({ query: chunk.item?.action?.query }) : undefined,
+                          tool: {
+                            name: 'web_search',
+                            title: 'OpenAI Web Search',
+                            icon: 'https://file.enconvo.com/extensions/internet_browsing/assets/icon.png',
+                            description: '',
+                            toolType: 'method',
+                          },
+                        },
+                      ],
+                      role: "assistant",
+                    },
+                    finish_reason: null,
+                    index: 0,
+                  },
+                ],
+                created: Date.now(),
+                object: "chat.completion.chunk",
+              };
+            }
+          } else if (chunk.type === "response.completed") {
+            const item = chunk.response.output.find((item) => item.type === 'message' && item.content.some((item) => item.type === 'output_text' && item.annotations));
+            if (item && item.type === 'message') {
+              const withAnnotationsContentItem = item.content.find((item) => item.type === 'output_text' && item.annotations);
+              if (withAnnotationsContentItem?.type === 'output_text' && withAnnotationsContentItem.annotations) {
+                const items: ChatMessageContentListItem[] = withAnnotationsContentItem.annotations.map((block) => {
+                  if (block.type === 'url_citation') {
+                    return {
+                      url: block.url,
+                      title: block.title,
+                      icon: `https://www.google.com/s2/favicons?domain=${block.url}&sz=${128}`,
+                    }
+                  }
+                  return undefined
+                }).filter((item) => item !== undefined) || [];
+
+                const messageContent = ChatMessageContent.searchResultList({
+                  items,
+                });
+
+                yield {
+                  model: "OpenAIResponse",
+                  id: uuid(),
+                  choices: [
+                    {
+                      delta: {
+                        message_content: messageContent,
+                        role: "assistant",
+                      },
+                      finish_reason: null,
+                      index: 0,
+                    },
+                  ],
+                  created: Date.now(),
+                  object: "chat.completion.chunk",
+                }
+
+              }
+
+            }
           } else if (chunk.type === "response.output_item.added") {
             if (chunk.item.type === "function_call") {
               yield {

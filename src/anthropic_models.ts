@@ -30,9 +30,9 @@ async function fetchModels(
     defaultHeaders:
       credentialsType === "oauth2"
         ? {
-            "anthropic-beta":
-              "oauth-2025-04-20,claude-code-20250219,interleaved-thinking-2025-05-14,fine-grained-tool-streaming-2025-05-14",
-          }
+          "anthropic-beta":
+            "oauth-2025-04-20,claude-code-20250219,interleaved-thinking-2025-05-14,fine-grained-tool-streaming-2025-05-14",
+        }
         : {},
   });
 
@@ -46,6 +46,7 @@ async function fetchModels(
       const context = 200000;
       const toolUse = true;
       const visionEnable = true;
+      let searchToolSupported = false;
       let maxTokens = 8192;
       let inputPrice = 1;
       let outputPrice = 1;
@@ -60,6 +61,7 @@ async function fetchModels(
         outputPrice = 75;
         speed = 3; // Moderately fast
         intelligence = 5; // Highest intelligence
+        searchToolSupported = true;
       } else if (item.id.includes("claude-opus-4")) {
         // Claude Opus 4 - Previous flagship model
         maxTokens = 32000;
@@ -67,6 +69,7 @@ async function fetchModels(
         outputPrice = 75;
         speed = 3; // Moderately fast
         intelligence = 5; // Very high intelligence
+        searchToolSupported = true;
       } else if (item.id.includes("claude-sonnet-4")) {
         // Claude Sonnet 4 - High-performance model
         maxTokens = 64000;
@@ -74,6 +77,7 @@ async function fetchModels(
         outputPrice = 15;
         speed = 4; // Fast
         intelligence = 4; // High intelligence
+        searchToolSupported = true;
       } else if (item.id.includes("claude-3-7-sonnet")) {
         // Claude Sonnet 3.7 - High-performance with extended thinking
         maxTokens = 64000;
@@ -81,6 +85,7 @@ async function fetchModels(
         outputPrice = 15;
         speed = 4; // Fast
         intelligence = 4; // High intelligence with extended thinking
+        searchToolSupported = true;
       } else if (item.id.includes("claude-3-5-sonnet")) {
         // Claude Sonnet 3.5 - Previous intelligent model
         maxTokens = 8192;
@@ -88,6 +93,7 @@ async function fetchModels(
         outputPrice = 15;
         speed = 4; // Fast
         intelligence = 4; // High intelligence
+        searchToolSupported = true;
       } else if (item.id.includes("claude-3-5-haiku")) {
         // Claude Haiku 3.5 - Fastest model
         maxTokens = 8192;
@@ -95,6 +101,7 @@ async function fetchModels(
         outputPrice = 4;
         speed = 5; // Fastest
         intelligence = 3; // Intelligence at blazing speeds
+        searchToolSupported = true;
       } else if (item.id.includes("claude-3-opus")) {
         // Claude Opus 3 - Previous high-capability model
         maxTokens = 32000;
@@ -113,15 +120,17 @@ async function fetchModels(
 
       return {
         title: item.display_name,
+        providerName: "anthropic",
         value: item.id,
         context: context,
         inputPrice: inputPrice,
         outputPrice: outputPrice,
-        toolUse: toolUse,
-        visionEnable: visionEnable,
         maxTokens: maxTokens,
         speed: speed,
         intelligence: intelligence,
+        toolUse: toolUse,
+        visionEnable: visionEnable,
+        searchToolSupported: searchToolSupported,
       };
     });
 
