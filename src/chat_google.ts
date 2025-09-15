@@ -17,6 +17,7 @@ import {
   GenerateContentParameters,
   GoogleGenAI,
   Modality,
+  Tool,
   ToolConfig,
 } from "@google/genai";
 import { getCodeAssistServer } from "./utils/gemini-cli/code_assist/codeAssist.ts";
@@ -65,7 +66,6 @@ export class GoogleGeminiProvider extends LLMProvider {
       result = await this.ai.models.generateContent(params);
     }
 
-    // console.log("groundingMetadata", JSON.stringify(result, null, 2))
     const groundingMetadata = result.candidates?.[0]?.groundingMetadata
     let additional: BaseChatMessage['additional'] = { metadata: {} }
     if (groundingMetadata) {
@@ -75,7 +75,7 @@ export class GoogleGeminiProvider extends LLMProvider {
           web: {
             url: chunk.web?.uri,
             title: chunk.web?.title,
-            domain: chunk.web?.domain
+            domain: chunk.web?.domain || chunk.web?.title
           }
         })),
         texts: groundingMetadata.groundingSupports?.map(text => ({
@@ -86,26 +86,6 @@ export class GoogleGeminiProvider extends LLMProvider {
       additional.metadata!.search = searchData
     }
 
-
-    // console.log("urlContextMetadata", JSON.stringify(result.candidates, null, 2))
-    // const urlContextMetadata = result.candidates?.[0]?.urlContextMetadata
-    // if (urlContextMetadata) {
-    //   const searchData: BaseChatMessage.Additional.Metadata.Search = {
-    //     querys: urlContextMetadata.webSearchQueries,
-    //     chunks: groundingMetadata.groundingChunks?.map(chunk => ({
-    //       web: {
-    //         url: chunk.web?.uri,
-    //         title: chunk.web?.title,
-    //         domain: chunk.web?.domain
-    //       }
-    //     })),
-    //     texts: urlContextMetadata.groundingSupports?.map(text => ({
-    //       segment: text.segment,
-    //       groundingChunkIndices: text.groundingChunkIndices
-    //     }))
-    //   }
-    //   additional.metadata!.search = searchData
-    // }
 
     return new AssistantMessage({
       content: result.text || "",
@@ -119,11 +99,9 @@ export class GoogleGeminiProvider extends LLMProvider {
   ): Promise<Stream<BaseChatMessageChunk>> {
     const params = await this.initParams(content);
     const credentialsType = this.options.credentials?.credentials_type?.value || 'apiKey'
-    console.log("google credentialsType", credentialsType, this.options.session_id);
 
     let result
     if (credentialsType === 'oauth2') {
-      console.log("is server", this.server === undefined);
       if (!this.server) {
         await this.initCodeAssistServer();
       }
@@ -136,7 +114,7 @@ export class GoogleGeminiProvider extends LLMProvider {
   }
 
   async initParams(
-    content: LLMProvider.Params,
+    params: LLMProvider.Params,
   ): Promise<GenerateContentParameters> {
     const credentials = this.options.credentials;
     const credentialsType = credentials?.credentials_type?.value || 'apiKey'
@@ -144,10 +122,10 @@ export class GoogleGeminiProvider extends LLMProvider {
       throw new Error("Google API key is required");
     }
 
-    const userMessages = content.messages.filter(
+    const userMessages = params.messages.filter(
       (message) => message.role !== "system",
     );
-    const systemMessages = content.messages.filter(
+    const systemMessages = params.messages.filter(
       (message) => message.role === "system",
     );
 
@@ -207,20 +185,37 @@ export class GoogleGeminiProvider extends LLMProvider {
       model = model.split("/")[1];
     }
 
-    let tools = GoogleUtil.convertToolsToGoogleTools(content.tools);
+
+    let tools: Tool[] = [];
+    // console.log("google_search", params.searchToolEnabled, params.tools?.length);
+    if (params.searchToolEnabled === true) {
+      // Define the grounding tool
+      const groundingTool = {
+        googleSearch: {},
+      };
+
+      if (!tools) {
+        tools = [];
+      }
+      if (!params.tools || params.tools.length === 0) {
+        tools.push(groundingTool);
+      } else if (params.tools?.length === 1 && params.tools[0].name === "google_web_search") {
+        tools.push(groundingTool);
+        params.tools = params.tools?.filter(tool => tool.name !== "google_web_search") || [];
+      }
+    }
+
+    const newParamsTools = GoogleUtil.convertToolsToGoogleTools(params.tools)
+    if (newParamsTools) {
+      tools.push(...newParamsTools);
+    }
 
     let toolConfig: ToolConfig | undefined = undefined;
-    if (typeof content.tool_choice === "object") {
+    if (typeof params.tool_choice === "object") {
       toolConfig = {
         functionCallingConfig: {
           mode: FunctionCallingConfigMode.ANY,
-          allowedFunctionNames: [content.tool_choice.function.name],
-        },
-      };
-    } else if (tools && tools.length > 0) {
-      toolConfig = {
-        functionCallingConfig: {
-          mode: FunctionCallingConfigMode.AUTO,
+          allowedFunctionNames: [params.tool_choice.function.name],
         },
       };
     }
@@ -229,32 +224,18 @@ export class GoogleGeminiProvider extends LLMProvider {
     if (this.options.modelName.imageGeneration) {
       responseModalities.push(Modality.IMAGE);
       system = undefined;
-      tools = undefined;
+      tools = [];
     } else if (this.options.modelName.audioGeneration) {
       responseModalities = [Modality.AUDIO];
       const lastMessage = newMessages.pop();
       newMessages = lastMessage ? [lastMessage] : [];
       system = undefined;
-      tools = undefined;
+      tools = [];
     }
 
-
-
-    console.log("google_search", this.options.google_search);
-    if (this.options.google_search === true) {
-      // Define the grounding tool
-      const groundingTool = {
-        googleSearch: {},
-      };
-
-      if (!tools) {
-        tools = [];
-        tools.push(groundingTool);
-      }
-    }
-
-    console.log("url_context", this.options.url_context);
-    if (this.options.url_context === true) {
+    // console.log("google tools", JSON.stringify(tools, null, 2))
+    // console.log("url_context", params.webFetchToolEnabled);
+    if (params.webFetchToolEnabled === true) {
       // Define the grounding tool
       const urlContextTool = {
         urlContext: {},
@@ -273,7 +254,7 @@ export class GoogleGeminiProvider extends LLMProvider {
       this.options.gemini_thinking_pro?.value ||
       this.options.gemini_thinking?.value;
 
-    let params: GenerateContentParameters = {
+    let geminiParams: GenerateContentParameters = {
       model: model,
       contents: newMessages,
       config: {
@@ -291,7 +272,7 @@ export class GoogleGeminiProvider extends LLMProvider {
     };
 
     if (geminiThinking) {
-      params.config!.thinkingConfig = {
+      geminiParams.config!.thinkingConfig = {
         thinkingBudget:
           geminiThinking === "auto"
             ? -1
@@ -302,7 +283,7 @@ export class GoogleGeminiProvider extends LLMProvider {
       };
     }
 
-    // console.log("gemini params", JSON.stringify(params, null, 2))
-    return params;
+    // console.log("gemini params", JSON.stringify(geminiParams, null, 2))
+    return geminiParams;
   }
 }

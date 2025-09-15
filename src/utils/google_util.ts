@@ -13,6 +13,7 @@ import {
   Stream,
   ToolMessage,
   uuid,
+  ChatMessageContentListItem,
 } from "@enconvo/api";
 import path from "path";
 import { writeFile } from "fs/promises";
@@ -26,6 +27,7 @@ import {
   Tool,
   GenerateContentResponse,
   FinishReason,
+  GroundingMetadata,
 } from "@google/genai";
 export namespace GoogleUtil {
   export const convertToolsToGoogleTools = (
@@ -396,7 +398,7 @@ export const convertMessagesToGoogleMessages = async (
       ),
     )
   ).flat();
-  console.log("google newMessages", JSON.stringify(newMessages, null, 2));
+  // console.log("google newMessages", JSON.stringify(newMessages, null, 2));
   return newMessages;
 };
 
@@ -449,11 +451,13 @@ export function streamFromGoogle(
         // console.log("google chunk", JSON.stringify(chunk, null, 2))
         if (done) continue;
         const candidate = chunk.candidates?.[0];
+
+        const functionCalls = chunk.functionCalls;
+        const groundingMetadata = candidate?.groundingMetadata;
+
         if (candidate?.finishReason === "STOP") {
           done = true;
-        } else if (
-          candidate?.finishReason === FinishReason.PROHIBITED_CONTENT
-        ) {
+        } else if (candidate?.finishReason === FinishReason.PROHIBITED_CONTENT) {
           done = true;
           yield {
             model: "Google",
@@ -472,8 +476,6 @@ export function streamFromGoogle(
             object: "chat.completion.chunk",
           };
         }
-
-        const functionCalls = chunk.functionCalls;
 
         if (functionCalls && functionCalls.length > 0) {
           const functionCall = functionCalls[0];
@@ -614,6 +616,41 @@ export function streamFromGoogle(
             }
           }
         }
+
+
+        if (groundingMetadata && groundingMetadata.groundingChunks && groundingMetadata.groundingChunks.length > 0) {
+
+          const items: ChatMessageContentListItem[] = groundingMetadata.groundingChunks?.map(chunk => ({
+            url: chunk.web?.uri || "",
+            title: chunk.web?.title || "",
+            user: chunk.web?.domain || "",
+            icon: `https://www.google.com/s2/favicons?domain=${chunk.web?.domain}&sz=${128}`,
+          })) || [];
+          const aiResult = addCitations(groundingMetadata);
+
+          const messageContent = ChatMessageContent.searchResultList({
+            items,
+            aiResult
+          });
+
+
+          yield {
+            model: "Google",
+            id: uuid(),
+            choices: [
+              {
+                delta: {
+                  message_content: messageContent,
+                  role: "assistant",
+                },
+                finish_reason: null,
+                index: 0,
+              },
+            ],
+            created: Date.now(),
+            object: "chat.completion.chunk",
+          };
+        }
       }
       done = true;
     } catch (e) {
@@ -626,3 +663,44 @@ export function streamFromGoogle(
 
   return new Stream(iterator, controller);
 }
+
+
+function addCitations(groundingMetadata: GroundingMetadata) {
+  const supports = groundingMetadata.groundingSupports || [];
+  const chunks = groundingMetadata.groundingChunks || []
+
+  let text = supports.map(support => {
+    const text = support.segment?.text;
+    return text
+  }).join()
+
+  // Sort supports by end_index in descending order to avoid shifting issues when inserting.
+  const sortedSupports = [...supports].sort(
+    (a, b) => (b.segment?.endIndex ?? 0) - (a.segment?.endIndex ?? 0),
+  );
+
+  for (const support of sortedSupports) {
+    const endIndex = support.segment?.endIndex;
+    if (endIndex === undefined || !support.groundingChunkIndices?.length) {
+      continue;
+    }
+
+    const citationLinks = support.groundingChunkIndices
+      .map(i => {
+        const uri = chunks[i]?.web?.uri;
+        if (uri) {
+          return `[${i + 1}](${uri})`;
+        }
+        return null;
+      })
+      .filter(Boolean);
+
+    if (citationLinks.length > 0) {
+      const citationString = citationLinks.join(", ");
+      text = text.slice(0, endIndex) + citationString + text.slice(endIndex);
+    }
+  }
+
+  return text;
+}
+

@@ -15,6 +15,9 @@ export const geminiModelsData: Preference.LLMModel[] = [
     intelligence: 5,
     reasoning: 5,
     type: "llm_model",
+    searchToolSupported: true,
+    toolUse: true,
+    visionEnable: true,
   },
   // Gemini 2.5 Flash - Hybrid reasoning model with 1M token context
   {
@@ -28,6 +31,9 @@ export const geminiModelsData: Preference.LLMModel[] = [
     intelligence: 4,
     reasoning: 4,
     type: "llm_model",
+    searchToolSupported: true,
+    toolUse: true,
+    visionEnable: true,
   },
   {
     title: "Gemini 2.5 Flash Image Preview",
@@ -57,6 +63,9 @@ export const geminiModelsData: Preference.LLMModel[] = [
     intelligence: 3,
     reasoning: 3,
     type: "llm_model",
+    searchToolSupported: true,
+    toolUse: true,
+    visionEnable: true,
   },
   // Gemini 2.0 Flash - Balanced multimodal model for Agents era
   {
@@ -129,6 +138,7 @@ async function fetchModels(
         inputPrice: 1.25, // prompts <= 200k tokens
         context: 200000,
         visionEnable: true,
+        searchToolSupported: true,
         toolUse: true,
         maxTokens: 200000,
         outputPrice: 10.0,
@@ -143,6 +153,7 @@ async function fetchModels(
         inputPrice: 0.3, // text/image/video
         context: 1000000,
         visionEnable: true,
+        searchToolSupported: true,
         toolUse: true,
         maxTokens: 1000000,
         outputPrice: 2.5,
@@ -156,6 +167,7 @@ async function fetchModels(
         value: "gemini-2.5-flash-lite",
         context: 1048576,
         visionEnable: true,
+        searchToolSupported: true,
         toolUse: true,
         maxTokens: 1048576,
         inputPrice: 0.1, // text/image/video

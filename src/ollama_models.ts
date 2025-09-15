@@ -1,4 +1,4 @@
-import { ListCache } from "@enconvo/api";
+import { ListCache, RequestOptions } from "@enconvo/api";
 import { Ollama } from "ollama";
 
 const embeddingModels = [
@@ -88,11 +88,11 @@ const embeddingModels = [
   },
 ];
 
-async function fetch_model(options: any) {
+async function fetchModels(options: RequestOptions) {
   const credentials = options.credentials;
 
   const customHeaders: Record<string, string> = {};
-  if (credentials.customHeaders) {
+  if (credentials?.customHeaders) {
     const headerString = credentials.customHeaders as string;
     const headerPairs = headerString
       .split("\n")
@@ -106,10 +106,10 @@ async function fetch_model(options: any) {
   }
 
   const ollama = new Ollama({
-    host: credentials.baseUrl,
+    host: credentials?.baseUrl,
     headers: {
       ...customHeaders,
-      Authorization: `Bearer ${credentials.apiKey || ""}`,
+      Authorization: `Bearer ${credentials?.apiKey || ""}`,
       "User-Agent": "Enconvo/1.0",
     },
   });
@@ -143,13 +143,8 @@ async function fetch_model(options: any) {
 export default async function main(req: Request) {
   const options = await req.json();
 
-  let models = [];
+  const modelCache = new ListCache(fetchModels);
 
-  try {
-    models = await fetch_model(options);
-  } catch (err) {
-    console.log(err);
-  }
-
+  const models = await modelCache.getList(options);
   return JSON.stringify(models);
 }
