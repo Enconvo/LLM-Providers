@@ -26,10 +26,16 @@ export class ChatOpenAIProvider extends LLMProvider {
     console.log("apiType", apiType)
 
     const isCodex = credentialsType === "oauth2" && this.options.originCommandName === "chat_open_ai"
+    const isUseEnconvoResponsesAPI = this.options.modelName.providerName === 'openai' && this.options.originCommandName === "enconvo_ai"
 
-    if (isCodex || apiType === "responses") {
+    if (isCodex || apiType === "responses" || isUseEnconvoResponsesAPI) {
       console.log("_stream_v2");
-      return await this._stream_v2(content,isCodex);
+      const credentials = this.options.credentials;
+      // console.log("openai credentials", credentials)
+      if (!credentials?.access_token && isCodex) {
+        throw new Error("Please authorize with OAuth2 first");
+      }
+      return await this._stream_v2(content, isCodex, isUseEnconvoResponsesAPI);
     }
 
     const params = await this.initParams(content);
@@ -55,8 +61,9 @@ export class ChatOpenAIProvider extends LLMProvider {
   protected async _stream_v2(
     content: LLMProvider.Params,
     isCodex: boolean = false,
+    isUseEnconvoResponsesAPI: boolean = false,
   ): Promise<Stream<BaseChatMessageChunk>> {
-    const params = await this.initResponseParams(content,isCodex);
+    const params = await this.initResponseParams(content, isCodex, isUseEnconvoResponsesAPI);
     const response = await this.client.responses.create({
       ...params
     });
@@ -87,13 +94,10 @@ export class ChatOpenAIProvider extends LLMProvider {
   private async initResponseParams(
     content: LLMProvider.Params,
     isCodex: boolean = false,
+    isUseEnconvoResponsesAPI: boolean = false,
   ): Promise<OpenAI.Responses.ResponseCreateParamsStreaming> {
     // console.log("openai options", JSON.stringify(content.messages, null, 2))
-    const credentials = this.options.credentials;
-    // console.log("openai credentials", credentials)
-    if (!credentials?.access_token) {
-      throw new Error("Please authorize with OAuth2 first");
-    }
+
 
     const modelOptions = this.options.modelName;
 
@@ -145,7 +149,7 @@ export class ChatOpenAIProvider extends LLMProvider {
     }
 
     console.log("searchToolEnabled openai", content.searchToolEnabled);
-    if (content.searchToolEnabled === true) {
+    if (content.searchToolEnabled === true && !isCodex) {
       tools.push({
         type: "web_search_preview",
       });
@@ -237,7 +241,7 @@ export class ChatOpenAIProvider extends LLMProvider {
   ): Promise<OpenAI> {
     let credentials = options.credentials || null;
     const credentialsType = credentials?.credentials_type?.value || "apiKey";
-    // console.log("options.originCommandName", options.originCommandName)
+    console.log("options.originCommandName", options.originCommandName, credentialsType)
     if (
       credentialsType === "oauth2" &&
       options.originCommandName === "chat_open_ai"

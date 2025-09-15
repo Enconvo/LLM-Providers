@@ -17,6 +17,7 @@ export const openai_codex_models_data: Preference.LLMModel[] = [
     reasoning: 4,
     toolUse: true,
     visionEnable: true,
+    searchToolSupported: true,
   },
   {
     type: "llm_model",
@@ -31,6 +32,7 @@ export const openai_codex_models_data: Preference.LLMModel[] = [
     systemMessageEnable: true,
     speed: 3,
     reasoning: 4,
+    searchToolSupported: true,
   },
 ];
 export const openai_models_data: Preference.LLMModel[] = [
