@@ -1,5 +1,6 @@
 import {
   AssistantMessage,
+  AuthProvider,
   BaseChatMessage,
   BaseChatMessageChunk,
   LLMProvider,
@@ -29,6 +30,15 @@ export class AnthropicProvider extends LLMProvider {
   constructor(options: LLMProvider.LLMOptions) {
     super(options);
 
+  }
+
+  async initClient() {
+
+    if (this.anthropic) {
+      return;
+    }
+
+    const options = this.options;
     let headers: Record<string, string> = {};
 
     if (options.originCommandName === "enconvo_ai") {
@@ -42,7 +52,13 @@ export class AnthropicProvider extends LLMProvider {
     }
 
     const credentials = options.credentials;
+    let oauthCredentials: AuthProvider.Credentials | null = null;
     if (credentials?.credentials_type?.value === "oauth2") {
+
+      const authProvider = await AuthProvider.create("anthropic");
+      oauthCredentials = await authProvider.loadCredentials();
+      console.log("loaded anthropic credentials", credentials);
+
       headers["anthropic-beta"] =
         "oauth-2025-04-20,claude-code-20250219,interleaved-thinking-2025-05-14,fine-grained-tool-streaming-2025-05-14";
     }
@@ -54,19 +70,16 @@ export class AnthropicProvider extends LLMProvider {
       apiKey:
         credentialsType === "apiKey" ? credentials?.anthropicApiKey : undefined,
       authToken:
-        credentialsType === "oauth2" ? credentials?.access_token : undefined,
+        credentialsType === "oauth2" ? oauthCredentials?.access_token : undefined,
       baseURL: credentials?.anthropicApiUrl,
       defaultHeaders: headers,
     });
 
-    if (env["LANGCHAIN_TRACING_V2"] === "true") {
-      this.anthropic = wrapSDK(anthropic);
-    } else {
-      this.anthropic = anthropic;
-    }
+    this.anthropic = anthropic;
   }
 
   protected async _call(content: LLMProvider.Params): Promise<BaseChatMessage> {
+    await this.initClient();
     const stream = await this._stream(content);
     let message = "";
     for await (const chunk of stream) {
@@ -82,6 +95,7 @@ export class AnthropicProvider extends LLMProvider {
   protected async _stream(
     content: LLMProvider.Params,
   ): Promise<Stream<BaseChatMessageChunk>> {
+    await this.initClient();
     const credentials = this.options.credentials;
     if (!credentials?.anthropicApiKey && !credentials?.access_token) {
       throw new Error("Anthropic API key or OAuth is required");
