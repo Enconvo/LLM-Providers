@@ -142,6 +142,7 @@ function convertRole(role: BaseChatMessage["role"]) {
 export const convertMessageToGoogleMessage = async (
   message: BaseChatMessageLike,
   options: LLMProvider.LLMOptions,
+  params: LLMProvider.Params,
 ): Promise<Content[]> => {
   if (message.role === "tool") {
     const toolMessage = message as ToolMessage;
@@ -223,7 +224,7 @@ export const convertMessageToGoogleMessage = async (
           parts.push(image);
         }
 
-        if (isAgentMode) {
+        if (isAgentMode || params.imageGenerationToolEnabled !== 'disabled') {
           const text: Part = {
             text: `This is a image file , url is ${url} , only used for reference when you use tool, if not , ignore this .`,
           };
@@ -390,11 +391,12 @@ export const convertMessageToGoogleMessage = async (
 export const convertMessagesToGoogleMessages = async (
   messages: BaseChatMessageLike[],
   options: LLMProvider.LLMOptions,
+  params: LLMProvider.Params,
 ): Promise<Content[]> => {
   const newMessages = (
     await Promise.all(
       messages.map((message) =>
-        convertMessageToGoogleMessage(message, options),
+        convertMessageToGoogleMessage(message, options, params),
       ),
     )
   ).flat();
@@ -402,11 +404,11 @@ export const convertMessagesToGoogleMessages = async (
   return newMessages;
 };
 
-async function saveBinaryFile(fileName: string, content: Buffer) {
+export async function saveBinaryFile(fileName: string, content: Buffer) {
   await writeFile(fileName, content);
 }
 
-async function saveWaveFile(
+export async function saveWaveFile(
   filename: string,
   pcmData: Buffer,
   channels = 1,

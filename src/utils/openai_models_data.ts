@@ -2,7 +2,7 @@
 
 import { Preference } from "@enconvo/api";
 
-// This file contains pricing, capabilities, and specifications for each model
+
 export const openai_codex_models_data: Preference.LLMModel[] = [
   {
     type: "llm_model",
@@ -15,24 +15,24 @@ export const openai_codex_models_data: Preference.LLMModel[] = [
     systemMessageEnable: true,
     speed: 3,
     reasoning: 4,
+
     toolUse: true,
     visionEnable: true,
-    searchToolSupported: true,
   },
   {
     type: "llm_model",
-    title: "Codex Mini Latest",
-    value: "codex-mini-latest",
+    title: "GPT-5-codex",
+    value: "gpt-5-codex",
     context: 400000,
     maxTokens: 128000,
     inputPrice: 1.25,
     outputPrice: 10,
-    toolUse: true,
-    visionEnable: true,
     systemMessageEnable: true,
     speed: 3,
     reasoning: 4,
-    searchToolSupported: true,
+
+    toolUse: true,
+    visionEnable: true,
   },
 ];
 export const openai_models_data: Preference.LLMModel[] = [
@@ -52,6 +52,7 @@ export const openai_models_data: Preference.LLMModel[] = [
     toolUse: true,
     visionEnable: true,
     searchToolSupported: true,
+    imageGeneration: true,
   },
   {
     type: "llm_model",
@@ -68,6 +69,7 @@ export const openai_models_data: Preference.LLMModel[] = [
     toolUse: true,
     visionEnable: true,
     searchToolSupported: true,
+    imageGeneration: true,
   },
   {
     type: "llm_model",
@@ -98,6 +100,7 @@ export const openai_models_data: Preference.LLMModel[] = [
     systemMessageEnable: true,
     speed: 3,
     reasoning: 4,
+    imageGeneration: true,
   },
   {
     type: "llm_model",
@@ -111,6 +114,7 @@ export const openai_models_data: Preference.LLMModel[] = [
     visionEnable: true,
     systemMessageEnable: true,
     searchToolSupported: true,
+    imageGeneration: true,
     speed: 3,
   },
   {
@@ -124,6 +128,8 @@ export const openai_models_data: Preference.LLMModel[] = [
     toolUse: true,
     visionEnable: true,
     systemMessageEnable: true,
+    searchToolSupported: true,
+    imageGeneration: true,
     speed: 4,
     reasoning: 3,
   },
@@ -138,6 +144,8 @@ export const openai_models_data: Preference.LLMModel[] = [
     toolUse: true,
     visionEnable: true,
     systemMessageEnable: true,
+    searchToolSupported: true,
+    imageGeneration: true,
     speed: 5,
     reasoning: 3,
   },
@@ -154,9 +162,10 @@ export const openai_models_data: Preference.LLMModel[] = [
     toolUse: true,
     visionEnable: true,
     systemMessageEnable: true,
+    searchToolSupported: true,
+    imageGeneration: true,
     speed: 3,
     intelligence: 4,
-    searchToolSupported: true,
   },
   {
     type: "llm_model",
@@ -172,6 +181,7 @@ export const openai_models_data: Preference.LLMModel[] = [
     speed: 4,
     intelligence: 3,
     searchToolSupported: true,
+    imageGeneration: true,
   },
   {
     type: "llm_model",
@@ -186,6 +196,8 @@ export const openai_models_data: Preference.LLMModel[] = [
     systemMessageEnable: true,
     speed: 5,
     intelligence: 2,
+    searchToolSupported: true,
+    imageGeneration: true,
   },
   {
     type: "llm_model",
@@ -200,6 +212,8 @@ export const openai_models_data: Preference.LLMModel[] = [
     systemMessageEnable: true,
     speed: 3,
     intelligence: 4,
+    searchToolSupported: true,
+    imageGeneration: true,
   },
   {
     type: "llm_model",
@@ -214,6 +228,8 @@ export const openai_models_data: Preference.LLMModel[] = [
     systemMessageEnable: true,
     speed: 4,
     intelligence: 3,
+    searchToolSupported: true,
+    imageGeneration: true,
   },
   {
     type: "llm_model",
@@ -228,9 +244,10 @@ export const openai_models_data: Preference.LLMModel[] = [
     systemMessageEnable: true,
     speed: 5,
     intelligence: 2,
+    searchToolSupported: true,
+    imageGeneration: true,
   },
 
-  // o3 Reasoning Series
   {
     type: "llm_model",
     title: "o3",

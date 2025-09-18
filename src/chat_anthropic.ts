@@ -136,6 +136,7 @@ export class AnthropicProvider extends LLMProvider {
     const newMessages = await convertMessagesToAnthropicMessages(
       conversationMessages,
       this.options,
+      content
     );
 
     const model = this.options.modelName.value;
@@ -173,13 +174,15 @@ export class AnthropicProvider extends LLMProvider {
     }
 
     console.log("searchToolEnabled anthropic", content.searchToolEnabled);
-    if (content.searchToolEnabled === true) {
-      tools.push({
-        type: "web_search_20250305",
-        name: "web_search",
-        max_uses: 5
-      });
-      tools = tools.filter(tool => tool.name !== "google_web_search") || [];
+    if (content.searchToolEnabled === 'auto') {
+      if (this.options.modelName.searchToolSupported === true) {
+        tools.push({
+          type: "web_search_20250305",
+          name: "web_search",
+          max_uses: 5
+        });
+        tools = tools.filter(tool => tool.name !== "google_web_search") || [];
+      }
     }
 
     if (tools.length > 0) {

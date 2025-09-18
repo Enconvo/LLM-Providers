@@ -3,12 +3,17 @@ import {
   BaseChatMessage,
   BaseChatMessageChunk,
   BaseChatMessageLike,
+  ChatMessageContent,
+  environment,
   LLMProvider,
   Stream,
+  uuid,
 } from "@enconvo/api";
 import {
   convertMessagesToGoogleMessages,
   GoogleUtil,
+  saveBinaryFile,
+  saveWaveFile,
   streamFromGoogle,
 } from "./utils/google_util.ts";
 import { env } from "process";
@@ -24,6 +29,10 @@ import { getCodeAssistServer } from "./utils/gemini-cli/code_assist/codeAssist.t
 import { DEFAULT_GEMINI_FLASH_LITE_MODEL } from "./utils/gemini-cli/core/contentGenerator.ts";
 import { Config } from "./utils/gemini-cli/code_assist/oauth2.ts";
 import { CodeAssistServer } from "./utils/gemini-cli/code_assist/server.ts";
+import mime from "mime";
+import path from "path";
+
+
 export default function main(options: any) {
   return new GoogleGeminiProvider(options);
 }
@@ -66,7 +75,8 @@ export class GoogleGeminiProvider extends LLMProvider {
       result = await this.ai.models.generateContent(params);
     }
 
-    const groundingMetadata = result.candidates?.[0]?.groundingMetadata
+    const candidate = result.candidates?.[0]
+    const groundingMetadata = candidate?.groundingMetadata
     let additional: BaseChatMessage['additional'] = { metadata: {} }
     if (groundingMetadata) {
       const searchData: BaseChatMessage.Additional.Metadata.Search = {
@@ -86,9 +96,59 @@ export class GoogleGeminiProvider extends LLMProvider {
       additional.metadata!.search = searchData
     }
 
+    const messageContents: ChatMessageContent[] = [];
+
+    for (const part of candidate?.content?.parts || []) {
+      if (part.text) {
+        messageContents.push(ChatMessageContent.text(part.text));
+      }
+
+      const inlineData = part?.inlineData;
+
+      if (inlineData) {
+        const isImage = result?.usageMetadata?.candidatesTokensDetails?.some(
+          (detail) => detail.modality === "IMAGE",
+        );
+        const isAudio = result?.usageMetadata?.candidatesTokensDetails?.some(
+          (detail) => detail.modality === "AUDIO",
+        );
+        if (isImage) {
+          const fileName = uuid();
+          let fileExtension = mime.getExtension(inlineData.mimeType || "");
+          let buffer = Buffer.from(inlineData.data || "", "base64");
+
+          const cachePath = environment.cachePath;
+          const filePath = path.join(
+            cachePath,
+            `${fileName}.${fileExtension}`,
+          );
+          await saveBinaryFile(filePath, buffer);
+          messageContents.push(ChatMessageContent.imageUrl({
+            url: filePath,
+          }));
+        } else if (isAudio) {
+          const fileName = uuid();
+          let fileExtension = "wav";
+          let buffer = Buffer.from(inlineData.data || "", "base64");
+
+          const cachePath = environment.cachePath;
+          const filePath = path.join(
+            cachePath,
+            `${fileName}.${fileExtension}`,
+          );
+          await saveWaveFile(filePath, buffer);
+          messageContents.push(ChatMessageContent.audio({
+            url: filePath,
+          }));
+        }
+      }
+    }
+    // console.log("google result", JSON.stringify(result, null, 2))
+
+    // console.log("google messageContents", JSON.stringify(messageContents, null, 2))
 
     return new AssistantMessage({
-      content: result.text || "",
+      content: messageContents,
       additional
     });
   }
@@ -166,6 +226,7 @@ export class GoogleGeminiProvider extends LLMProvider {
     let newMessages = await convertMessagesToGoogleMessages(
       fixedMessages,
       this.options,
+      params,
     );
 
     let headers = {};
@@ -188,20 +249,22 @@ export class GoogleGeminiProvider extends LLMProvider {
 
     let tools: Tool[] = [];
     // console.log("google_search", params.searchToolEnabled, params.tools?.length);
-    if (params.searchToolEnabled === true) {
-      // Define the grounding tool
-      const groundingTool = {
-        googleSearch: {},
-      };
+    if (params.searchToolEnabled === 'auto') {
+      if (this.options.modelName.searchToolSupported === true) {
+        // Define the grounding tool
+        const groundingTool = {
+          googleSearch: {},
+        };
 
-      if (!tools) {
-        tools = [];
-      }
-      if (!params.tools || params.tools.length === 0) {
-        tools.push(groundingTool);
-      } else if (params.tools?.length === 1 && params.tools[0].name === "google_web_search") {
-        tools.push(groundingTool);
-        params.tools = params.tools?.filter(tool => tool.name !== "google_web_search") || [];
+        if (!tools) {
+          tools = [];
+        }
+        if (!params.tools || params.tools.length === 0) {
+          tools.push(groundingTool);
+        } else if (params.tools?.length === 1 && params.tools[0].name === "google_web_search") {
+          tools.push(groundingTool);
+          params.tools = params.tools?.filter(tool => tool.name !== "google_web_search") || [];
+        }
       }
     }
 
@@ -235,7 +298,7 @@ export class GoogleGeminiProvider extends LLMProvider {
 
     // console.log("google tools", JSON.stringify(tools, null, 2))
     // console.log("url_context", params.webFetchToolEnabled);
-    if (params.webFetchToolEnabled === true) {
+    if (params.webFetchToolEnabled === 'auto') {
       // Define the grounding tool
       const urlContextTool = {
         urlContext: {},

@@ -35,7 +35,7 @@ export class ChatOpenAIProvider extends LLMProvider {
       if (!credentials?.access_token && isCodex) {
         throw new Error("Please authorize with OAuth2 first");
       }
-      return await this._stream_v2(content, isCodex, isUseEnconvoResponsesAPI);
+      return await this._stream_v2(content, isCodex);
     }
 
     const params = await this.initParams(content);
@@ -61,9 +61,8 @@ export class ChatOpenAIProvider extends LLMProvider {
   protected async _stream_v2(
     content: LLMProvider.Params,
     isCodex: boolean = false,
-    isUseEnconvoResponsesAPI: boolean = false,
   ): Promise<Stream<BaseChatMessageChunk>> {
-    const params = await this.initResponseParams(content, isCodex, isUseEnconvoResponsesAPI);
+    const params = await this.initResponseParams(content, isCodex);
     const response = await this.client.responses.create({
       ...params
     });
@@ -94,10 +93,8 @@ export class ChatOpenAIProvider extends LLMProvider {
   private async initResponseParams(
     content: LLMProvider.Params,
     isCodex: boolean = false,
-    isUseEnconvoResponsesAPI: boolean = false,
   ): Promise<OpenAI.Responses.ResponseCreateParamsStreaming> {
     // console.log("openai options", JSON.stringify(content.messages, null, 2))
-
 
     const modelOptions = this.options.modelName;
 
@@ -124,13 +121,13 @@ export class ChatOpenAIProvider extends LLMProvider {
     const messages = await OpenAIUtil.convertMessagesToOpenAIResponseMessages(
       this.options,
       content.messages,
+      content
     );
 
 
     let params: OpenAI.Responses.ResponseCreateParamsStreaming = {
       model: modelOptions?.value,
       instructions: instructions,
-      input: messages,
       stream: true,
       tool_choice: "auto",
       parallel_tool_calls: false,
@@ -138,7 +135,6 @@ export class ChatOpenAIProvider extends LLMProvider {
       include: [],
       prompt_cache_key: "d36d744d-0c64-4b25-9c5a-3e132dbb2e18",
     };
-
 
 
     let tools: OpenAI.Responses.Tool[] = []
@@ -149,13 +145,18 @@ export class ChatOpenAIProvider extends LLMProvider {
     }
 
     console.log("searchToolEnabled openai", content.searchToolEnabled);
-    if (content.searchToolEnabled === true && !isCodex) {
-      tools.push({
-        type: "web_search_preview",
-      });
-      tools = tools.filter(tool => !(tool.type === 'function' && tool.name === "google_web_search")) || [];
+    if (content.searchToolEnabled === 'auto') {
+      if (modelOptions.searchToolSupported === true) {
+        tools.push({
+          type: "web_search_preview",
+        });
+        tools = tools.filter(tool => !(tool.type === 'function' && tool.name === "google_web_search")) || [];
+      }
     }
 
+    console.log("imageGenerationToolEnabled openai", content.imageGenerationToolEnabled, modelOptions);
+
+    params.input = messages;
 
     if (tools.length > 0) {
       params.tools = tools;
@@ -163,7 +164,7 @@ export class ChatOpenAIProvider extends LLMProvider {
 
     let reasoning_effort = this.options?.reasoning_effort?.value || this.options?.reasoning_effort_new?.value;
     if (reasoning_effort && reasoning_effort !== "off") {
-      if (reasoning_effort === 'minimal' && tools.some(tool => tool.type === 'web_search_preview')) {
+      if (reasoning_effort === 'minimal' && tools.some(tool => tool.type === 'web_search_preview' || tool.type === 'image_generation')) {
         reasoning_effort = 'low';
       }
 

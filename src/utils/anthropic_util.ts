@@ -180,6 +180,7 @@ function isSupportedImageType(url: string) {
 export const convertMessageToAnthropicMessage = async (
   message: BaseChatMessageLike,
   options: LLMProvider.LLMOptions,
+  params: LLMProvider.Params,
 ): Promise<Anthropic.Messages.MessageParam[]> => {
   let role = message.role;
 
@@ -277,8 +278,7 @@ export const convertMessageToAnthropicMessage = async (
         let url = item.image_url.url.replace("file://", "");
         if (
           role === "user" &&
-          options.modelName.visionEnable === true &&
-          isSupportedImageType(url)
+          options.modelName.visionEnable === true 
         ) {
           if (url.startsWith("http://") || url.startsWith("https://")) {
             const mimeType =
@@ -318,7 +318,7 @@ export const convertMessageToAnthropicMessage = async (
           }
         }
 
-        if (Runtime.isAgentMode()) {
+        if (Runtime.isAgentMode() || params.imageGenerationToolEnabled !== 'disabled') {
           parts.push({
             type: "text",
             text: `This is a image file , url is ${url} , only used for reference when you use tool, if not , ignore this .`,
@@ -436,11 +436,12 @@ export const convertMessageToAnthropicMessage = async (
 export const convertMessagesToAnthropicMessages = async (
   messages: BaseChatMessageLike[],
   options: LLMProvider.LLMOptions,
+  params: LLMProvider.Params,
 ): Promise<Anthropic.Messages.MessageParam[]> => {
   let newMessages = (
     await Promise.all(
       messages.map((message) =>
-        convertMessageToAnthropicMessage(message, options),
+        convertMessageToAnthropicMessage(message, options, params),
       ),
     )
   ).flat();

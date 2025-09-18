@@ -85,11 +85,11 @@ export class StraicoProvider extends LLMProvider {
     console.log("images", images);
 
     const lastMessage = newMessages.pop();
-    const userInput = lastMessage?.text.text();
+    const userInput = lastMessage?.text.text;
 
     const history = newMessages
       .map((message) => {
-        return `${message.text.role}: ${message.text.text()}`;
+        return `${message.text.role}: ${message.text.text}`;
       })
       .join("\n");
 

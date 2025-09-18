@@ -4,23 +4,20 @@ import {
   BaseChatMessageChunk,
   BaseChatMessageLike,
   ChatMessageContent,
-  environment,
-  Extension,
   FileUtil,
   ImageUtil,
   LLMProvider,
   AITool,
-  NativeAPI,
   RequestOptions,
   Runtime,
   Stream,
   ToolMessage,
   uuid,
   ChatMessageContentListItem,
+  environment,
 } from "@enconvo/api";
 import OpenAI from "openai";
 import path from "path";
-import fs from "fs";
 import {
   EasyInputMessage,
   ResponseFunctionToolCall,
@@ -34,16 +31,13 @@ import {
   Tool,
 } from "openai/resources/responses/responses.mjs";
 import mime from "mime";
+import { saveBinaryFile } from "./google_util.ts";
 export namespace OpenAIUtil {
-  function isSupportedImageType(url: string) {
-    const supportedTypes = ["jpeg", "jpg", "png", "webp"];
-    const mimeType = path.extname(url).toLowerCase().slice(1);
-    return supportedTypes.includes(mimeType);
-  }
 
   export const convertMessageToOpenAIResponseMessage = async (
-    options: LLMProvider.LLMOptions,
+    llmOptions: LLMProvider.LLMOptions,
     message: BaseChatMessageLike,
+    params: LLMProvider.Params,
   ): Promise<(ResponseOutputItem | ResponseInputItem)[]> => {
     let role = message.role;
 
@@ -138,8 +132,7 @@ export namespace OpenAIUtil {
           let url = item.image_url.url.replace("file://", "");
           if (
             role === "user" &&
-            options.modelName.visionEnable === true &&
-            isSupportedImageType(url)
+            llmOptions.modelName.visionEnable === true
           ) {
             if (url.startsWith("http://") || url.startsWith("https://")) {
               messageContents.push({
@@ -161,7 +154,7 @@ export namespace OpenAIUtil {
             }
           }
 
-          if (Runtime.isAgentMode() && role === "user") {
+          if (Runtime.isAgentMode() || params.imageGenerationToolEnabled !== 'disabled') {
             messageContents.push({
               type: "input_text",
               text: `This is a image file , url is ${url} , only used for reference when you use tool, if not , ignore this .`,
@@ -174,7 +167,7 @@ export namespace OpenAIUtil {
             })
             .flat();
 
-          console.log("flow_step", JSON.stringify(results, null, 2));
+          // console.log("flow_step", JSON.stringify(results, null, 2));
 
           const toolCallOutputMessage: ResponseInputItem = {
             type: "function_call_output",
@@ -190,8 +183,8 @@ export namespace OpenAIUtil {
           };
 
           const msgs: ResponseInputItem[] = [
-            toolCallOutputMessage,
             toolCallMessage,
+            toolCallOutputMessage,
           ];
 
           handleMessageContent();
@@ -297,13 +290,13 @@ export namespace OpenAIUtil {
   };
 
   export const convertMessageToOpenAIMessage = async (
-    options: LLMProvider.LLMOptions,
+    llmOptions: LLMProvider.LLMOptions,
     message: BaseChatMessageLike,
   ): Promise<OpenAI.Chat.ChatCompletionMessageParam[]> => {
     let role = message.role;
     if (
-      options.modelName &&
-      options.modelName.systemMessageEnable === false &&
+      llmOptions.modelName &&
+      llmOptions.modelName.systemMessageEnable === false &&
       message.role === "system"
     ) {
       message.role = "user";
@@ -365,8 +358,7 @@ export namespace OpenAIUtil {
           // Check if the URL is valid and if vision is enabled for processing images
           if (
             role === "user" &&
-            options.modelName.visionEnable === true &&
-            isSupportedImageType(url)
+            llmOptions.modelName.visionEnable === true
           ) {
             if (url.startsWith("http://") || url.startsWith("https://")) {
               // Handle remote URLs directly
@@ -426,7 +418,7 @@ export namespace OpenAIUtil {
             },
           ];
 
-          if (options.modelName.toolUse === true) {
+          if (llmOptions.modelName.toolUse === true) {
             newMessages.push(...msgs);
           } else {
             messageContents.push({
@@ -450,7 +442,7 @@ export namespace OpenAIUtil {
         } else if (item.type === "audio") {
           const url = item.file_url.url.replace("file://", "");
           const mimeType = mime.getType(url) || "mp3";
-          if (role === "user" && options.modelName.audioEnable === true) {
+          if (role === "user" && llmOptions.modelName.audioEnable === true) {
             const base64 = FileUtil.convertFileUrlToBase64(url);
             if (base64) {
               messageContents.push({
@@ -505,10 +497,10 @@ export namespace OpenAIUtil {
         });
       }
 
-      const modelName = options.modelName.value.toLowerCase();
+      const modelName = llmOptions.modelName.value.toLowerCase();
       const isDeepSeekR1 = modelName.includes("deepseek");
 
-      if (options.modelName.sequenceContentDisable || isDeepSeekR1) {
+      if (llmOptions.modelName.sequenceContentDisable || isDeepSeekR1) {
         newMessages = newMessages.map((message) => {
           if (typeof message.content === "string") {
             return message;
@@ -759,16 +751,17 @@ export namespace OpenAIUtil {
   export const convertMessagesToOpenAIResponseMessages = async (
     options: LLMProvider.LLMOptions,
     messages: BaseChatMessageLike[],
+    params: LLMProvider.Params,
   ): Promise<ResponseInputItem[]> => {
     let newMessages = (
       await Promise.all(
         messages.map((message) =>
-          convertMessageToOpenAIResponseMessage(options, message),
+          convertMessageToOpenAIResponseMessage(options, message, params),
         ),
       )
     ).flat();
 
-    console.log("openai newMessages", JSON.stringify(newMessages, null, 2))
+    // console.log("openai newMessages", JSON.stringify(newMessages, null, 2))
     return newMessages;
   };
 
@@ -847,7 +840,154 @@ export namespace OpenAIUtil {
           }
           if (done) continue;
 
-          if (chunk.type === "response.output_text.delta") {
+          if (chunk.type === "response.output_item.added") {
+            if (chunk.item.type === "function_call") {
+              yield {
+                model: "OpenAIResponse",
+                id: uuid(),
+                choices: [
+                  {
+                    delta: {
+                      tool_calls: [
+                        {
+                          type: "function",
+                          index: 0,
+                          function: {
+                            name: chunk.item.name,
+                          },
+                        },
+                      ],
+                      role: "assistant",
+                    },
+                    finish_reason: null,
+                    index: 0,
+                  },
+                ],
+                created: Date.now(),
+                object: "chat.completion.chunk",
+              };
+            } else if (chunk.item.type === 'image_generation_call') {
+              yield {
+                model: "OpenAIResponse",
+                id: uuid(),
+                choices: [
+                  {
+                    delta: {
+                      tool_calls: [
+                        {
+                          type: "server_tool",
+                          index: 0,
+                          id: chunk.item.id,
+                          status: 'running',
+                          tool_result: [],
+                          tool: {
+                            name: 'image_generation',
+                            title: 'GPT-Image-1',
+                            icon: 'https://file.enconvo.com/extensions/llm/assets/gpt-image-1.png',
+                            description: 'Image Generation',
+                            toolType: 'method',
+                          },
+                        },
+                      ],
+                      role: "assistant",
+                    },
+                    finish_reason: null,
+                    index: 0,
+                  },
+                ],
+                created: Date.now(),
+                object: "chat.completion.chunk",
+              };
+
+            }
+          } else if (chunk.type === "response.output_item.done") {
+            if (chunk.item.type === 'web_search_call') {
+
+              yield {
+                model: "OpenAIResponse",
+                id: uuid(),
+                choices: [
+                  {
+                    delta: {
+                      tool_calls: [
+                        {
+                          type: "server_tool",
+                          index: 0,
+                          id: chunk.item.id,
+                          status: 'success',
+                          tool_result: [],
+                          //@ts-ignore
+                          tool_arguments: chunk.item.status === 'completed' ? JSON.stringify({ query: chunk.item?.action?.query }) : undefined,
+                          tool: {
+                            name: 'web_search',
+                            title: 'OpenAI Built-in Web Search',
+                            icon: 'https://file.enconvo.com/extensions/internet_browsing/assets/icon.png',
+                            description: '',
+                            toolType: 'method',
+                          },
+                        },
+                      ],
+                      role: "assistant",
+                    },
+                    finish_reason: null,
+                    index: 0,
+                  },
+                ],
+                created: Date.now(),
+                object: "chat.completion.chunk",
+              };
+            } else if (chunk.item.type === 'image_generation_call') {
+
+              const fileName = uuid();
+              // @ts-ignore
+              let fileExtension = chunk.item.output_format || 'png'
+              let buffer = Buffer.from(chunk.item.result || "", "base64");
+
+              const cachePath = environment.cachePath;
+              const filePath = path.join(
+                cachePath,
+                `${fileName}.${fileExtension}`,
+              );
+              await saveBinaryFile(filePath, buffer);
+              const messageContent = ChatMessageContent.imageUrl({
+                url: filePath,
+              });
+
+              yield {
+                model: "OpenAIResponse",
+                id: uuid(),
+                choices: [
+                  {
+                    delta: {
+                      tool_calls: [
+                        {
+                          type: "server_tool",
+                          index: 0,
+                          id: chunk.item.id,
+                          status: 'success',
+                          tool_result: [messageContent],
+                          // @ts-ignore
+                          tool_arguments: chunk.item.status === 'completed' ? JSON.stringify({ prompt: chunk.item?.revised_prompt }) : undefined,
+                          tool: {
+                            name: 'image_generation',
+                            title: 'GPT-Image-1',
+                            icon: 'https://file.enconvo.com/extensions/llm/assets/gpt-image-1.png',
+                            description: 'Image Generation',
+                            toolType: 'method',
+                          },
+                        },
+                      ],
+                      role: "assistant",
+                    },
+                    finish_reason: null,
+                    index: 0,
+                  },
+                ],
+                created: Date.now(),
+                object: "chat.completion.chunk",
+              };
+            }
+          } else if (chunk.type === "response.output_text.delta") {
             yield {
               model: "OpenAIResponse",
               id: chunk.item_id || `msg_${uuid()}`,
@@ -896,7 +1036,7 @@ export namespace OpenAIUtil {
                         status: 'running',
                         tool: {
                           name: 'web_search',
-                          title: 'OpenAI Web Search',
+                          title: 'OpenAI Built-in Web Search',
                           icon: 'https://file.enconvo.com/extensions/internet_browsing/assets/icon.png',
                           description: '',
                           toolType: 'method',
@@ -913,43 +1053,6 @@ export namespace OpenAIUtil {
               object: "chat.completion.chunk",
             };
 
-          } else if (chunk.type === "response.output_item.done") {
-            if (chunk.item.type === 'web_search_call') {
-
-              yield {
-                model: "OpenAIResponse",
-                id: uuid(),
-                choices: [
-                  {
-                    delta: {
-                      tool_calls: [
-                        {
-                          type: "server_tool",
-                          index: 0,
-                          id: chunk.item.id,
-                          status: 'success',
-                          tool_result: [],
-                          //@ts-ignore
-                          tool_arguments: chunk.item.status === 'completed' ? JSON.stringify({ query: chunk.item?.action?.query }) : undefined,
-                          tool: {
-                            name: 'web_search',
-                            title: 'OpenAI Web Search',
-                            icon: 'https://file.enconvo.com/extensions/internet_browsing/assets/icon.png',
-                            description: '',
-                            toolType: 'method',
-                          },
-                        },
-                      ],
-                      role: "assistant",
-                    },
-                    finish_reason: null,
-                    index: 0,
-                  },
-                ],
-                created: Date.now(),
-                object: "chat.completion.chunk",
-              };
-            }
           } else if (chunk.type === "response.completed") {
             const item = chunk.response.output.find((item) => item.type === 'message' && item.content.some((item) => item.type === 'output_text' && item.annotations));
             if (item && item.type === 'message') {
@@ -960,62 +1063,36 @@ export namespace OpenAIUtil {
                     return {
                       url: block.url,
                       title: block.title,
+                      user: (new URL(block.url)).hostname,
                       icon: `https://www.google.com/s2/favicons?domain=${block.url}&sz=${128}`,
                     }
                   }
                   return undefined
                 }).filter((item) => item !== undefined) || [];
 
-                const messageContent = ChatMessageContent.searchResultList({
-                  items,
-                });
+                if (items.length > 0) {
+                  const messageContent = ChatMessageContent.searchResultList({
+                    items,
+                  });
 
-                yield {
-                  model: "OpenAIResponse",
-                  id: uuid(),
-                  choices: [
-                    {
-                      delta: {
-                        message_content: messageContent,
-                        role: "assistant",
-                      },
-                      finish_reason: null,
-                      index: 0,
-                    },
-                  ],
-                  created: Date.now(),
-                  object: "chat.completion.chunk",
-                }
-
-              }
-
-            }
-          } else if (chunk.type === "response.output_item.added") {
-            if (chunk.item.type === "function_call") {
-              yield {
-                model: "OpenAIResponse",
-                id: uuid(),
-                choices: [
-                  {
-                    delta: {
-                      tool_calls: [
-                        {
-                          type: "function",
-                          index: 0,
-                          function: {
-                            name: chunk.item.name,
-                          },
+                  yield {
+                    model: "OpenAIResponse",
+                    id: uuid(),
+                    choices: [
+                      {
+                        delta: {
+                          message_content: messageContent,
+                          role: "assistant",
                         },
-                      ],
-                      role: "assistant",
-                    },
-                    finish_reason: null,
-                    index: 0,
-                  },
-                ],
-                created: Date.now(),
-                object: "chat.completion.chunk",
-              };
+                        finish_reason: null,
+                        index: 0,
+                      },
+                    ],
+                    created: Date.now(),
+                    object: "chat.completion.chunk",
+                  }
+                }
+              }
             }
           } else if (chunk.type === "response.function_call_arguments.delta") {
             yield {
