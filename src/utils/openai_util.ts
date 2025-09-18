@@ -785,12 +785,7 @@ export namespace OpenAIUtil {
       consumed = true;
       let done = false;
       try {
-        let lastChunk: any = undefined;
         for await (const chunk of response) {
-          if (options?.commandName === "chat_qwen" && lastChunk === undefined) {
-            lastChunk = chunk;
-            continue;
-          }
           // console.log("chunk", JSON.stringify(chunk, null, 2), options?.commandName)
           if (done) continue;
           yield chunk;

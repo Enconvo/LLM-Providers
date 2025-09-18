@@ -39,6 +39,8 @@ export class ChatOpenAIProvider extends LLMProvider {
     }
 
     const params = await this.initParams(content);
+    console.log("openai params", JSON.stringify(params, null, 2))
+
     let chatCompletion: any;
     chatCompletion = await this.client.chat.completions.create({
       ...params,
@@ -289,7 +291,7 @@ export class ChatOpenAIProvider extends LLMProvider {
         const authProvider = await AuthProvider.create("qwen");
         //@ts-ignore
         credentials = await authProvider.authenticate();
-        console.log("loaded credentials", credentials);
+        // console.log("loaded credentials", credentials);
       }
     }
 
