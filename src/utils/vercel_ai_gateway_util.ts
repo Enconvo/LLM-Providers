@@ -26,11 +26,12 @@ import {
   UserModelMessage,
 } from "ai";
 
-export namespace VercelAIGatewayUtil {}
+export namespace VercelAIGatewayUtil { }
 
 export const convertMessageToVercelFormat = async (
   message: BaseChatMessageLike,
   options: LLMProvider.LLMOptions,
+  params: LLMProvider.Params,
 ): Promise<ModelMessage[]> => {
   let role = message.role;
 
@@ -59,13 +60,13 @@ export const convertMessageToVercelFormat = async (
       typeof systemMessage.content === "string"
         ? systemMessage.content
         : systemMessage.content
-            .map((item) => {
-              if (item.type === "text") {
-                return item.text;
-              }
-              return JSON.stringify(item);
-            })
-            .join("\n\n");
+          .map((item) => {
+            if (item.type === "text") {
+              return item.text;
+            }
+            return JSON.stringify(item);
+          })
+          .join("\n\n");
     const newModelMessage: SystemModelMessage = {
       role: "system",
       content: contentString,
@@ -153,10 +154,11 @@ export const convertMessageToVercelFormat = async (
           }
         }
 
-        if (Runtime.isAgentMode()) {
+        const imageGenerationToolEnabled = params.imageGenerationToolEnabled && params.imageGenerationToolEnabled !== 'disabled';
+        if ((Runtime.isAgentMode() || imageGenerationToolEnabled) && params.addImageAddtionalInfo !== false) {
           const textPart: TextPart = {
             type: "text",
-            text: `The above image's url is ${url} , only used for reference when you use tool.` ,
+            text: `The above image's url is ${url} , only used for reference when you use tool.`,
           };
           parts.push(textPart);
         }
@@ -265,10 +267,11 @@ export const convertMessageToVercelFormat = async (
 export const convertMessagesToVercelFormat = async (
   messages: BaseChatMessageLike[],
   options: LLMProvider.LLMOptions,
+  params: LLMProvider.Params,
 ): Promise<ModelMessage[]> => {
   const newMessages = (
     await Promise.all(
-      messages.map((message) => convertMessageToVercelFormat(message, options)),
+      messages.map((message) => convertMessageToVercelFormat(message, options, params)),
     )
   ).flat();
 

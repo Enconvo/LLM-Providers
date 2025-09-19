@@ -224,9 +224,10 @@ export const convertMessageToGoogleMessage = async (
           parts.push(image);
         }
 
-        if (isAgentMode || params.imageGenerationToolEnabled !== 'disabled') {
+        const imageGenerationToolEnabled = params.imageGenerationToolEnabled && params.imageGenerationToolEnabled !== 'disabled';
+        if ((isAgentMode || imageGenerationToolEnabled) && params.addImageAddtionalInfo !== false) {
           const text: Part = {
-            text: `The above image's url is ${url} , only used for reference when you use tool.` ,
+            text: `The above image's url is ${url} , only used for reference when you use tool.`,
           };
 
           parts.push(text);
@@ -400,7 +401,7 @@ export const convertMessagesToGoogleMessages = async (
       ),
     )
   ).flat();
-  // console.log("google newMessages", JSON.stringify(newMessages, null, 2));
+  console.log("google newMessages", JSON.stringify(newMessages, null, 2));
   return newMessages;
 };
 

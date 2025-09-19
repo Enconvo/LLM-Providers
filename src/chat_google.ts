@@ -75,6 +75,8 @@ export class GoogleGeminiProvider extends LLMProvider {
       result = await this.ai.models.generateContent(params);
     }
 
+    console.log("google result", JSON.stringify(result, null, 2))
+
     const candidate = result.candidates?.[0]
     const groundingMetadata = candidate?.groundingMetadata
     let additional: BaseChatMessage['additional'] = { metadata: {} }
@@ -143,7 +145,6 @@ export class GoogleGeminiProvider extends LLMProvider {
         }
       }
     }
-    // console.log("google result", JSON.stringify(result, null, 2))
 
     // console.log("google messageContents", JSON.stringify(messageContents, null, 2))
 

@@ -88,6 +88,7 @@ export class VercelAIGatewayProvider extends LLMProvider {
     const messages = await convertMessagesToVercelFormat(
       content.messages,
       this.options,
+      content
     );
 
 

@@ -154,9 +154,10 @@ const convertToolResults = async (results: (string | ChatMessageContent)[]) => {
             }
           }
 
+
           parts.push({
             type: "text",
-            text: `The above image's url is ${url} , only used for reference when you use tool.` ,
+            text: `The above image's url is ${url} , only used for reference when you use tool.`,
           });
           return parts;
         } else {
@@ -278,7 +279,7 @@ export const convertMessageToAnthropicMessage = async (
         let url = item.image_url.url.replace("file://", "");
         if (
           role === "user" &&
-          options.modelName.visionEnable === true 
+          options.modelName.visionEnable === true
         ) {
           if (url.startsWith("http://") || url.startsWith("https://")) {
             const mimeType =
@@ -318,10 +319,11 @@ export const convertMessageToAnthropicMessage = async (
           }
         }
 
-        if (Runtime.isAgentMode() || params.imageGenerationToolEnabled !== 'disabled') {
+        const imageGenerationToolEnabled = params.imageGenerationToolEnabled && params.imageGenerationToolEnabled !== 'disabled';
+        if ((Runtime.isAgentMode() || imageGenerationToolEnabled) && params.addImageAddtionalInfo !== false) {
           parts.push({
             type: "text",
-            text: `The above image's url is ${url} , only used for reference when you use tool.` ,
+            text: `The above image's url is ${url} , only used for reference when you use tool.`,
           });
         }
       } else if (item.type === "flow_step") {

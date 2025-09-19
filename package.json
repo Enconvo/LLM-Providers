@@ -551,6 +551,11 @@
                   "condition": "eq",
                   "value": "o4-mini",
                   "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "gpt-5-codex",
+                  "operator": "or"
                 }
               ]
             }
