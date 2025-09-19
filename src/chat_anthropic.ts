@@ -14,7 +14,6 @@ import {
 } from "./utils/anthropic_util.ts";
 import { env } from "process";
 
-import { wrapSDK } from "langsmith/wrappers";
 import {
   MessageStreamParams,
   TextBlockParam,
@@ -52,19 +51,27 @@ export class AnthropicProvider extends LLMProvider {
     }
 
     const credentials = options.credentials;
+    const credentialsType = credentials?.credentials_type?.value || "apiKey";
+
     let oauthCredentials: AuthProvider.Credentials | null = null;
-    if (credentials?.credentials_type?.value === "oauth2") {
+    if (credentialsType === "oauth2") {
 
       const authProvider = await AuthProvider.create("anthropic");
       oauthCredentials = await authProvider.loadCredentials();
-      console.log("loaded anthropic credentials", credentials);
+      console.log("loaded anthropic credentials", oauthCredentials,authProvider);
 
       headers["anthropic-beta"] =
         "oauth-2025-04-20,claude-code-20250219,interleaved-thinking-2025-05-14,fine-grained-tool-streaming-2025-05-14";
     }
 
-    const credentialsType = credentials?.credentials_type?.value || "apiKey";
-    console.log("anthropic credentials", credentialsType);
+    console.log("anthropic credentials", credentialsType, {
+      apiKey:
+        credentialsType === "apiKey" ? credentials?.anthropicApiKey : undefined,
+      authToken:
+        credentialsType === "oauth2" ? oauthCredentials?.access_token : undefined,
+      baseURL: credentials?.anthropicApiUrl,
+      defaultHeaders: headers,
+    });
 
     const anthropic = new Anthropic({
       apiKey:
@@ -95,6 +102,7 @@ export class AnthropicProvider extends LLMProvider {
   protected async _stream(
     content: LLMProvider.Params,
   ): Promise<Stream<BaseChatMessageChunk>> {
+    console.log("AnthropicProvider _stream called");
     await this.initClient();
     const credentials = this.options.credentials;
     if (!credentials?.anthropicApiKey && !credentials?.access_token) {

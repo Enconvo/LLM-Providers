@@ -156,7 +156,7 @@ const convertToolResults = async (results: (string | ChatMessageContent)[]) => {
 
           parts.push({
             type: "text",
-            text: "This is a image file , url is " + result.image_url.url,
+            text: `The above image's url is ${url} , only used for reference when you use tool.` ,
           });
           return parts;
         } else {
@@ -321,7 +321,7 @@ export const convertMessageToAnthropicMessage = async (
         if (Runtime.isAgentMode() || params.imageGenerationToolEnabled !== 'disabled') {
           parts.push({
             type: "text",
-            text: `This is a image file , url is ${url} , only used for reference when you use tool, if not , ignore this .`,
+            text: `The above image's url is ${url} , only used for reference when you use tool.` ,
           });
         }
       } else if (item.type === "flow_step") {

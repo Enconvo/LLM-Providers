@@ -226,7 +226,7 @@ export const convertMessageToGoogleMessage = async (
 
         if (isAgentMode || params.imageGenerationToolEnabled !== 'disabled') {
           const text: Part = {
-            text: `This is a image file , url is ${url} , only used for reference when you use tool, if not , ignore this .`,
+            text: `The above image's url is ${url} , only used for reference when you use tool.` ,
           };
 
           parts.push(text);

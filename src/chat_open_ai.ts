@@ -177,7 +177,7 @@ export class ChatOpenAIProvider extends LLMProvider {
     }
 
 
-    console.log("tools", JSON.stringify(params, null, 2))
+    // console.log("tools", JSON.stringify(params, null, 2))
     return params;
   }
 

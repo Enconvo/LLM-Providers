@@ -157,7 +157,7 @@ export namespace OpenAIUtil {
           if (Runtime.isAgentMode() || params.imageGenerationToolEnabled !== 'disabled') {
             messageContents.push({
               type: "input_text",
-              text: `This is a image file , url is ${url} , only used for reference when you use tool, if not , ignore this .`,
+              text: `The above image's url is ${url} , only used for reference when you use tool.`,
             });
           }
         } else if (item.type === "flow_step") {
@@ -324,7 +324,7 @@ export namespace OpenAIUtil {
       }
       // const toolAdditionalMessages = convertToolResults(content, options)
       toolMessage.content = JSON.stringify(content);
-      console.log("toolMessage", JSON.stringify(toolMessage, null, 2));
+      // console.log("toolMessage", JSON.stringify(toolMessage, null, 2));
 
       //@ts-ignore
       return [message];
@@ -387,7 +387,7 @@ export namespace OpenAIUtil {
           if (Runtime.isAgentMode()) {
             messageContents.push({
               type: "text",
-              text: `This is a image file , url is ${url} , only used for reference when you use tool, if not , ignore this .`,
+              text: `The above image's url is ${url} , only used for reference when you use tool.`,
             });
           }
         } else if (item.type === "flow_step") {
@@ -761,7 +761,7 @@ export namespace OpenAIUtil {
       )
     ).flat();
 
-    // console.log("openai newMessages", JSON.stringify(newMessages, null, 2))
+    console.log("openai newMessages", JSON.stringify(newMessages, null, 2))
     return newMessages;
   };
 
