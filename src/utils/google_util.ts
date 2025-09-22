@@ -225,7 +225,7 @@ export const convertMessageToGoogleMessage = async (
         }
 
         const imageGenerationToolEnabled = params.imageGenerationToolEnabled && params.imageGenerationToolEnabled !== 'disabled';
-        if ((isAgentMode || imageGenerationToolEnabled) && params.addImageAddtionalInfo !== false) {
+        if ((isAgentMode || imageGenerationToolEnabled) && params.addImageAdditionalInfo !== false) {
           const text: Part = {
             text: `The above image's url is ${url} , only used for reference when you use tool.`,
           };

@@ -155,7 +155,7 @@ export const convertMessageToVercelFormat = async (
         }
 
         const imageGenerationToolEnabled = params.imageGenerationToolEnabled && params.imageGenerationToolEnabled !== 'disabled';
-        if ((Runtime.isAgentMode() || imageGenerationToolEnabled) && params.addImageAddtionalInfo !== false) {
+        if ((Runtime.isAgentMode() || imageGenerationToolEnabled) && params.addImageAdditionalInfo !== false) {
           const textPart: TextPart = {
             type: "text",
             text: `The above image's url is ${url} , only used for reference when you use tool.`,

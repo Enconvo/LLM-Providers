@@ -1,6 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
 import {
-  AssistantMessage,
   BaseChatMessageChunk,
   BaseChatMessageLike,
   ChatMessageContent,
@@ -10,13 +9,24 @@ import {
   AITool,
   Runtime,
   Stream,
-  ToolMessage,
-  uuid,
   ChatMessageContentListItem,
 } from "@enconvo/api";
 import path from "path";
 import mime from "mime";
+
+
 export namespace AnthropicUtil {
+
+  export const serverTools = [
+    {
+      name: 'web_search',
+      title: 'Claude Web Search',
+      icon: 'https://file.enconvo.com/extensions/internet_browsing/assets/icon.png',
+      description: '',
+    }
+  ]
+
+
   export const convertToolsToAnthropicTools = (
     tools?: AITool[],
   ): Anthropic.Tool[] | undefined => {
@@ -24,6 +34,7 @@ export namespace AnthropicUtil {
       return undefined;
     }
 
+    //@ts-ignore
     let newTools: Anthropic.Tool[] | undefined = tools?.map((tool) => {
       return {
         name: tool.name,
@@ -99,7 +110,8 @@ type MessageContentType =
   | Anthropic.TextBlockParam
   | Anthropic.ImageBlockParam
   | Anthropic.ToolUseBlockParam
-  | Anthropic.ToolResultBlockParam;
+  | Anthropic.ToolResultBlockParam
+  | Anthropic.ThinkingBlockParam;
 
 const convertToolResults = async (results: (string | ChatMessageContent)[]) => {
   return (
@@ -183,87 +195,11 @@ export const convertMessageToAnthropicMessage = async (
   options: LLMProvider.LLMOptions,
   params: LLMProvider.Params,
 ): Promise<Anthropic.Messages.MessageParam[]> => {
-  let role = message.role;
-
-  if (message.role === "tool") {
-    const toolMessage = message as ToolMessage;
-    // console.log("toolMessage", JSON.stringify(toolMessage, null, 2))
-    let content: (string | ChatMessageContent)[] = [];
-
-    let contentLength = 0;
-    try {
-      const contentString = toolMessage.content as string;
-      content = JSON.parse(contentString);
-      contentLength = contentString.length;
-    } catch (e) {
-      console.log("toolMessage content error", toolMessage.content);
-    }
-
-    const toolResultMessages = await convertToolResults(content);
-
-    let toolResultMessage: Anthropic.ToolResultBlockParam = {
-      type: "tool_result",
-      tool_use_id: toolMessage.tool_call_id,
-      //@ts-ignore
-      content: toolResultMessages,
-    };
-    if (contentLength > 1000) {
-      toolResultMessage.cache_control = {
-        type: "ephemeral",
-      };
-    }
-    return [
-      {
-        role: "user",
-        content: [toolResultMessage],
-      },
-    ];
-  }
-
-  if (message.role === "assistant") {
-    const aiMessage = message as AssistantMessage;
-
-    if (aiMessage.tool_calls && aiMessage.tool_calls.length > 0) {
-      let args: any = {};
-      let contentLength = 0;
-      try {
-        const contentString =
-          aiMessage.tool_calls[0].function.arguments || "{}";
-        args = JSON.parse(contentString);
-        contentLength = contentString.length;
-      } catch (e) {
-        console.log(
-          "flowParams error",
-          aiMessage.tool_calls[0].function.arguments,
-        );
-      }
-
-      const toolUseMessage: Anthropic.ToolUseBlockParam = {
-        type: "tool_use",
-        name: aiMessage.tool_calls[0].function.name,
-        id: aiMessage.tool_calls[0].id!,
-        input: args,
-      };
-
-      if (contentLength > 1000) {
-        toolUseMessage.cache_control = {
-          type: "ephemeral",
-        };
-      }
-
-      return [
-        {
-          role: "assistant",
-          content: [toolUseMessage],
-        },
-      ];
-    }
-  }
+  let role = message.role as "user" | "assistant";
 
   if (typeof message.content === "string") {
     return [
       {
-        //@ts-ignore
         role: role,
         content: message.content,
       },
@@ -273,8 +209,6 @@ export const convertMessageToAnthropicMessage = async (
     let parts: MessageContentType[] = [];
 
     for (const item of message.content) {
-      role = role as "user" | "assistant";
-
       if (item.type === "image_url") {
         let url = item.image_url.url.replace("file://", "");
         if (
@@ -320,21 +254,13 @@ export const convertMessageToAnthropicMessage = async (
         }
 
         const imageGenerationToolEnabled = params.imageGenerationToolEnabled && params.imageGenerationToolEnabled !== 'disabled';
-        if ((Runtime.isAgentMode() || imageGenerationToolEnabled) && params.addImageAddtionalInfo !== false) {
+        if ((Runtime.isAgentMode() || imageGenerationToolEnabled) && params.addImageAdditionalInfo !== false) {
           parts.push({
             type: "text",
             text: `The above image's url is ${url} , only used for reference when you use tool.`,
           });
         }
       } else if (item.type === "flow_step") {
-        if (parts.length > 0) {
-          contents.push({
-            role: role,
-            content: parts,
-          });
-          parts = [];
-        }
-
         const results = item.flowResults
           .map((message) => {
             return message.content;
@@ -379,42 +305,46 @@ export const convertMessageToAnthropicMessage = async (
         const toolUseMessages: Anthropic.MessageParam[] = [
           {
             role: "assistant",
-            content: [toolUseMessage],
+            content: [...parts, toolUseMessage],
           },
           {
             role: "user",
             content: [toolResultMessage],
           },
         ];
+        parts = [];
+        console.log("flow step parsed");
 
         contents.push(...toolUseMessages);
-      } else if (item.type === "text") {
-        if (item.text.trim() !== "") {
-          parts.push({
-            type: "text",
-            text: item.text,
-          });
-        }
+      } else if (item.type === "text" && item.text.trim() !== "") {
+        parts.push({
+          type: "text",
+          text: item.text,
+        });
+      } else if (item.type === "thinking" && options.claude_thinking?.value && options.claude_thinking?.value !== 'disabled') {
+        parts.push({
+          type: "thinking",
+          thinking: item.thinkingContent,
+          signature: item.signature || "",
+        });
       } else if (item.type === "audio") {
         const url = item.file_url.url;
         parts.push({
           type: "text",
-          text: "This is a audio file , url is " + url || "",
+          text: `This is a audio file , url is ${url} , only used for reference when you use tool, if not , ignore this .`,
         });
       } else if (item.type === "video") {
         const url = item.file_url.url;
         parts.push({
           type: "text",
-          text: "This is a video file , url is " + url || "",
+          text: `This is a video file , url is ${url} , only used for reference when you use tool, if not , ignore this .`,
         });
       } else if (item.type === "file") {
         const url = item.file_url.url;
         parts.push({
           type: "text",
-          text: "This is a file , url is " + url || "",
+          text: `This is a file , url is ${url} , only used for reference when you use tool, if not , ignore this .`,
         });
-      } else if (item.type === "thinking") {
-        // do nothing
       } else {
         parts.push({
           type: "text",
@@ -425,7 +355,7 @@ export const convertMessageToAnthropicMessage = async (
 
     if (parts.length > 0) {
       contents.push({
-        role: role as "user" | "assistant",
+        role: role,
         content: parts,
       });
       parts = [];
@@ -435,11 +365,14 @@ export const convertMessageToAnthropicMessage = async (
   }
 };
 
+
 export const convertMessagesToAnthropicMessages = async (
   messages: BaseChatMessageLike[],
   options: LLMProvider.LLMOptions,
   params: LLMProvider.Params,
 ): Promise<Anthropic.Messages.MessageParam[]> => {
+  console.log("Converting messages to Anthropic format...", JSON.stringify(messages, null, 2));
+
   let newMessages = (
     await Promise.all(
       messages.map((message) =>
@@ -547,127 +480,53 @@ export function streamFromAnthropic(
       );
     }
     consumed = true;
-    let done = false;
-    let content_block_start = false;
     try {
-      let message: Anthropic.Message;
       for await (const chunk of response) {
         // console.log("chunk", JSON.stringify(chunk, null, 2))
         if (chunk.type === "message_start") {
-          message = chunk.message;
-          // console.log("input usage", JSON.stringify(chunk.message.usage, null, 2))
-        }
-
-        if (done) continue;
-
-        if (chunk.type === "message_delta") {
-          if (chunk.delta.stop_reason) {
-            console.log("stop_reason", chunk.delta.stop_reason);
-            let finish_reason:
-              | "stop"
-              | "length"
-              | "tool_calls"
-              | "content_filter"
-              | "function_call"
-              | null = null;
-            if (chunk.delta.stop_reason === "max_tokens") {
-              finish_reason = "length";
-            } else if (chunk.delta.stop_reason === "stop_sequence") {
-              finish_reason = "stop";
-            } else if (chunk.delta.stop_reason === "tool_use") {
-              finish_reason = "tool_calls";
-            } else if (chunk.delta.stop_reason === "end_turn") {
-              finish_reason = "stop";
+          yield {
+            type: 'message_start',
+            message: {
+              role: chunk.message.role,
+              content: [],
+              model: chunk.message.model,
             }
-            // console.log("finish_reason", JSON.stringify(chunk.usage, null, 2))
-
-            yield {
-              model: "Anthropic",
-              id: uuid(),
-              choices: [
-                {
-                  delta: {
-                    role: "assistant",
-                  },
-                  finish_reason: finish_reason,
-                  index: 0,
-                },
-              ],
-              created: Date.now(),
-              object: "chat.completion.chunk",
-            };
-            done = true;
-            continue;
           }
         }
 
         if (chunk.type === "content_block_start") {
-          if (chunk.content_block.type === "text" || chunk.content_block.type === "thinking") {
-            content_block_start = true;
+          if (chunk.content_block.type === "text") {
+            yield {
+              type: 'content_block_start',
+              content_block: chunk.content_block,
+            }
+
+          } else if (chunk.content_block.type === "thinking") {
+            yield {
+              type: 'content_block_start',
+              content_block: chunk.content_block,
+            }
           } else if (chunk.content_block.type === "tool_use") {
-            content_block_start = true;
             yield {
-              model: "Anthropic",
-              id: uuid(),
-              choices: [
-                {
-                  delta: {
-                    tool_calls: [
-                      {
-                        type: "function",
-                        index: 0,
-                        id: chunk.content_block.id,
-                        function: {
-                          name: chunk.content_block.name,
-                        },
-                      },
-                    ],
-                    role: "assistant",
-                  },
-                  finish_reason: null,
-                  index: 0,
-                },
-              ],
-              created: Date.now(),
-              object: "chat.completion.chunk",
-            };
+              type: 'content_block_start',
+              content_block: chunk.content_block,
+            }
           } else if (chunk.content_block.type === "server_tool_use") {
-            content_block_start = true;
-            console.log("server_tool_use", JSON.stringify(chunk, null, 2))
+            const chunkContentBlock = chunk.content_block as Anthropic.ServerToolUseBlock;
+            const serverTool = AnthropicUtil.serverTools.find((tool) => tool.name === chunkContentBlock.name);
             yield {
-              model: "Anthropic",
-              id: uuid(),
-              choices: [
-                {
-                  delta: {
-                    tool_calls: [
-                      {
-                        type: "server_tool",
-                        index: 0,
-                        id: chunk.content_block.id,
-                        status: 'running',
-                        tool: {
-                          name: chunk.content_block.name,
-                          title: 'Claude Web Search',
-                          icon: 'https://file.enconvo.com/extensions/internet_browsing/assets/icon.png',
-                          description: '',
-                          toolType: 'method',
-                        },
-                      },
-                    ],
-                    role: "assistant",
-                  },
-                  finish_reason: null,
-                  index: 0,
-                },
-              ],
-              created: Date.now(),
-              object: "chat.completion.chunk",
-            };
+              type: 'content_block_start',
+              content_block: {
+                type: 'server_tool_use',
+                name: chunk.content_block.name,
+                input: chunk.content_block.input,
+                id: chunk.content_block.id,
+                ...serverTool
+              },
+            }
 
           } else if (chunk.content_block.type === "web_search_tool_result") {
-            content_block_start = true;
-            console.log("web_search_tool_result", JSON.stringify(chunk.content_block, null, 2))
+            // console.log("web_search_tool_result", JSON.stringify(chunk.content_block, null, 2))
             const groundingMetadata = chunk.content_block.content;
             if (Array.isArray(groundingMetadata)) {
               const items: ChatMessageContentListItem[] = groundingMetadata.map((block: Anthropic.WebSearchResultBlock) => ({
@@ -679,123 +538,58 @@ export function streamFromAnthropic(
               const messageContent = ChatMessageContent.searchResultList({
                 items,
               });
+              const serverTool = AnthropicUtil.serverTools.find((tool) => tool.name === 'web_search');
 
               yield {
-                model: "Anthropic",
-                id: uuid(),
-                choices: [
-                  {
-                    delta: {
-                      tool_calls: [
-                        {
-                          type: "server_tool",
-                          index: 0,
-                          id: chunk.content_block.tool_use_id,
-                          status: 'success',
-                          tool_result: [messageContent],
-                          tool: {
-                            name: 'web_search',
-                            title: 'Claude Web Search',
-                            icon: 'https://file.enconvo.com/extensions/internet_browsing/assets/icon.png',
-                            description: 'Web Search',
-                            toolType: 'method',
-                          },
-                        },
-                      ],
-                      role: "assistant",
-                    },
-                    finish_reason: null,
-                    index: 0,
-                  },
-                ],
-                created: Date.now(),
-                object: "chat.completion.chunk",
-              };
-
-
-
+                type: 'content_block_start',
+                content_block: {
+                  type: 'server_tool_use_result',
+                  message_contents: [messageContent],
+                  tool: {
+                    name: 'web_search',
+                    ...serverTool,
+                    id: chunk.content_block.tool_use_id,
+                  }
+                },
+              }
 
             } else {
 
             }
           }
         } else if (chunk.type === "content_block_stop") {
-          content_block_start = false;
-        }
-
-        if (chunk.type === "content_block_delta") {
-          if (!content_block_start) {
-            continue;
+          yield {
+            type: 'content_block_stop',
           }
+        } else if (chunk.type === "content_block_delta") {
 
           if (chunk.delta.type === "text_delta") {
             yield {
-              model: "Anthropic",
-              id: uuid(),
-              choices: [
-                {
-                  delta: {
-                    content: chunk.delta.text,
-                    role: "assistant",
-                  },
-                  finish_reason: null,
-                  index: 0,
-                },
-              ],
-              created: Date.now(),
-              object: "chat.completion.chunk",
-            };
+              type: 'content_block_delta',
+              delta: chunk.delta
+            }
           } else if (chunk.delta.type === "thinking_delta") {
             yield {
-              model: "Anthropic",
-              id: uuid(),
-              choices: [
-                {
-                  delta: {
-                    //@ts-ignore
-                    reasoning_content: chunk.delta.thinking,
-                    role: "assistant",
-                  },
-                  finish_reason: null,
-                  index: 0,
-                },
-              ],
-              created: Date.now(),
-              object: "chat.completion.chunk",
-            };
+              type: 'content_block_delta',
+              delta: chunk.delta
+            }
+          } else if (chunk.delta.type === "signature_delta") {
+            yield {
+              type: 'content_block_delta',
+              delta: chunk.delta
+            }
           } else if (chunk.delta.type === "input_json_delta") {
             yield {
-              model: "Anthropic",
-              id: uuid(),
-              choices: [
-                {
-                  delta: {
-                    tool_calls: [
-                      {
-                        index: 0,
-                        function: {
-                          arguments: chunk.delta.partial_json,
-                        },
-                      },
-                    ],
-                    role: "assistant",
-                  },
-                  finish_reason: null,
-                  index: 0,
-                },
-              ],
-              created: Date.now(),
-              object: "chat.completion.chunk",
-            };
+              type: 'content_block_delta',
+              delta: chunk.delta
+            }
           }
         }
       }
-      done = true;
     } catch (e) {
       if (e instanceof Error && e.name === "AbortError") return;
       throw e;
     } finally {
-      if (!done) controller.abort();
     }
   }
 

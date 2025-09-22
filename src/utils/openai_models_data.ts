@@ -95,12 +95,12 @@ export const openai_models_data: Preference.LLMModel[] = [
     maxTokens: 128000,
     inputPrice: 1.25, // Standard pricing per 1M tokens
     outputPrice: 10.0,
-    toolUse: true,
+    toolUse: false,
     visionEnable: true,
     systemMessageEnable: true,
     speed: 3,
     reasoning: 4,
-    imageGeneration: true,
+    imageGeneration: false,
   },
   {
     type: "llm_model",

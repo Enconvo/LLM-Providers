@@ -58,20 +58,12 @@ export class AnthropicProvider extends LLMProvider {
 
       const authProvider = await AuthProvider.create("anthropic");
       oauthCredentials = await authProvider.loadCredentials();
-      console.log("loaded anthropic credentials", oauthCredentials,authProvider);
+      // console.log("loaded anthropic credentials", oauthCredentials,authProvider);
 
       headers["anthropic-beta"] =
         "oauth-2025-04-20,claude-code-20250219,interleaved-thinking-2025-05-14,fine-grained-tool-streaming-2025-05-14";
     }
 
-    console.log("anthropic credentials", credentialsType, {
-      apiKey:
-        credentialsType === "apiKey" ? credentials?.anthropicApiKey : undefined,
-      authToken:
-        credentialsType === "oauth2" ? oauthCredentials?.access_token : undefined,
-      baseURL: credentials?.anthropicApiUrl,
-      defaultHeaders: headers,
-    });
 
     const anthropic = new Anthropic({
       apiKey:
@@ -90,9 +82,8 @@ export class AnthropicProvider extends LLMProvider {
     const stream = await this._stream(content);
     let message = "";
     for await (const chunk of stream) {
-      // console.log("chunk", chunk)
-      if (chunk.choices?.[0]?.delta?.content) {
-        message += chunk.choices[0].delta.content;
+      if (chunk.type === 'content_block_delta' && chunk.delta?.type === 'text_delta') {
+        message += chunk.delta.text;
       }
     }
 
@@ -153,7 +144,6 @@ export class AnthropicProvider extends LLMProvider {
     const conversationMessages = messages.filter(
       (message) => message.role !== "system",
     );
-
 
     const newMessages = await convertMessagesToAnthropicMessages(
       conversationMessages,
