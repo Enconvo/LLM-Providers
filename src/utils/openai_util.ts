@@ -31,8 +31,16 @@ import {
   Tool,
 } from "openai/resources/responses/responses.mjs";
 import mime from "mime";
-import { saveBinaryFile } from "./google_util.ts";
 export namespace OpenAIUtil {
+
+  export const serverTools = [
+    {
+      name: 'web_search',
+      title: 'OpenAI Web Search',
+      icon: 'https://file.enconvo.com/extensions/internet_browsing/assets/icon.png',
+      description: '',
+    }
+  ]
 
   export const convertMessageToOpenAIResponseMessage = async (
     llmOptions: LLMProvider.LLMOptions,
@@ -41,34 +49,7 @@ export namespace OpenAIUtil {
   ): Promise<(ResponseOutputItem | ResponseInputItem)[]> => {
     let role = message.role;
 
-    if (message.role === "tool") {
-      const rawToolMessage: ToolMessage = message as ToolMessage;
 
-      const toolCallMessage: ResponseInputItem = {
-        type: "function_call_output",
-        call_id: rawToolMessage.tool_call_id,
-        output:
-          typeof rawToolMessage.content === "string"
-            ? rawToolMessage.content
-            : JSON.stringify(rawToolMessage.content),
-      };
-
-      return [toolCallMessage];
-    }
-
-    if (message.role === "assistant") {
-      const aiMessage = message as AssistantMessage;
-      if (aiMessage.tool_calls && aiMessage.tool_calls.length > 0) {
-        const firstToolCall = aiMessage.tool_calls[0];
-        const toolCallMessage: ResponseOutputItem = {
-          type: "function_call",
-          call_id: firstToolCall.id,
-          name: firstToolCall.function.name,
-          arguments: firstToolCall.function.arguments,
-        };
-        return [toolCallMessage];
-      }
-    }
 
     if (
       typeof message.content === "string" &&
@@ -154,7 +135,7 @@ export namespace OpenAIUtil {
             }
           }
           const imageGenerationToolEnabled = params.imageGenerationToolEnabled && params.imageGenerationToolEnabled !== 'disabled';
-        if ((Runtime.isAgentMode() || imageGenerationToolEnabled) && params.addImageAdditionalInfo !== false) {
+          if ((Runtime.isAgentMode() || imageGenerationToolEnabled) && params.addImageAdditionalInfo !== false) {
             messageContents.push({
               type: "input_text",
               text: `The above image's url is ${url} , only used for reference when you use tool.`,
@@ -546,6 +527,7 @@ export namespace OpenAIUtil {
         type: "function",
         name: tool.name,
         description: tool.description,
+        //@ts-ignore
         parameters: tool.parameters,
         strict: false,
       };
@@ -838,216 +820,90 @@ export namespace OpenAIUtil {
           if (chunk.type === "response.output_item.added") {
             if (chunk.item.type === "function_call") {
               yield {
-                model: "OpenAIResponse",
-                id: uuid(),
-                choices: [
-                  {
-                    delta: {
-                      tool_calls: [
-                        {
-                          type: "function",
-                          index: 0,
-                          function: {
-                            name: chunk.item.name,
-                          },
-                        },
-                      ],
-                      role: "assistant",
-                    },
-                    finish_reason: null,
-                    index: 0,
-                  },
-                ],
-                created: Date.now(),
-                object: "chat.completion.chunk",
-              };
-            } else if (chunk.item.type === 'image_generation_call') {
+                type: 'content_block_start',
+                content_block: {
+                  type: 'tool_use',
+                  name: chunk.item.name,
+                  input: {},
+                  id: chunk.item.call_id,
+                }
+              }
+            } else if (chunk.item.type === 'web_search_call') {
+              const serverTool = OpenAIUtil.serverTools.find((tool) => tool.name === 'web_search');
               yield {
-                model: "OpenAIResponse",
-                id: uuid(),
-                choices: [
-                  {
-                    delta: {
-                      tool_calls: [
-                        {
-                          type: "server_tool",
-                          index: 0,
-                          id: chunk.item.id,
-                          status: 'running',
-                          tool_result: [],
-                          tool: {
-                            name: 'image_generation',
-                            title: 'GPT-Image-1',
-                            icon: 'https://file.enconvo.com/extensions/llm/assets/gpt-image-1.png',
-                            description: 'Image Generation',
-                            toolType: 'method',
-                          },
-                        },
-                      ],
-                      role: "assistant",
-                    },
-                    finish_reason: null,
-                    index: 0,
-                  },
-                ],
-                created: Date.now(),
-                object: "chat.completion.chunk",
-              };
-
+                type: 'content_block_start',
+                content_block: {
+                  type: 'server_tool_use',
+                  name: 'web_search',
+                  input: {},
+                  id: chunk.item.id,
+                  ...serverTool
+                },
+              }
             }
           } else if (chunk.type === "response.output_item.done") {
-            if (chunk.item.type === 'web_search_call') {
+            if (chunk.item.type === 'function_call') {
+              yield {
+                type: 'content_block_stop',
+              }
+            } else if (chunk.item.type === 'web_search_call') {
+              const serverTool = OpenAIUtil.serverTools.find((tool) => tool.name === 'web_search');
 
               yield {
-                model: "OpenAIResponse",
-                id: uuid(),
-                choices: [
-                  {
-                    delta: {
-                      tool_calls: [
-                        {
-                          type: "server_tool",
-                          index: 0,
-                          id: chunk.item.id,
-                          status: 'success',
-                          tool_result: [],
-                          //@ts-ignore
-                          tool_arguments: chunk.item.status === 'completed' ? JSON.stringify({ query: chunk.item?.action?.query }) : undefined,
-                          tool: {
-                            name: 'web_search',
-                            title: 'OpenAI Built-in Web Search',
-                            icon: 'https://file.enconvo.com/extensions/internet_browsing/assets/icon.png',
-                            description: '',
-                            toolType: 'method',
-                          },
-                        },
-                      ],
-                      role: "assistant",
-                    },
-                    finish_reason: null,
-                    index: 0,
-                  },
-                ],
-                created: Date.now(),
-                object: "chat.completion.chunk",
-              };
-            } else if (chunk.item.type === 'image_generation_call') {
-
-              const fileName = uuid();
-              // @ts-ignore
-              let fileExtension = chunk.item.output_format || 'png'
-              let buffer = Buffer.from(chunk.item.result || "", "base64");
-
-              const cachePath = environment.cachePath;
-              const filePath = path.join(
-                cachePath,
-                `${fileName}.${fileExtension}`,
-              );
-              await saveBinaryFile(filePath, buffer);
-              const messageContent = ChatMessageContent.imageUrl({
-                url: filePath,
-              });
-
+                type: 'content_block_start',
+                content_block: {
+                  type: 'server_tool_use_result',
+                  message_contents: [],
+                  tool: {
+                    name: 'web_search',
+                    ...serverTool,
+                    //@ts-ignore
+                    input: { query: chunk.item?.action?.query },
+                    id: chunk.item.id,
+                  }
+                },
+              }
+            }
+          } else if (chunk.type === "response.content_part.added") {
+            if (chunk.part.type === 'output_text') {
               yield {
-                model: "OpenAIResponse",
-                id: uuid(),
-                choices: [
-                  {
-                    delta: {
-                      tool_calls: [
-                        {
-                          type: "server_tool",
-                          index: 0,
-                          id: chunk.item.id,
-                          status: 'success',
-                          tool_result: [messageContent],
-                          // @ts-ignore
-                          tool_arguments: chunk.item.status === 'completed' ? JSON.stringify({ prompt: chunk.item?.revised_prompt }) : undefined,
-                          tool: {
-                            name: 'image_generation',
-                            title: 'GPT-Image-1',
-                            icon: 'https://file.enconvo.com/extensions/llm/assets/gpt-image-1.png',
-                            description: 'Image Generation',
-                            toolType: 'method',
-                          },
-                        },
-                      ],
-                      role: "assistant",
-                    },
-                    finish_reason: null,
-                    index: 0,
-                  },
-                ],
-                created: Date.now(),
-                object: "chat.completion.chunk",
-              };
+                type: 'content_block_start',
+                content_block: {
+                  type: 'text',
+                  text: chunk.part.text,
+                }
+              }
+            }
+          } else if (chunk.type === "response.content_part.done") {
+            yield {
+              type: 'content_block_stop',
             }
           } else if (chunk.type === "response.output_text.delta") {
             yield {
-              model: "OpenAIResponse",
-              id: chunk.item_id || `msg_${uuid()}`,
-              choices: [
-                {
-                  delta: {
-                    content: chunk.delta,
-                    role: "assistant",
-                  },
-                  finish_reason: null,
-                  index: 0,
-                },
-              ],
-              created: Date.now(),
-              object: "chat.completion.chunk",
-            };
+              type: 'content_block_delta',
+              delta: {
+                type: 'text_delta',
+                text: chunk.delta,
+              }
+            }
+          } else if (chunk.type === "response.reasoning_summary_part.added") {
+            if (chunk.part.type === 'summary_text') {
+              yield {
+                type: 'content_block_start',
+                content_block: {
+                  type: 'thinking',
+                  thinking: chunk.part.text,
+                }
+              }
+            }
           } else if (chunk.type === "response.reasoning_summary_text.delta") {
             yield {
-              model: "OpenAIResponse",
-              id: chunk.item_id || `msg_${uuid()}`,
-              choices: [
-                {
-                  delta: {
-                    reasoning_content: chunk.delta,
-                    role: "assistant",
-                  },
-                  finish_reason: null,
-                  index: 0,
-                },
-              ],
-              created: Date.now(),
-              object: "chat.completion.chunk",
-            };
-          } else if (chunk.type === "response.web_search_call.in_progress") {
-            yield {
-              model: "OpenAIResponse",
-              id: uuid(),
-              choices: [
-                {
-                  delta: {
-                    tool_calls: [
-                      {
-                        type: "server_tool",
-                        index: 0,
-                        id: chunk.item_id,
-                        status: 'running',
-                        tool: {
-                          name: 'web_search',
-                          title: 'OpenAI Built-in Web Search',
-                          icon: 'https://file.enconvo.com/extensions/internet_browsing/assets/icon.png',
-                          description: '',
-                          toolType: 'method',
-                        },
-                      },
-                    ],
-                    role: "assistant",
-                  },
-                  finish_reason: null,
-                  index: 0,
-                },
-              ],
-              created: Date.now(),
-              object: "chat.completion.chunk",
-            };
-
+              type: 'content_block_delta',
+              delta: {
+                type: 'thinking_delta',
+                thinking: chunk.delta,
+              }
+            }
           } else if (chunk.type === "response.completed") {
             const item = chunk.response.output.find((item) => item.type === 'message' && item.content.some((item) => item.type === 'output_text' && item.annotations));
             if (item && item.type === 'message') {
@@ -1071,48 +927,23 @@ export namespace OpenAIUtil {
                   });
 
                   yield {
-                    model: "OpenAIResponse",
-                    id: uuid(),
-                    choices: [
-                      {
-                        delta: {
-                          message_content: messageContent,
-                          role: "assistant",
-                        },
-                        finish_reason: null,
-                        index: 0,
-                      },
-                    ],
-                    created: Date.now(),
-                    object: "chat.completion.chunk",
+                    type: 'content_block_start',
+                    content_block: {
+                      type: 'message_content',
+                      content: [messageContent],
+                    }
                   }
                 }
               }
             }
           } else if (chunk.type === "response.function_call_arguments.delta") {
             yield {
-              model: "OpenAIResponse",
-              id: uuid(),
-              choices: [
-                {
-                  delta: {
-                    tool_calls: [
-                      {
-                        index: 0,
-                        function: {
-                          arguments: chunk.delta,
-                        },
-                      },
-                    ],
-                    role: "assistant",
-                  },
-                  finish_reason: null,
-                  index: 0,
-                },
-              ],
-              created: Date.now(),
-              object: "chat.completion.chunk",
-            };
+              type: 'content_block_delta',
+              delta: {
+                type: 'input_json_delta',
+                partial_json: chunk.delta,
+              }
+            }
           }
         }
         done = true;

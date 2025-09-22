@@ -146,7 +146,6 @@ export class ChatOpenAIProvider extends LLMProvider {
       tools.push(...newTools);
     }
 
-    console.log("searchToolEnabled openai", content.searchToolEnabled);
     if (content.searchToolEnabled === 'auto') {
       if (modelOptions.searchToolSupported === true) {
         tools.push({
@@ -156,7 +155,6 @@ export class ChatOpenAIProvider extends LLMProvider {
       }
     }
 
-    console.log("imageGenerationToolEnabled openai", content.imageGenerationToolEnabled, modelOptions);
 
     params.input = messages;
 

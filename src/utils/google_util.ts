@@ -144,55 +144,7 @@ export const convertMessageToGoogleMessage = async (
   options: LLMProvider.LLMOptions,
   params: LLMProvider.Params,
 ): Promise<Content[]> => {
-  if (message.role === "tool") {
-    const toolMessage = message as ToolMessage;
-    let response: (string | ChatMessageContent)[] = [];
-    try {
-      response = JSON.parse(message.content as string);
-    } catch (e) {
-      console.log("toolMessage content error", message.content);
-    }
 
-    const content: Content = {
-      role: "function",
-      parts: [
-        {
-          functionResponse: {
-            name: toolMessage.tool_name,
-            response: {
-              content: response,
-            },
-          },
-        },
-      ],
-    };
-    return [content];
-  }
-
-  if (message.role === "assistant") {
-    const aiMessage = message as AssistantMessage;
-    if (aiMessage.tool_calls && aiMessage.tool_calls.length > 0) {
-      let args = {};
-      try {
-        args = JSON.parse(aiMessage.tool_calls[0].function.arguments);
-      } catch (e) {
-        console.error(e);
-      }
-
-      const content: Content = {
-        role: convertRole(message.role),
-        parts: [
-          {
-            functionCall: {
-              name: aiMessage.tool_calls[0].function.name,
-              args: args,
-            },
-          },
-        ],
-      };
-      return [content];
-    }
-  }
 
   if (typeof message.content === "string") {
     const content: Content = {
@@ -449,6 +401,7 @@ export function streamFromGoogle(
     }
     consumed = true;
     let done = false;
+    let runningContentBlockType: BaseChatMessageChunk.ContentBlock['type'] | undefined;
     try {
       for await (const chunk of response) {
         // console.log("google chunk", JSON.stringify(chunk, null, 2))
@@ -463,51 +416,40 @@ export function streamFromGoogle(
         } else if (candidate?.finishReason === FinishReason.PROHIBITED_CONTENT) {
           done = true;
           yield {
-            model: "Google",
-            id: uuid(),
-            choices: [
-              {
-                delta: {
-                  content: "The content is prohibited",
-                  role: "assistant",
-                },
-                finish_reason: "content_filter",
-                index: 0,
-              },
-            ],
-            created: Date.now(),
-            object: "chat.completion.chunk",
+            type: 'content_block_start',
+            content_block: {
+              type: 'message_content',
+              content: [
+                {
+                  type: 'error',
+                  text: 'The content is prohibited',
+                  id: uuid()
+                }
+              ]
+            }
           };
         }
 
         if (functionCalls && functionCalls.length > 0) {
-          const functionCall = functionCalls[0];
-          yield {
-            model: "Google",
-            id: uuid(),
-            choices: [
-              {
-                delta: {
-                  tool_calls: [
-                    {
-                      type: "function",
-                      index: 0,
-                      id: uuid(),
-                      function: {
-                        name: functionCall.name,
-                        arguments: JSON.stringify(functionCall.args),
-                      },
-                    },
-                  ],
-                  role: "assistant",
-                },
-                finish_reason: null,
-                index: 0,
-              },
-            ],
-            created: Date.now(),
-            object: "chat.completion.chunk",
-          };
+          if (runningContentBlockType !== 'tool_use') {
+            if (runningContentBlockType !== undefined) {
+              yield {
+                type: 'content_block_stop',
+              }
+            }
+            runningContentBlockType = 'tool_use';
+
+            const functionCall = functionCalls[0];
+            yield {
+              type: 'content_block_start',
+              content_block: {
+                type: 'tool_use',
+                name: functionCall.name || "",
+                input: functionCall.args || {},
+                id: functionCall.id || ""
+              }
+            }
+          }
         } else {
           // console.log("chunk", JSON.stringify(chunk, null, 2))
           const content = chunk.candidates?.[0]?.content?.parts?.[0];
@@ -532,23 +474,16 @@ export function streamFromGoogle(
               await saveBinaryFile(filePath, buffer);
 
               yield {
-                model: "Google",
-                id: uuid(),
-                choices: [
-                  {
-                    delta: {
-                      message_content: ChatMessageContent.imageUrl({
-                        url: filePath,
-                      }),
-                      role: "assistant",
-                    },
-                    finish_reason: null,
-                    index: 0,
-                  },
-                ],
-                created: Date.now(),
-                object: "chat.completion.chunk",
-              };
+                type: 'content_block_start',
+                content_block: {
+                  type: 'message_content',
+                  content: [
+                    ChatMessageContent.imageUrl({
+                      url: filePath,
+                    })
+                  ]
+                }
+              }
             } else if (isAudio) {
               const fileName = uuid();
               let fileExtension = "wav";
@@ -562,60 +497,66 @@ export function streamFromGoogle(
               await saveWaveFile(filePath, buffer);
 
               yield {
-                model: "Google",
-                id: uuid(),
-                choices: [
-                  {
-                    delta: {
-                      message_content: ChatMessageContent.audio({
-                        url: filePath,
-                      }),
-                      role: "assistant",
-                    },
-                    finish_reason: null,
-                    index: 0,
-                  },
-                ],
-                created: Date.now(),
-                object: "chat.completion.chunk",
-              };
+                type: 'content_block_start',
+                content_block: {
+                  type: 'message_content',
+                  content: [
+                    ChatMessageContent.audio({
+                      url: filePath,
+                    })
+                  ]
+                }
+              }
             }
           } else {
             if (content?.thought === true) {
-              yield {
-                model: "Google",
-                id: uuid(),
-                choices: [
-                  {
-                    delta: {
-                      //@ts-ignore
-                      reasoning_content: content?.text,
-                      role: "assistant",
-                    },
-                    finish_reason: null,
-                    index: 0,
-                  },
-                ],
-                created: Date.now(),
-                object: "chat.completion.chunk",
-              };
+              if (runningContentBlockType !== 'thinking') {
+                if (runningContentBlockType !== undefined) {
+                  yield {
+                    type: 'content_block_stop',
+                  }
+                }
+                runningContentBlockType = 'thinking';
+                yield {
+                  type: 'content_block_start',
+                  content_block: {
+                    type: 'thinking',
+                    thinking: content?.text || "",
+                  }
+                }
+              } else if (runningContentBlockType === 'thinking') {
+                yield {
+                  type: 'content_block_delta',
+                  delta: {
+                    type: 'thinking_delta',
+                    thinking: content?.text || "",
+                  }
+                }
+              }
             } else if (content?.text && content?.text !== "") {
-              yield {
-                model: "Google",
-                id: uuid(),
-                choices: [
-                  {
-                    delta: {
-                      content: chunk.text,
-                      role: "assistant",
-                    },
-                    finish_reason: null,
-                    index: 0,
-                  },
-                ],
-                created: Date.now(),
-                object: "chat.completion.chunk",
-              };
+              if (runningContentBlockType !== 'text') {
+                if (runningContentBlockType !== undefined) {
+                  yield {
+                    type: 'content_block_stop',
+                  }
+                }
+                runningContentBlockType = 'text';
+                yield {
+                  type: 'content_block_start',
+                  content_block: {
+                    type: 'text',
+                    text: content?.text || "",
+                  }
+                }
+              } else if (runningContentBlockType === 'text') {
+                yield {
+                  type: 'content_block_delta',
+                  delta: {
+                    type: 'text_delta',
+                    text: content?.text || "",
+                  }
+                }
+              }
             }
           }
         }
@@ -636,23 +577,16 @@ export function streamFromGoogle(
             aiResult
           });
 
-
           yield {
-            model: "Google",
-            id: uuid(),
-            choices: [
-              {
-                delta: {
-                  message_content: messageContent,
-                  role: "assistant",
-                },
-                finish_reason: null,
-                index: 0,
-              },
-            ],
-            created: Date.now(),
-            object: "chat.completion.chunk",
-          };
+            type: 'content_block_start',
+            content_block: {
+              type: 'message_content',
+              content: [
+                messageContent
+              ]
+            }
+          }
+
         }
       }
       done = true;
@@ -660,6 +594,11 @@ export function streamFromGoogle(
       if (e instanceof Error && e.name === "AbortError") return;
       throw e;
     } finally {
+      if (runningContentBlockType !== undefined) {
+        yield {
+          type: 'content_block_stop',
+        }
+      }
       if (!done) controller.abort();
     }
   }
