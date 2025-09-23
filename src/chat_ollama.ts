@@ -77,11 +77,13 @@ export class OllamaProvider extends LLMProvider {
       this.options,
     );
 
+    const thinking = this.options.modelName.thinking || false
+
     const params: ChatRequest = {
       model: this.options.modelName.value,
       messages: newMessages,
       tools: OllamaUtil.convertAIToolsToOllamaTools(content.tools),
-      think: this.options.reasoning_effort.value === "enabled" ? undefined : false,
+      think: thinking ? this.options.reasoning_effort.value === "enabled" ? undefined : false : undefined,
       options: {
         temperature: this.options.temperature.value || 1,
       }

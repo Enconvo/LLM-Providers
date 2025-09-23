@@ -1,93 +1,6 @@
 import { ListCache, RequestOptions } from "@enconvo/api";
 import { Ollama } from "ollama";
 
-const embeddingModels = [
-  {
-    title: "nomic-embed-text",
-    value: "nomic-embed-text",
-    context: 8192,
-    dimension: 768,
-  },
-  {
-    title: "mxbai-embed-large",
-    value: "mxbai-embed-large",
-    context: 512,
-    dimension: 1024,
-  },
-  {
-    title: "snowflake-arctic-embed", // Default 335M parameter model
-    value: "snowflake-arctic-embed",
-    context: 512,
-    dimension: 1024,
-  },
-  {
-    title: "snowflake-arctic-embed:335m", // Default 335M parameter model
-    value: "snowflake-arctic-embed:335m",
-    context: 512,
-    dimension: 1024,
-  },
-  {
-    title: "snowflake-arctic-embed:137m", // 137M parameter model
-    value: "snowflake-arctic-embed:137m",
-    context: 8192,
-    dimension: 768,
-  },
-  {
-    title: "snowflake-arctic-embed:110m", // 110M parameter model
-    value: "snowflake-arctic-embed:110m",
-    context: 512,
-    dimension: 768,
-  },
-  {
-    title: "snowflake-arctic-embed:33m", // 33M parameter model
-    value: "snowflake-arctic-embed:33m",
-    context: 512,
-    dimension: 384,
-  },
-  {
-    title: "snowflake-arctic-embed:22m", // 22M parameter model
-    value: "snowflake-arctic-embed:22m",
-    context: 512,
-    dimension: 384,
-  },
-  {
-    title: "all-minilm", // Embedding model trained on large sentence datasets
-    value: "all-minilm",
-    context: 256,
-    dimension: 384,
-  },
-  {
-    title: "embedding:22m", // 22M parameter embedding model
-    value: "embedding:22m",
-    context: 256,
-    dimension: 384,
-  },
-  {
-    title: "embedding:33m", // 33M parameter embedding model
-    value: "embedding:33m",
-    context: 256,
-    dimension: 384,
-  },
-  {
-    title: "bge-m3", // 33M parameter embedding model
-    value: "bge-m3",
-    context: 8192,
-    dimension: 1024,
-  },
-  {
-    title: "bge-large", // 33M parameter embedding model
-    value: "bge-large",
-    context: 512,
-    dimension: 1024,
-  },
-  {
-    title: "paraphrase-multilingual", // 33M parameter embedding model
-    value: "paraphrase-multilingual",
-    context: 128,
-    dimension: 768,
-  },
-];
-
 async function fetchModels(options: RequestOptions) {
   const credentials = options.credentials;
 
@@ -117,21 +30,25 @@ async function fetchModels(options: RequestOptions) {
   let models: ListCache.ListItem[] = [];
   try {
     const list = await ollama.list();
-    models = list.models
-      .filter(
-        (item) => !embeddingModels.some((em) => item.name.includes(em.value)),
-      )
-      .map((item) => {
+    models = (await Promise.all(list.models
+      .map(async (item) => {
+        const modelInfo = await ollama.show({ model: item.name });
+        console.log("ollama modelInfo", JSON.stringify(modelInfo.capabilities, null, 2));
+        if (!modelInfo.capabilities.includes("completion")) {
+          return null;
+        }
+
         return {
           title: item.name,
           value: item.name,
           providerName: item.details.family,
+          toolUse: modelInfo.capabilities.includes("tools"),
+          thinking: modelInfo.capabilities.includes("thinking"),
           context: 8000,
           maxTokens: 1024,
-          visionEnable:
-            item.name.includes("llava") || item.name.includes("vision"),
+          visionEnable: modelInfo.capabilities.includes("vision"),
         };
-      });
+      }))).filter((item) => item !== null);
   } catch (err) {
     console.log(err);
   }
