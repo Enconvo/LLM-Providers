@@ -117,7 +117,6 @@ async function fetchModels(options: RequestOptions) {
   let models: ListCache.ListItem[] = [];
   try {
     const list = await ollama.list();
-    // console.log("ollama list", JSON.stringify(list, null, 2));
     models = list.models
       .filter(
         (item) => !embeddingModels.some((em) => item.name.includes(em.value)),
@@ -129,7 +128,6 @@ async function fetchModels(options: RequestOptions) {
           providerName: item.details.family,
           context: 8000,
           maxTokens: 1024,
-          // Add vision flag for vision-capable models
           visionEnable:
             item.name.includes("llava") || item.name.includes("vision"),
         };

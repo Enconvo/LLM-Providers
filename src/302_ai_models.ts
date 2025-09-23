@@ -50,7 +50,6 @@ async function fetchModels(
     // console.log("Total models fetched:", result)
     return result;
   } catch (error) {
-    console.error("Error fetching models:", error);
     return [];
   }
 }
@@ -63,7 +62,6 @@ async function fetchModels(
 export default async function main(req: Request): Promise<string> {
   const options = await req.json();
   const credentials = options.credentials;
-  console.log("302_ai_models credentials", credentials);
   options.api_key = credentials.apiKey;
 
   const url = credentials.baseUrl.endsWith("/")
