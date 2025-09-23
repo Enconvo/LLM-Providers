@@ -57,7 +57,7 @@ export namespace OllamaUtil {
       let runningContentBlockType: BaseChatMessageChunk.ContentBlock['type'] | undefined;
       try {
         for await (const chunk of response) {
-          console.log("ollama chunk", JSON.stringify(chunk, null, 2));
+          // console.log("ollama chunk", JSON.stringify(chunk, null, 2));
           if (done) continue;
 
           if (chunk.done) {
