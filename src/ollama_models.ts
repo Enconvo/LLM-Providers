@@ -117,6 +117,7 @@ async function fetchModels(options: RequestOptions) {
   let models: ListCache.ListItem[] = [];
   try {
     const list = await ollama.list();
+    // console.log("ollama list", JSON.stringify(list, null, 2));
     models = list.models
       .filter(
         (item) => !embeddingModels.some((em) => item.name.includes(em.value)),

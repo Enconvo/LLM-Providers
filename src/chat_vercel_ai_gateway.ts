@@ -151,7 +151,7 @@ export class VercelAIGatewayProvider extends LLMProvider {
       providerOptions: providerOptions,
     });
 
-    return streamFromVercel(result.fullStream);
+    return streamFromVercel(result);
   }
 
   async initParams(content: LLMProvider.Params) {

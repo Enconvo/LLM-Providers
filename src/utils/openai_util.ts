@@ -726,7 +726,7 @@ export namespace OpenAIUtil {
 
     newMessages = ensureFirstMessageIsUser(newMessages);
 
-    // console.log("newMessages", JSON.stringify(newMessages, null, 2))
+    console.log("openai Completions newMessages", JSON.stringify(newMessages, null, 2))
     return newMessages;
   };
 
@@ -739,13 +739,15 @@ export namespace OpenAIUtil {
       await Promise.all(
         messages.map((message) =>
           convertMessageToOpenAIResponseMessage(options, message, params),
-        ),
+        )
       )
     ).flat();
 
-    console.log("openai newMessages", JSON.stringify(newMessages, null, 2))
+    console.log("openai Responses newMessages", JSON.stringify(newMessages, null, 2))
     return newMessages;
   };
+
+
 
   export function streamFromOpenAI(
     response: AsyncIterable<OpenAI.Chat.ChatCompletionChunk>,
@@ -766,11 +768,110 @@ export namespace OpenAIUtil {
       }
       consumed = true;
       let done = false;
+      let runningContentBlockType: BaseChatMessageChunk.ContentBlock['type'] | undefined;
       try {
         for await (const chunk of response) {
-          // console.log("chunk", JSON.stringify(chunk, null, 2), options?.commandName)
+          console.log("chunk", JSON.stringify(chunk, null, 2), options?.commandName)
           if (done) continue;
-          yield chunk;
+          if (chunk.choices.length > 0) {
+            const choice = chunk.choices[0];
+            if (choice.delta.content) {
+              if (runningContentBlockType !== 'text') {
+                if (runningContentBlockType !== undefined) {
+                  yield {
+                    type: 'content_block_stop',
+                  }
+                }
+                runningContentBlockType = 'text';
+                yield {
+                  type: 'content_block_start',
+                  content_block: {
+                    type: 'text',
+                    text: '',
+                  }
+                }
+                yield {
+                  type: 'content_block_delta',
+                  delta: {
+                    type: 'text_delta',
+                    text: choice.delta.content,
+                  }
+                }
+              } else {
+                yield {
+                  type: 'content_block_delta',
+                  delta: {
+                    type: 'text_delta',
+                    text: choice.delta.content,
+                  }
+                }
+              }
+            } else if (choice.delta.tool_calls && choice.delta.tool_calls.length > 0) {
+              const toolCall = choice.delta.tool_calls[0];
+              const toolFunction = toolCall.function;
+              if (runningContentBlockType !== 'tool_use') {
+                if (runningContentBlockType !== undefined) {
+                  yield {
+                    type: 'content_block_stop',
+                  }
+                }
+                runningContentBlockType = 'tool_use';
+                if (toolFunction?.name) {
+                  yield {
+                    type: 'content_block_start',
+                    content_block: {
+                      type: 'tool_use',
+                      name: toolFunction.name,
+                      input: {},
+                      id: toolCall.id || '',
+                    }
+                  }
+                }
+              } else {
+                yield {
+                  type: 'content_block_delta',
+                  delta: {
+                    type: 'input_json_delta',
+                    partial_json: toolFunction?.arguments || '',
+                  }
+                }
+              }
+              //@ts-ignore
+            } else if (choice.delta.reasoning && choice.delta.reasoning !== '') {
+              if (runningContentBlockType !== 'thinking') {
+                if (runningContentBlockType !== undefined) {
+                  yield {
+                    type: 'content_block_stop',
+                  }
+                }
+                runningContentBlockType = 'thinking';
+                yield {
+                  type: 'content_block_start',
+                  content_block: {
+                    type: 'thinking',
+                    thinking: '',
+                  }
+                }
+                yield {
+                  type: 'content_block_delta',
+                  delta: {
+                    type: 'thinking_delta',
+                    //@ts-ignore
+                    thinking: choice.delta.reasoning,
+                  }
+                }
+              } else {
+                yield {
+                  type: 'content_block_delta',
+                  delta: {
+                    type: 'thinking_delta',
+                    //@ts-ignore
+                    thinking: choice.delta.reasoning,
+                  }
+                }
+              }
+            }
+          }
         }
         done = true;
       } catch (e) {
@@ -778,6 +879,11 @@ export namespace OpenAIUtil {
         if (e instanceof Error && e.name === "AbortError") return;
         throw e;
       } finally {
+        if (runningContentBlockType !== undefined) {
+          yield {
+            type: 'content_block_stop',
+          }
+        }
         if (!done) controller.abort();
       }
     }

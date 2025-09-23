@@ -53,7 +53,6 @@ async function fetchModels(
     // console.log("Total models fetched:", result)
     return result;
   } catch (error) {
-    console.error("Error fetching models:", error);
     return [];
   }
 }

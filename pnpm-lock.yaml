@@ -63,8 +63,8 @@ importers:
         specifier: ^4.0.6
         version: 4.0.6
       ollama:
-        specifier: ^0.5.17
-        version: 0.5.17
+        specifier: ^0.5.18
+        version: 0.5.18
       open:
         specifier: ^10.2.0
         version: 10.2.0
@@ -2919,8 +2919,8 @@ packages:
     resolution: {integrity: sha512-kDCGIbxkDSXE3euJZZXzc6to7fCrKHNI/hSRQnRuQ+BWjFNzZwiFF8fj/6o2t2G9/jTj8PSIYTfCLelLZEeRpA==}
     engines: {node: '>= 0.4'}
 
-  ollama@0.5.17:
-    resolution: {integrity: sha512-q5LmPtk6GLFouS+3aURIVl+qcAOPC4+Msmx7uBb3pd+fxI55WnGjmLZ0yijI/CYy79x0QPGx3BwC3u5zv9fBvQ==}
+  ollama@0.5.18:
+    resolution: {integrity: sha512-lTFqTf9bo7Cd3hpF6CviBe/DEhewjoZYd9N/uCe7O20qYTvGqrNOFOBDj3lbZgFWHUgDv5EeyusYxsZSLS8nvg==}
 
   open@10.2.0:
     resolution: {integrity: sha512-YgBpdJHPyQ2UE5x+hlSXcnejzAvD0b22U2OuAP+8OnlJT+PjWPxtgmGqKKc+RgTM63U9gN0YzrYc71R2WT/hTA==}
@@ -6594,7 +6594,7 @@ snapshots:
 
   object-inspect@1.13.3: {}
 
-  ollama@0.5.17:
+  ollama@0.5.18:
     dependencies:
       whatwg-fetch: 3.6.20
 

@@ -4,9 +4,8 @@ import {
   BaseChatMessageChunk,
   LLMProvider,
   Stream,
-  uuid,
 } from "@enconvo/api";
-import { Ollama } from "ollama";
+import { ChatRequest, Ollama } from "ollama";
 import { OllamaUtil } from "./utils/ollama_util.ts";
 
 export default function main(options: any) {
@@ -46,16 +45,12 @@ export class OllamaProvider extends LLMProvider {
   }
 
   protected async _call(content: LLMProvider.Params): Promise<BaseChatMessage> {
-    const newMessages = await OllamaUtil.convertMessagesToOllamaMessages(
-      content.messages,
-      this.options,
-    );
 
-    const params = this.initParams();
+    const params = await this.initParams(content);
 
     const response = await this.ollama.chat({
       ...params,
-      messages: newMessages,
+      stream: false,
     });
 
     return new AssistantMessage(response.message.content);
@@ -64,82 +59,36 @@ export class OllamaProvider extends LLMProvider {
   protected async _stream(
     content: LLMProvider.Params,
   ): Promise<Stream<BaseChatMessageChunk>> {
+
+    const params = await this.initParams(content);
+
+    const response = await this.ollama.chat({
+      ...params,
+      stream: true,
+    });
+
+    return OllamaUtil.streamFromOllama(response);
+  }
+
+  async initParams(content: LLMProvider.Params): Promise<ChatRequest> {
+
     const newMessages = await OllamaUtil.convertMessagesToOllamaMessages(
       content.messages,
       this.options,
     );
 
-    const params = this.initParams();
-
-    const response = await this.ollama.chat({
-      ...params,
-      messages: newMessages,
-      stream: true,
-    });
-
-    let consumed = false;
-
-    async function* iterator(): AsyncIterator<
-      BaseChatMessageChunk,
-      any,
-      undefined
-    > {
-      if (consumed) {
-        throw new Error(
-          "Cannot iterate over a consumed stream, use `.tee()` to split the stream.",
-        );
-      }
-      consumed = true;
-      let done = false;
-      try {
-        for await (const chunk of response) {
-          if (done) continue;
-
-          if (chunk.done) {
-            done = true;
-            continue;
-          }
-
-          const newChunk: BaseChatMessageChunk = {
-            model: "Ollama",
-            id: uuid(),
-            choices: [
-              {
-                delta: {
-                  content: chunk.message.content,
-                  role: "assistant",
-                },
-                finish_reason: null,
-                index: 0,
-              },
-            ],
-            created: Date.now(),
-            object: "chat.completion.chunk",
-          };
-
-          yield newChunk;
-        }
-        done = true;
-      } catch (e) {
-        if (e instanceof Error && e.name === "AbortError") return;
-        throw e;
-      } finally {
-        if (!done) response.abort();
-      }
-    }
-
-    const controller = new AbortController();
-    controller.signal.addEventListener("abort", () => {
-      response.abort();
-    });
-
-    return new Stream(iterator, controller);
-  }
-
-  initParams() {
-    return {
+    const params: ChatRequest = {
       model: this.options.modelName.value,
-      temperature: this.options.temperature.value,
+      messages: newMessages,
+      tools: OllamaUtil.convertAIToolsToOllamaTools(content.tools),
+      think: this.options.reasoning_effort.value === "enabled" ? undefined : false,
+      options: {
+        temperature: this.options.temperature.value || 1,
+      }
     };
+
+
+    console.log("ollama params", JSON.stringify(params, null, 2));
+    return params;
   }
 }

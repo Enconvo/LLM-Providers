@@ -1688,6 +1688,26 @@
               "value": 2
             }
           ]
+        },
+        {
+          "name": "reasoning_effort",
+          "description": "Applicable to reasoning models only, this option controls the reasoning token length.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Reasoning Effort",
+          "default": "disabled",
+          "data": [
+            {
+              "title": "Disabled",
+              "value": "disabled",
+              "description": "Disabled"
+            },
+            {
+              "title": "Thinking",
+              "value": "enabled",
+              "description": "Enabled"
+            }
+          ]
         }
       ]
     },
@@ -4009,7 +4029,7 @@
     "langchain": "^0.3.7",
     "langsmith": "^0.3.28",
     "mime": "^4.0.6",
-    "ollama": "^0.5.17",
+    "ollama": "^0.5.18",
     "open": "^10.2.0",
     "openai": "^5.20.2",
     "wav": "^1.0.2",

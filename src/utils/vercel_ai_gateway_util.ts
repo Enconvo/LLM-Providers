@@ -15,13 +15,17 @@ import mime from "mime";
 import {
   AssistantContent,
   AssistantModelMessage,
+  AsyncIterableStream,
   ImagePart,
   ModelMessage,
+  StreamTextResult,
   SystemModelMessage,
   TextPart,
+  TextStreamPart,
   ToolCallPart,
   ToolModelMessage,
   ToolResultPart,
+  ToolSet,
   UserContent,
   UserModelMessage,
 } from "ai";
@@ -275,13 +279,13 @@ export const convertMessagesToVercelFormat = async (
     )
   ).flat();
 
-  console.log("newMessages", JSON.stringify(newMessages, null, 2));
+  console.log("vercel newMessages", JSON.stringify(newMessages, null, 2));
 
   return newMessages;
 };
 
 export function streamFromVercel(
-  response: ReadableStream,
+  response: StreamTextResult<ToolSet, never>,
 ): Stream<BaseChatMessageChunk> {
   const controller = new AbortController();
 
@@ -290,74 +294,49 @@ export function streamFromVercel(
     any,
     undefined
   > {
-    for await (const part of response) {
-      console.log("textPart", part)
-      if (part.type === "text-delta") {
+    for await (const part of response.fullStream) {
+      if (part.type === "text-start") {
         yield {
-          model: "Vercel AI Gateway",
-          id: part.id,
-          choices: [
-            {
-              delta: {
-                content: part.text,
-                role: "assistant",
-              },
-              finish_reason: null,
-              index: 0,
-            },
-          ],
-          created: Date.now(),
-          object: "chat.completion.chunk",
+          type: "content_block_start",
+          content_block: {
+            type: "text",
+            text: '',
+          },
         };
+      } else if (part.type === "text-delta") {
+        yield {
+          type: "content_block_delta",
+          delta: {
+            type: "text_delta",
+            text: part.text,
+          },
+        };
+      } else if (part.type === "text-end") {
+        yield {
+          type: "content_block_stop",
+        };
+
       } else if (part.type === "tool-input-start") {
         yield {
-          model: "Vercel AI Gateway",
-          id: uuid(),
-          choices: [
-            {
-              delta: {
-                tool_calls: [
-                  {
-                    type: "function",
-                    index: 0,
-                    id: part.id,
-                    function: {
-                      name: part.toolName,
-                    },
-                  },
-                ],
-                role: "assistant",
-              },
-              finish_reason: null,
-              index: 0,
-            },
-          ],
-          created: Date.now(),
-          object: "chat.completion.chunk",
+          type: "content_block_start",
+          content_block: {
+            type: "tool_use",
+            name: part.toolName,
+            input: {},
+            id: part.id,
+          },
         };
       } else if (part.type === "tool-input-delta") {
         yield {
-          model: "Vercel AI Gateway",
-          id: uuid(),
-          choices: [
-            {
-              delta: {
-                tool_calls: [
-                  {
-                    index: 0,
-                    function: {
-                      arguments: part.delta,
-                    },
-                  },
-                ],
-                role: "assistant",
-              },
-              finish_reason: null,
-              index: 0,
-            },
-          ],
-          created: Date.now(),
-          object: "chat.completion.chunk",
+          type: "content_block_delta",
+          delta: {
+            type: "input_json_delta",
+            partial_json: part.delta,
+          },
+        };
+      } else if (part.type === "tool-input-end") {
+        yield {
+          type: "content_block_stop",
         };
       }
     }
