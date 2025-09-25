@@ -128,10 +128,8 @@ export const convertMessageToVercelFormat = async (
     let parts: UserContent | AssistantContent = [];
     const isAgentMode = Runtime.isAgentMode();
 
-    for (const item of message.content) {
-      if (item.type === "image_url") {
-        let url = item.image_url.url.replace("file://", "");
-        if (role === "user" && options.modelName.visionEnable === true) {
+    async function handleImageContentItem(url: string) {
+              if (role === "user" && options.modelName.visionEnable === true) {
           if (url.startsWith("http://") || url.startsWith("https://")) {
             const imagePart: ImagePart = {
               type: "image",
@@ -167,8 +165,15 @@ export const convertMessageToVercelFormat = async (
             type: "text",
             text: `The above image's url is ${url} , only used for reference when you use tool.`,
           };
+          //@ts-ignore
           parts.push(textPart);
         }
+    }
+
+    for (const item of message.content) {
+      if (item.type === "image_url") {
+        let url = item.image_url.url.replace("file://", "");
+        handleImageContentItem(url);
       } else if (item.type === "flow_step") {
         if (parts.length > 0) {
           const modelMessage = {
@@ -278,6 +283,10 @@ export const convertMessageToVercelFormat = async (
         }
       } else if (item.type === "file") {
         const url = item.file_url.url.replace("file://", "");
+        if (FileUtil.isImageFile(url)) {
+          handleImageContentItem(url);
+          continue;
+        }
         const readableContent = isAgentMode
           ? []
           : await AttachmentUtils.getAttachmentsReadableContent({

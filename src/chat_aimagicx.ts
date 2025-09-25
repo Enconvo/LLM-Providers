@@ -20,7 +20,7 @@ export class AimagicxProvider extends LLMProvider {
     super(options);
     this.baseUrl =
       options.credentials?.baseUrl || "https://beta.aimagicx.com/api/v1";
-    this.apiKey = options.credentials?.apiKey;
+    this.apiKey = options.credentials?.apiKey || "";
     if (!this.apiKey) {
       throw new Error("API key is required for AIMagicX provider");
     }
@@ -95,6 +95,8 @@ export class AimagicxProvider extends LLMProvider {
             // Keep incomplete line in buffer
             buffer = lines.pop() || "";
 
+            let runningContentBlockType: BaseChatMessageChunk.ContentBlock['type'] | undefined;
+
             for (const line of lines) {
               if (line.trim() === "") continue;
 
@@ -104,51 +106,63 @@ export class AimagicxProvider extends LLMProvider {
 
                 try {
                   const parsed = JSON.parse(data);
-
                   // Handle content chunks
                   if (parsed.choices?.[0]?.delta?.content) {
-                    const newChunk: BaseChatMessageChunk = {
-                      model: this.options.modelName.value,
-                      id: parsed.id || uuid(),
-                      choices: [
-                        {
-                          delta: {
-                            content: parsed.choices[0].delta.content,
-                            role: "assistant",
-                          },
-                          finish_reason:
-                            parsed.choices[0].finish_reason || null,
-                          index: 0,
-                        },
-                      ],
-                      created: parsed.created || Math.floor(Date.now() / 1000),
-                      object: "chat.completion.chunk",
-                    };
-                    yield newChunk;
+                    if (runningContentBlockType !== 'text') {
+                      if (runningContentBlockType !== undefined) {
+                        yield {
+                          type: 'content_block_stop',
+                        }
+                      }
+                      runningContentBlockType = 'text';
+                      yield {
+                        type: 'content_block_start',
+                        content_block: {
+                          type: 'text',
+                          text: '',
+                        }
+                      }
+
+                      yield {
+                        type: 'content_block_delta',
+                        delta: {
+                          type: 'text_delta',
+                          text: parsed.choices[0].delta.content,
+                        }
+                      }
+                    } else {
+                      yield {
+                        type: 'content_block_delta',
+                        delta: {
+                          type: 'text_delta',
+                          text: parsed.choices[0].delta.content,
+                        }
+                      }
+                    }
                   }
 
                   // Handle tool calls
-                  if (parsed.choices?.[0]?.delta?.tool_calls) {
-                    const toolCalls = parsed.choices[0].delta.tool_calls;
-                    const toolCallChunk: BaseChatMessageChunk = {
-                      model: this.options.modelName.value,
-                      id: parsed.id || uuid(),
-                      choices: [
-                        {
-                          delta: {
-                            tool_calls: toolCalls,
-                            role: "assistant",
-                          },
-                          finish_reason:
-                            parsed.choices[0].finish_reason || null,
-                          index: 0,
-                        },
-                      ],
-                      created: parsed.created || Math.floor(Date.now() / 1000),
-                      object: "chat.completion.chunk",
-                    };
-                    yield toolCallChunk;
-                  }
+                  // if (parsed.choices?.[0]?.delta?.tool_calls) {
+                  //   const toolCalls = parsed.choices[0].delta.tool_calls;
+                  //   const toolCallChunk: BaseChatMessageChunk = {
+                  //     model: this.options.modelName.value,
+                  //     id: parsed.id || uuid(),
+                  //     choices: [
+                  //       {
+                  //         delta: {
+                  //           tool_calls: toolCalls,
+                  //           role: "assistant",
+                  //         },
+                  //         finish_reason:
+                  //           parsed.choices[0].finish_reason || null,
+                  //         index: 0,
+                  //       },
+                  //     ],
+                  //     created: parsed.created || Math.floor(Date.now() / 1000),
+                  //     object: "chat.completion.chunk",
+                  //   };
+                  //   yield toolCallChunk;
+                  // }
                 } catch (e) {
                   // Skip invalid JSON lines
                   console.debug("Failed to parse SSE data:", data);

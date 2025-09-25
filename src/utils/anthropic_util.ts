@@ -209,14 +209,32 @@ export const convertMessageToAnthropicMessage = async (
     let parts: MessageContentType[] = [];
     const isAgentMode = Runtime.isAgentMode();
 
-    for (const item of message.content) {
-      if (item.type === "image_url") {
-        let url = item.image_url.url.replace("file://", "");
-        if (
-          role === "user" &&
-          options.modelName.visionEnable === true
-        ) {
-          if (url.startsWith("http://") || url.startsWith("https://")) {
+
+    async function handleImageContentItem(url: string) {
+      if (
+        role === "user" &&
+        options.modelName.visionEnable === true
+      ) {
+        if (url.startsWith("http://") || url.startsWith("https://")) {
+          const mimeType =
+            (mime.getType(url) as
+              | "image/jpeg"
+              | "image/png"
+              | "image/gif"
+              | "image/webp") || "image/png";
+          parts.push({
+            type: "image",
+            source: {
+              type: "base64",
+              media_type: mimeType,
+              data: url,
+            },
+          });
+        } else {
+          url = await ImageUtil.compressImage(url);
+
+          const base64 = FileUtil.convertFileUrlToBase64(url);
+          if (base64) {
             const mimeType =
               (mime.getType(url) as
                 | "image/jpeg"
@@ -228,39 +246,28 @@ export const convertMessageToAnthropicMessage = async (
               source: {
                 type: "base64",
                 media_type: mimeType,
-                data: url,
+                data: base64,
               },
             });
-          } else {
-            url = await ImageUtil.compressImage(url);
-
-            const base64 = FileUtil.convertFileUrlToBase64(url);
-            if (base64) {
-              const mimeType =
-                (mime.getType(url) as
-                  | "image/jpeg"
-                  | "image/png"
-                  | "image/gif"
-                  | "image/webp") || "image/png";
-              parts.push({
-                type: "image",
-                source: {
-                  type: "base64",
-                  media_type: mimeType,
-                  data: base64,
-                },
-              });
-            }
           }
         }
+      }
 
-        const imageGenerationToolEnabled = params.imageGenerationToolEnabled && params.imageGenerationToolEnabled !== 'disabled';
-        if ((Runtime.isAgentMode() || imageGenerationToolEnabled) && params.addImageAdditionalInfo !== false) {
-          parts.push({
-            type: "text",
-            text: `The above image's url is ${url} , only used for reference when you use tool.`,
-          });
-        }
+      const imageGenerationToolEnabled = params.imageGenerationToolEnabled && params.imageGenerationToolEnabled !== 'disabled';
+      if ((Runtime.isAgentMode() || imageGenerationToolEnabled) && params.addImageAdditionalInfo !== false) {
+        parts.push({
+          type: "text",
+          text: `The above image's url is ${url} , only used for reference when you use tool.`,
+        });
+      }
+    }
+
+
+
+    for (const item of message.content) {
+      if (item.type === "image_url") {
+        let url = item.image_url.url.replace("file://", "");
+        handleImageContentItem(url);
       } else if (item.type === "flow_step") {
         const results = item.flowResults
           .map((message) => {
@@ -376,6 +383,10 @@ export const convertMessageToAnthropicMessage = async (
         }
       } else if (item.type === "file") {
         const url = item.file_url.url.replace("file://", "");
+        if (FileUtil.isImageFile(url)) {
+          handleImageContentItem(url);
+          continue;
+        }
         const readableContent = isAgentMode
           ? []
           : await AttachmentUtils.getAttachmentsReadableContent({

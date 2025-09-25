@@ -160,30 +160,35 @@ export const convertMessageToGoogleMessage = async (
     let parts: Part[] = [];
     const contents: Content[] = [];
     const isAgentMode = Runtime.isAgentMode();
+
+    async function handleImageContentItem(url: string) {
+      url = await ImageUtil.compressImage(url);
+      const mimeType = mime.getType(url);
+      const base64 = await FileUtil.convertUrlToBase64(url);
+      if (options.modelName.visionEnable === true && base64) {
+        const image: Part = {
+          inlineData: {
+            data: base64,
+            mimeType: mimeType as string,
+          },
+        };
+        parts.push(image);
+      }
+
+      const imageGenerationToolEnabled = params.imageGenerationToolEnabled && params.imageGenerationToolEnabled !== 'disabled';
+      if ((isAgentMode || imageGenerationToolEnabled) && params.addImageAdditionalInfo !== false) {
+        const text: Part = {
+          text: `The above image's url is ${url} , only used for reference when you use tool.`,
+        };
+
+        parts.push(text);
+      }
+    }
+
     for (const item of message.content) {
       if (item.type === "image_url") {
         let url = item.image_url.url.replace("file://", "");
-        url = await ImageUtil.compressImage(url);
-        const mimeType = mime.getType(url);
-        const base64 = await FileUtil.convertUrlToBase64(url);
-        if (options.modelName.visionEnable === true && base64) {
-          const image: Part = {
-            inlineData: {
-              data: base64,
-              mimeType: mimeType as string,
-            },
-          };
-          parts.push(image);
-        }
-
-        const imageGenerationToolEnabled = params.imageGenerationToolEnabled && params.imageGenerationToolEnabled !== 'disabled';
-        if ((isAgentMode || imageGenerationToolEnabled) && params.addImageAdditionalInfo !== false) {
-          const text: Part = {
-            text: `The above image's url is ${url} , only used for reference when you use tool.`,
-          };
-
-          parts.push(text);
-        }
+        handleImageContentItem(url);
       } else if (item.type === "flow_step") {
         let args = {};
         try {
@@ -336,6 +341,10 @@ export const convertMessageToGoogleMessage = async (
         }
       } else if (item.type === "file") {
         const url = item.file_url.url.replace("file://", "");
+        if (FileUtil.isImageFile(url)) {
+          handleImageContentItem(url);
+          continue;
+        }
         const readableContent = isAgentMode
           ? []
           : await AttachmentUtils.getAttachmentsReadableContent({
@@ -394,7 +403,7 @@ export const convertMessagesToGoogleMessages = async (
   const newMessages = (
     await Promise.all(
       messages.map(async (message) => {
-          return await convertMessageToGoogleMessage(message, options, params)
+        return await convertMessageToGoogleMessage(message, options, params)
       }
       ),
     )
