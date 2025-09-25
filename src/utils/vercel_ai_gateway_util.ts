@@ -1,5 +1,6 @@
 import {
   AssistantMessage,
+  AttachmentUtils,
   BaseChatMessageChunk,
   BaseChatMessageLike,
   FileUtil,
@@ -12,6 +13,7 @@ import {
   uuid,
 } from "@enconvo/api";
 import mime from "mime";
+
 import {
   AssistantContent,
   AssistantModelMessage,
@@ -124,6 +126,7 @@ export const convertMessageToVercelFormat = async (
       | ToolModelMessage
     )[] = [];
     let parts: UserContent | AssistantContent = [];
+    const isAgentMode = Runtime.isAgentMode();
 
     for (const item of message.content) {
       if (item.type === "image_url") {
@@ -228,23 +231,74 @@ export const convertMessageToVercelFormat = async (
           });
         }
       } else if (item.type === "audio") {
-        const url = item.file_url.url;
-        parts.push({
-          type: "text",
-          text: "This is a audio file , url is " + url || "",
-        });
+        const url = item.file_url.url.replace("file://", "");
+        const readableContent = isAgentMode
+          ? []
+          : await AttachmentUtils.getAttachmentsReadableContent({
+            files: [url],
+            loading: true,
+          });
+
+        if (readableContent.length > 0) {
+          const text = readableContent[0].contents
+            .map((item) => item.text)
+            .join("\n");
+          parts.push({
+            type: "text",
+            text: `# audio file url: ${url}\n # audio file transcript: ${text}`,
+          });
+        } else {
+          parts.push({
+            type: "text",
+            text: `This is a audio file , url is ${url} , only used for reference when you use tool, if not , ignore this .`,
+          });
+        }
       } else if (item.type === "video") {
-        const url = item.file_url.url;
-        parts.push({
-          type: "text",
-          text: "This is a video file , url is " + url || "",
-        });
+        const url = item.file_url.url.replace("file://", "");
+        const readableContent = isAgentMode
+          ? []
+          : await AttachmentUtils.getAttachmentsReadableContent({
+            files: [url],
+            loading: true,
+          });
+
+        if (readableContent.length > 0) {
+          const text = readableContent[0].contents
+            .map((item) => item.text)
+            .join("\n");
+          parts.push({
+            type: "text",
+            text: `# video file url: ${url}\n # video file transcript: ${text}`,
+          });
+        } else {
+          parts.push({
+            type: "text",
+            text: `This is a video file , url is ${url} , only used for reference when you use tool, if not , ignore this .`,
+          });
+        }
       } else if (item.type === "file") {
-        const url = item.file_url.url;
-        parts.push({
-          type: "text",
-          text: "This is a file , url is " + url || "",
-        });
+        const url = item.file_url.url.replace("file://", "");
+        const readableContent = isAgentMode
+          ? []
+          : await AttachmentUtils.getAttachmentsReadableContent({
+            files: [url],
+            loading: true,
+          });
+
+        if (readableContent.length > 0) {
+          const text = readableContent[0].contents
+            .map((item) => item.text)
+            .join("\n");
+          parts.push({
+            type: "text",
+            text: `# file url: ${url}\n # file content: ${text}`,
+          });
+        } else {
+          parts.push({
+            type: "text",
+            text: `This is a file , url is ${url} , only used for reference when you use tool, if not , ignore this .`,
+          });
+        }
       } else if (item.type === "thinking") {
         // do nothing
       } else {

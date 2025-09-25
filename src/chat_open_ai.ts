@@ -126,7 +126,6 @@ export class ChatOpenAIProvider extends LLMProvider {
       content
     );
 
-
     let params: OpenAI.Responses.ResponseCreateParamsStreaming = {
       model: modelOptions?.value,
       instructions: instructions,
@@ -313,13 +312,13 @@ export class ChatOpenAIProvider extends LLMProvider {
         ? credentials?.access_token
         : credentials?.apiKey;
     let baseURL = credentials?.baseUrl || "https://api.openai.com/v1";
-    if (options.originCommandName === "chat_qwen") {
+    if (options.originCommandName === "chat_qwen" && credentialsType === "oauth2") {
       baseURL = `https://${credentials?.resource_url}/v1`;
     }
 
-    // console.log("headers", headers)
-    // console.log("apiKey", apiKey)
-    // console.log("baseURL", baseURL)
+    console.log("headers", headers)
+    console.log("apiKey", apiKey)
+    console.log("baseURL", baseURL)
 
     const client = new OpenAI({
       apiKey: apiKey, // This is the default and can be omitted

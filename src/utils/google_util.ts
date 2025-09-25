@@ -1,5 +1,4 @@
 import {
-  AssistantMessage,
   BaseChatMessage,
   BaseChatMessageChunk,
   BaseChatMessageLike,
@@ -11,15 +10,16 @@ import {
   AITool,
   Runtime,
   Stream,
-  ToolMessage,
   uuid,
   ChatMessageContentListItem,
+  AttachmentUtils,
 } from "@enconvo/api";
 import path from "path";
 import { writeFile } from "fs/promises";
 import wav from "wav";
 
 import mime from "mime";
+
 import {
   Content,
   Part,
@@ -255,7 +255,7 @@ export const convertMessageToGoogleMessage = async (
           });
         }
       } else if (item.type === "audio") {
-        const url = item.file_url.url;
+        const url = item.file_url.url.replace("file://", "");
         const mimeType = mime.getType(url);
         const base64 = await FileUtil.convertUrlToBase64(url);
         if (
@@ -273,7 +273,21 @@ export const convertMessageToGoogleMessage = async (
           parts.push(audio);
         }
 
-        if (isAgentMode) {
+        const readableContent = isAgentMode
+          ? []
+          : await AttachmentUtils.getAttachmentsReadableContent({
+            files: [url],
+            loading: true,
+          });
+
+        if (readableContent.length > 0) {
+          const text = readableContent[0].contents
+            .map((item) => item.text)
+            .join("\n");
+          parts.push({
+            text: `# audio file url: ${url}\n # audio file transcript: ${text}`,
+          });
+        } else {
           parts.push({
             text:
               "This is a audio file , url is " +
@@ -298,22 +312,52 @@ export const convertMessageToGoogleMessage = async (
           }
         }
 
-        const text: Part = {
-          text:
-            "This is a video file , url is " +
-            url +
-            " , only used for reference when you use tool, if not , ignore this .",
-        };
-        parts.push(text);
-      } else if (item.type === "file") {
-        const url = item.file_url.url;
+        const readableContent = isAgentMode
+          ? []
+          : await AttachmentUtils.getAttachmentsReadableContent({
+            files: [url],
+            loading: true,
+          });
 
-        parts.push({
-          text:
-            "This is a file , url is " +
-            url +
-            " , only used for reference when you use tool, if not , ignore this .",
-        });
+        if (readableContent.length > 0) {
+          const text = readableContent[0].contents
+            .map((item) => item.text)
+            .join("\n");
+          parts.push({
+            text: `# video file url: ${url}\n # video file transcript: ${text}`,
+          });
+        } else {
+          parts.push({
+            text:
+              "This is a video file , url is " +
+              url +
+              " , only used for reference when you use tool, if not , ignore this .",
+          });
+        }
+      } else if (item.type === "file") {
+        const url = item.file_url.url.replace("file://", "");
+        const readableContent = isAgentMode
+          ? []
+          : await AttachmentUtils.getAttachmentsReadableContent({
+            files: [url],
+            loading: true,
+          });
+
+        if (readableContent.length > 0) {
+          const text = readableContent[0].contents
+            .map((item) => item.text)
+            .join("\n");
+          parts.push({
+            text: `# file url: ${url}\n # file content: ${text}`,
+          });
+        } else {
+          parts.push({
+            text:
+              "This is a file , url is " +
+              url +
+              " , only used for reference when you use tool, if not , ignore this .",
+          });
+        }
       } else if (item.type === "thinking") {
         // do nothing
       } else {
@@ -346,10 +390,12 @@ export const convertMessagesToGoogleMessages = async (
   options: LLMProvider.LLMOptions,
   params: LLMProvider.Params,
 ): Promise<Content[]> => {
+  console.log("convertMessagesToGoogleMessages messages", JSON.stringify(messages, null, 2))
   const newMessages = (
     await Promise.all(
-      messages.map((message) =>
-        convertMessageToGoogleMessage(message, options, params),
+      messages.map(async (message) => {
+          return await convertMessageToGoogleMessage(message, options, params)
+      }
       ),
     )
   ).flat();
@@ -404,7 +450,7 @@ export function streamFromGoogle(
     let runningContentBlockType: BaseChatMessageChunk.ContentBlock['type'] | undefined;
     try {
       for await (const chunk of response) {
-        // console.log("google chunk", JSON.stringify(chunk, null, 2))
+        console.log("google chunk", JSON.stringify(chunk, null, 2))
         if (done) continue;
         const candidate = chunk.candidates?.[0];
 
@@ -645,4 +691,3 @@ function addCitations(groundingMetadata: GroundingMetadata) {
 
   return text;
 }
-

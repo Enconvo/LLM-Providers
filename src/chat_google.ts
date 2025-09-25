@@ -274,6 +274,7 @@ export class GoogleGeminiProvider extends LLMProvider {
       tools.push(...newParamsTools);
     }
 
+
     let toolConfig: ToolConfig | undefined = undefined;
     if (typeof params.tool_choice === "object") {
       toolConfig = {
@@ -318,6 +319,7 @@ export class GoogleGeminiProvider extends LLMProvider {
       this.options.gemini_thinking_pro?.value ||
       this.options.gemini_thinking?.value;
 
+
     let geminiParams: GenerateContentParameters = {
       model: model,
       contents: newMessages,
@@ -347,7 +349,7 @@ export class GoogleGeminiProvider extends LLMProvider {
       };
     }
 
-    // console.log("gemini params", JSON.stringify(geminiParams, null, 2))
+    console.log("gemini params", JSON.stringify(geminiParams, null, 2))
     return geminiParams;
   }
 }

@@ -1,5 +1,6 @@
-import { AITool, BaseChatMessageChunk, BaseChatMessageLike, FileUtil, LLMProvider, Stream } from "@enconvo/api";
+import { AITool, AttachmentUtils, BaseChatMessageChunk, BaseChatMessageLike, FileUtil, LLMProvider, Runtime, Stream } from "@enconvo/api";
 import { AbortableAsyncIterator, ChatResponse, Message, Tool, ToolCall } from "ollama";
+
 
 export namespace OllamaUtil {
 
@@ -211,13 +212,73 @@ export namespace OllamaUtil {
 
       let toolCall: ToolCall | undefined;
       const flowStep = message.content.find((item) => item.type === "flow_step")
+      const isAgentMode = Runtime.isAgentMode();
+      const textParts: string[] = [];
 
-      const text = message.content
-        .filter((item) => item.type === "text")
-        .map((item) => {
-          return item.text;
-        })
-        .join("\n");
+      for (const item of message.content) {
+        if (item.type === "text") {
+          textParts.push(item.text);
+        } else if (item.type === "audio") {
+          const url = item.file_url.url.replace("file://", "");
+          const readableContent = isAgentMode
+            ? []
+            : await AttachmentUtils.getAttachmentsReadableContent({
+              files: [url],
+              loading: true,
+            });
+
+          if (readableContent.length > 0) {
+            const text = readableContent[0].contents
+              .map((item) => item.text)
+              .join("\n");
+            textParts.push(`# audio file url: ${url}\n # audio file transcript: ${text}`);
+          } else {
+            textParts.push(
+              `This is a audio file , url is ${url} , only used for reference when you use tool, if not , ignore this .`,
+            );
+          }
+        } else if (item.type === "video") {
+          const url = item.file_url.url.replace("file://", "");
+          const readableContent = isAgentMode
+            ? []
+            : await AttachmentUtils.getAttachmentsReadableContent({
+              files: [url],
+              loading: true,
+            });
+
+          if (readableContent.length > 0) {
+            const text = readableContent[0].contents
+              .map((item) => item.text)
+              .join("\n");
+            textParts.push(`# video file url: ${url}\n # video file transcript: ${text}`);
+          } else {
+            textParts.push(
+              `This is a video file , url is ${url} , only used for reference when you use tool, if not , ignore this .`,
+            );
+          }
+        } else if (item.type === "file") {
+          const url = item.file_url.url.replace("file://", "");
+          const readableContent = isAgentMode
+            ? []
+            : await AttachmentUtils.getAttachmentsReadableContent({
+              files: [url],
+              loading: true,
+            });
+
+          if (readableContent.length > 0) {
+            const text = readableContent[0].contents
+              .map((item) => item.text)
+              .join("\n");
+            textParts.push(`# file url: ${url}\n # file content: ${text}`);
+          } else {
+            textParts.push(
+              `This is a file , url is ${url} , only used for reference when you use tool, if not , ignore this .`,
+            );
+          }
+        }
+      }
+
+      const text = textParts.join("\n");
 
       const messages: Message[] = [];
       const newMessage: Message = {

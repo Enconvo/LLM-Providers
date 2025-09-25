@@ -14,10 +14,9 @@ import {
   ToolMessage,
   uuid,
   ChatMessageContentListItem,
-  environment,
+  AttachmentUtils
 } from "@enconvo/api";
 import OpenAI from "openai";
-import path from "path";
 import {
   EasyInputMessage,
   ResponseFunctionToolCall,
@@ -31,6 +30,7 @@ import {
   Tool,
 } from "openai/resources/responses/responses.mjs";
 import mime from "mime";
+
 export namespace OpenAIUtil {
 
   export const serverTools = [
@@ -49,7 +49,7 @@ export namespace OpenAIUtil {
   ): Promise<(ResponseOutputItem | ResponseInputItem)[]> => {
     let role = message.role;
 
-
+    const isAgentMode = Runtime.isAgentMode();
 
     if (
       typeof message.content === "string" &&
@@ -135,10 +135,10 @@ export namespace OpenAIUtil {
             }
           }
           const imageGenerationToolEnabled = params.imageGenerationToolEnabled && params.imageGenerationToolEnabled !== 'disabled';
-          if ((Runtime.isAgentMode() || imageGenerationToolEnabled) && params.addImageAdditionalInfo !== false) {
+          if ((isAgentMode || imageGenerationToolEnabled) && params.addImageAdditionalInfo !== false) {
             messageContents.push({
               type: "input_text",
-              text: `The above image's url is ${url} , only used for reference when you use tool.`,
+              text: `The above image's url is ${url} , this url is only used for reference when you use tool, if not , ignore this .`,
             });
           }
         } else if (item.type === "flow_step") {
@@ -147,8 +147,6 @@ export namespace OpenAIUtil {
               return message.content;
             })
             .flat();
-
-          // console.log("flow_step", JSON.stringify(results, null, 2));
 
           const toolCallOutputMessage: ResponseInputItem = {
             type: "function_call_output",
@@ -184,67 +182,113 @@ export namespace OpenAIUtil {
             });
           }
         } else if (item.type === "audio") {
-          // function isSupportAudioType(mimeType: string): boolean {
-          //     return mimeType === "mp3" || mimeType === "wav"
-          // }
-          // const url = item.file_url.url
-          // const mimeType = path.extname(url).slice(1)
-          // const isSupport = isSupportAudioType(mimeType)
-          // if (role === "user" && url.startsWith("file://") && options.modelName.audioEnable === true && isSupport) {
-          //     const base64 = FileUtil.convertFileUrlToBase64(url)
-          //     messageContents.push({
-          //         type: "input_audio",
-          //         input_audio: {
-          //             data: base64,
-          //             format: mimeType as "mp3" | "wav"
-          //         }
-          //     })
-          // } else {
-          //     messageContents.push({
-          //         type: "text",
-          //         text: "This is a audio file , url is " + url || ""
-          //     })
-          // }
           const url = item.file_url.url.replace("file://", "");
+          let readableContent = isAgentMode ? [] : await AttachmentUtils.getAttachmentsReadableContent({
+            files: [url],
+            loading: true,
+          })
+
           if (role === "user" || role === "system") {
-            messageContents.push({
-              type: "input_text",
-              text: `This is a audio file , url is ${url},only used for reference when you use tool, if not , ignore this .`,
-            });
+            if (readableContent.length > 0) {
+              const text = readableContent[0].contents.map((item) => item.text).join("\n")
+              messageContents.push({
+                type: "input_text",
+                text: `# audio file url: ${url}\n # audio file transcript: ${text}`,
+              });
+            } else {
+              messageContents.push({
+                type: "input_text",
+                text: `This is a audio file , url is ${url}, this url is only used for reference when you use tool, if not , ignore this .`,
+              });
+            }
           } else if (role === "assistant") {
-            messageContents.push({
-              type: "output_text",
-              text: `This is a audio file , url is ${url},only used for reference when you use tool, if not , ignore this .`,
-              annotations: [],
-            });
+            if (readableContent.length > 0) {
+              const text = readableContent[0].contents.map((item) => item.text).join("\n")
+              messageContents.push({
+                type: "output_text",
+                text: `# audio file url: ${url}\n # audio file transcript: ${text}`,
+                annotations: [],
+              });
+            } else {
+              messageContents.push({
+                type: "output_text",
+                text: `This is a audio file , url is ${url}, this url is only used for reference when you use tool, if not , ignore this .`,
+                annotations: [],
+              });
+            }
           }
         } else if (item.type === "video") {
           const url = item.file_url.url.replace("file://", "");
+          let readableContent = isAgentMode ? [] : await AttachmentUtils.getAttachmentsReadableContent({
+            files: [url],
+            loading: true,
+          })
+
           if (role === "user" || role === "system") {
-            messageContents.push({
-              type: "input_text",
-              text: `This is a video file , url is ${url},only used for reference when you use tool, if not , ignore this .`,
-            });
+            if (readableContent.length > 0) {
+              const text = readableContent[0].contents.map((item) => item.text).join("\n")
+              messageContents.push({
+                type: "input_text",
+                text: `# video file url: ${url}\n # video file transcript: ${text}`,
+              });
+            } else {
+              messageContents.push({
+                type: "input_text",
+                text: `This is a video file , url is ${url}, this url is only used for reference when you use tool, if not , ignore this .`,
+              });
+            }
           } else if (role === "assistant") {
-            messageContents.push({
-              type: "output_text",
-              text: `This is a video file , url is ${url},only used for reference when you use tool, if not , ignore this .`,
-              annotations: [],
-            });
+            if (readableContent.length > 0) {
+              const text = readableContent[0].contents.map((item) => item.text).join("\n")
+              messageContents.push({
+                type: "output_text",
+                text: `# video file url: ${url}\n # video file transcript: ${text}`,
+                annotations: [],
+              });
+            } else {
+              messageContents.push({
+                type: "output_text",
+                text: `This is a video file , url is ${url}, this url is only used for reference when you use tool, if not , ignore this .`,
+                annotations: [],
+              });
+            }
           }
         } else if (item.type === "file") {
           const url = item.file_url.url.replace("file://", "");
+
+          let readableContent = isAgentMode ? [] : await AttachmentUtils.getAttachmentsReadableContent({
+            files: [url],
+            loading: true,
+          })
+
           if (role === "user" || role === "system") {
-            messageContents.push({
-              type: "input_text",
-              text: `This is a file , url is ${url},only used for reference when you use tool, if not , ignore this .`,
-            });
+            if (readableContent.length > 0) {
+              const text = readableContent[0].contents.map((item) => item.text).join("\n")
+              messageContents.push({
+                type: "input_text",
+                text: `# file url: ${url}\n # file content: ${text}`,
+              });
+            } else {
+              messageContents.push({
+                type: "input_text",
+                text: `This is a file , url is ${url}, this url is only used for reference when you use tool, if not , ignore this .`,
+              });
+            }
           } else if (role === "assistant") {
-            messageContents.push({
-              type: "output_text",
-              text: `This is a file , url is ${url},only used for reference when you use tool, if not , ignore this .`,
-              annotations: [],
-            });
+            if (readableContent.length > 0) {
+              const text = readableContent[0].contents.map((item) => item.text).join("\n")
+              messageContents.push({
+                type: "output_text",
+                text: `# file url: ${url}\n # file content: ${text}`,
+                annotations: [],
+              });
+            } else {
+              messageContents.push({
+                type: "output_text",
+                text: `This is a file , url is ${url}, this url is only used for reference when you use tool, if not , ignore this .`,
+                annotations: [],
+              });
+            }
           }
         } else if (item.type === "thinking") {
         } else {
@@ -330,6 +374,7 @@ export namespace OpenAIUtil {
     } else {
       let newMessages: OpenAI.Chat.ChatCompletionMessageParam[] = [];
       let messageContents: OpenAI.Chat.ChatCompletionContentPart[] = [];
+      const isAgentMode = Runtime.isAgentMode();
 
       for (const item of message.content) {
         let role = message.role as "user" | "assistant";
@@ -365,10 +410,10 @@ export namespace OpenAIUtil {
             }
           }
 
-          if (Runtime.isAgentMode()) {
+          if (isAgentMode) {
             messageContents.push({
               type: "text",
-              text: `The above image's url is ${url} , only used for reference when you use tool.`,
+              text: `The above image's url is ${url} , this url is only used for reference when you use tool, if not , ignore this .`,
             });
           }
         } else if (item.type === "flow_step") {
@@ -435,31 +480,80 @@ export namespace OpenAIUtil {
               });
             }
           } else {
+            // fall through to textual handling below
+          }
+          const readableContent = isAgentMode
+            ? []
+            : await AttachmentUtils.getAttachmentsReadableContent({
+              files: [url],
+              loading: true,
+            });
+
+          if (readableContent.length > 0) {
+            const text = readableContent[0].contents
+              .map((item) => item.text)
+              .join("\n");
+            messageContents.push({
+              type: "text",
+              text: `# audio file url: ${url}\n # audio file transcript: ${text}`,
+            });
+          } else {
             messageContents.push({
               type: "text",
               text:
                 "This is a audio file , url is " +
                 url +
-                " , only used for reference when you use tool, if not , ignore this . " ||
-                "",
+                " , only used for reference when you use tool, if not , ignore this .",
             });
           }
         } else if (item.type === "video") {
           const url = item.file_url.url.replace("file://", "");
-          messageContents.push({
-            type: "text",
-            text:
-              `This is a video file , url is ${url} , only used for reference when you use tool, if not , ignore this .` ||
-              "",
-          });
+          const readableContent = isAgentMode
+            ? []
+            : await AttachmentUtils.getAttachmentsReadableContent({
+              files: [url],
+              loading: true,
+            });
+
+          if (readableContent.length > 0) {
+            const text = readableContent[0].contents
+              .map((item) => item.text)
+              .join("\n");
+            messageContents.push({
+              type: "text",
+              text: `# video file url: ${url}\n # video file transcript: ${text}`,
+            });
+          } else {
+            messageContents.push({
+              type: "text",
+              text:
+                `This is a video file , url is ${url} , only used for reference when you use tool, if not , ignore this .`,
+            });
+          }
         } else if (item.type === "file") {
           const url = item.file_url.url.replace("file://", "");
-          messageContents.push({
-            type: "text",
-            text:
-              `This is a file , url is ${url} , only used for reference when you use tool, if not , ignore this .` ||
-              "",
-          });
+          const readableContent = isAgentMode
+            ? []
+            : await AttachmentUtils.getAttachmentsReadableContent({
+              files: [url],
+              loading: true,
+            });
+
+          if (readableContent.length > 0) {
+            const text = readableContent[0].contents
+              .map((item) => item.text)
+              .join("\n");
+            messageContents.push({
+              type: "text",
+              text: `# file url: ${url}\n # file content: ${text}`,
+            });
+          } else {
+            messageContents.push({
+              type: "text",
+              text:
+                `This is a file , url is ${url} , only used for reference when you use tool, if not , ignore this .`,
+            });
+          }
         } else if (item.type === "thinking") {
           // do nothing
         } else {
@@ -546,6 +640,7 @@ export namespace OpenAIUtil {
       return undefined;
     }
 
+    //@ts-ignore
     let newTools: OpenAI.Chat.ChatCompletionTool[] | undefined = tools?.map(
       (tool) => {
         if (
