@@ -39,21 +39,24 @@ export class StraicoProvider extends LLMProvider {
       undefined
     > {
       yield {
-        model: "Straico",
-        id: uuid(),
-        choices: [
-          {
-            delta: {
-              content: response,
-              role: "assistant",
-            },
-            finish_reason: null,
-            index: 0,
-          },
-        ],
-        created: Date.now(),
-        object: "chat.completion.chunk",
-      };
+        type: 'content_block_start',
+        content_block: {
+          type: 'text',
+          text: '',
+        }
+      }
+
+      yield {
+        type: 'content_block_delta',
+        delta: {
+          type: 'text_delta',
+          text: response,
+        }
+      }
+
+      yield {
+        type: 'content_block_stop',
+      }
     }
 
     const controller = new AbortController();

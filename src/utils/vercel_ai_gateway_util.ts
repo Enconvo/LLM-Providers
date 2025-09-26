@@ -129,51 +129,55 @@ export const convertMessageToVercelFormat = async (
     const isAgentMode = Runtime.isAgentMode();
 
     async function handleImageContentItem(url: string) {
-              if (role === "user" && options.modelName.visionEnable === true) {
-          if (url.startsWith("http://") || url.startsWith("https://")) {
-            const imagePart: ImagePart = {
-              type: "image",
-              image: new URL(url),
-            };
-            //@ts-ignore
-            parts.push(imagePart);
-          } else {
-            url = await ImageUtil.compressImage(url);
-
-            console.log("url", url);
-            const base64 = FileUtil.convertFileUrlToBase64(url);
-            if (base64) {
-              const mimeType =
-                (mime.getType(url) as
-                  | "image/jpeg"
-                  | "image/png"
-                  | "image/gif"
-                  | "image/webp") || "image/png";
-              const imagePart: ImagePart = {
-                type: "image",
-                image: `data:${mimeType};base64,${base64}`,
-              };
-              //@ts-ignore
-              parts.push(imagePart);
-            }
-          }
-        }
-
-        const imageGenerationToolEnabled = params.imageGenerationToolEnabled && params.imageGenerationToolEnabled !== 'disabled';
-        if ((Runtime.isAgentMode() || imageGenerationToolEnabled) && params.addImageAdditionalInfo !== false) {
-          const textPart: TextPart = {
-            type: "text",
-            text: `The above image's url is ${url} , only used for reference when you use tool.`,
+      const newParts: UserContent | AssistantContent = [];
+      if (role === "user" && options.modelName.visionEnable === true) {
+        if (url.startsWith("http://") || url.startsWith("https://")) {
+          const imagePart: ImagePart = {
+            type: "image",
+            image: new URL(url),
           };
           //@ts-ignore
-          parts.push(textPart);
+          newParts.push(imagePart);
+        } else {
+          url = await ImageUtil.compressImage(url);
+
+          console.log("url", url);
+          const base64 = FileUtil.convertFileUrlToBase64(url);
+          if (base64) {
+            const mimeType =
+              (mime.getType(url) as
+                | "image/jpeg"
+                | "image/png"
+                | "image/gif"
+                | "image/webp") || "image/png";
+            const imagePart: ImagePart = {
+              type: "image",
+              image: `data:${mimeType};base64,${base64}`,
+            };
+            //@ts-ignore
+            newParts.push(imagePart);
+          }
         }
+      }
+
+      const imageGenerationToolEnabled = params.imageGenerationToolEnabled && params.imageGenerationToolEnabled !== 'disabled';
+      if ((Runtime.isAgentMode() || imageGenerationToolEnabled) && params.addImageAdditionalInfo !== false) {
+        const textPart: TextPart = {
+          type: "text",
+          text: `The above image's url is ${url} , only used for reference when you use tool.`,
+        };
+        //@ts-ignore
+        newParts.push(textPart);
+      }
+      return newParts;
     }
 
     for (const item of message.content) {
       if (item.type === "image_url") {
         let url = item.image_url.url.replace("file://", "");
-        handleImageContentItem(url);
+        const newParts = await handleImageContentItem(url);
+        //@ts-ignore
+        parts.push(...newParts);
       } else if (item.type === "flow_step") {
         if (parts.length > 0) {
           const modelMessage = {
@@ -284,7 +288,10 @@ export const convertMessageToVercelFormat = async (
       } else if (item.type === "file") {
         const url = item.file_url.url.replace("file://", "");
         if (FileUtil.isImageFile(url)) {
-          handleImageContentItem(url);
+          const newParts = await handleImageContentItem(url);
+
+          //@ts-ignore
+          parts.push(...newParts);
           continue;
         }
         const readableContent = isAgentMode

@@ -109,12 +109,13 @@ export namespace OpenAIUtil {
       };
 
       async function handleImageContentItem(url: string) {
+        const newMessageContents: ResponseInputContent[] = [];
         if (
           role === "user" &&
           llmOptions.modelName.visionEnable === true
         ) {
           if (url.startsWith("http://") || url.startsWith("https://")) {
-            messageContents.push({
+            newMessageContents.push({
               type: "input_image",
               detail: "auto",
               image_url: url,
@@ -124,7 +125,7 @@ export namespace OpenAIUtil {
             const base64 = await FileUtil.convertUrlToBase64(url);
             if (base64) {
               const mimeType = mime.getType(url) || "image/png";
-              messageContents.push({
+              newMessageContents.push({
                 type: "input_image",
                 detail: "auto",
                 image_url: `data:image/${mimeType};base64,${base64}`,
@@ -134,18 +135,20 @@ export namespace OpenAIUtil {
         }
         const imageGenerationToolEnabled = params.imageGenerationToolEnabled && params.imageGenerationToolEnabled !== 'disabled';
         if ((isAgentMode || imageGenerationToolEnabled) && params.addImageAdditionalInfo !== false) {
-          messageContents.push({
+          newMessageContents.push({
             type: "input_text",
             text: `The above image's url is ${url} , this url is only used for reference when you use tool, if not , ignore this .`,
           });
         }
+        return newMessageContents;
       }
 
 
       for (const item of message.content) {
         if (item.type === "image_url") {
           let url = item.image_url.url.replace("file://", "");
-          handleImageContentItem(url);
+          const newMessageContents = await handleImageContentItem(url);
+          messageContents.push(...newMessageContents);
         } else if (item.type === "flow_step") {
           const results = item.flowResults
             .map((message: any) => {
@@ -261,7 +264,8 @@ export namespace OpenAIUtil {
         } else if (item.type === "file") {
           const url = item.file_url.url.replace("file://", "");
           if (FileUtil.isImageFile(url)) {
-            handleImageContentItem(url);
+            const newMessageContents = await handleImageContentItem(url);
+            messageContents.push(...newMessageContents);
             continue;
           }
           let readableContent = isAgentMode ? [] : await AttachmentUtils.getAttachmentsReadableContent({
@@ -385,13 +389,14 @@ export namespace OpenAIUtil {
       const isAgentMode = Runtime.isAgentMode();
 
       async function handleImageContentItem(url: string) {
+        const newMessageContents: OpenAI.Chat.ChatCompletionContentPart[] = [];
         if (
           role === "user" &&
           llmOptions.modelName.visionEnable === true
         ) {
           if (url.startsWith("http://") || url.startsWith("https://")) {
             // Handle remote URLs directly
-            messageContents.push({
+            newMessageContents.push({
               type: "image_url",
               image_url: {
                 url: url,
@@ -403,7 +408,7 @@ export namespace OpenAIUtil {
             const base64 = await FileUtil.convertUrlToBase64(url);
             if (base64) {
               const mimeType = mime.getType(url) || "image/png";
-              messageContents.push({
+              newMessageContents.push({
                 type: "image_url",
                 image_url: {
                   url: `data:${mimeType};base64,${base64}`,
@@ -414,18 +419,20 @@ export namespace OpenAIUtil {
         }
 
         if (isAgentMode) {
-          messageContents.push({
+          newMessageContents.push({
             type: "text",
             text: `The above image's url is ${url} , this url is only used for reference when you use tool, if not , ignore this .`,
           });
         }
+        return newMessageContents;
       }
 
       for (const item of message.content) {
         let role = message.role as "user" | "assistant";
         if (item.type === "image_url") {
           let url = item.image_url.url.replace("file://", "");
-          handleImageContentItem(url);
+          const newMessageContents = await handleImageContentItem(url);
+          messageContents.push(...newMessageContents);
           // Check if the URL is valid and if vision is enabled for processing images
         } else if (item.type === "flow_step") {
           const results = item.flowResults
@@ -544,7 +551,8 @@ export namespace OpenAIUtil {
         } else if (item.type === "file") {
           const url = item.file_url.url.replace("file://", "");
           if (FileUtil.isImageFile(url)) {
-            handleImageContentItem(url);
+            const newMessageContents = await handleImageContentItem(url);
+            messageContents.push(...newMessageContents);
             continue;
           }
           const readableContent = isAgentMode

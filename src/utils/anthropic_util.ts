@@ -211,6 +211,7 @@ export const convertMessageToAnthropicMessage = async (
 
 
     async function handleImageContentItem(url: string) {
+      const newParts: MessageContentType[] = [];
       if (
         role === "user" &&
         options.modelName.visionEnable === true
@@ -222,7 +223,7 @@ export const convertMessageToAnthropicMessage = async (
               | "image/png"
               | "image/gif"
               | "image/webp") || "image/png";
-          parts.push({
+          newParts.push({
             type: "image",
             source: {
               type: "base64",
@@ -241,7 +242,7 @@ export const convertMessageToAnthropicMessage = async (
                 | "image/png"
                 | "image/gif"
                 | "image/webp") || "image/png";
-            parts.push({
+            newParts.push({
               type: "image",
               source: {
                 type: "base64",
@@ -255,19 +256,23 @@ export const convertMessageToAnthropicMessage = async (
 
       const imageGenerationToolEnabled = params.imageGenerationToolEnabled && params.imageGenerationToolEnabled !== 'disabled';
       if ((Runtime.isAgentMode() || imageGenerationToolEnabled) && params.addImageAdditionalInfo !== false) {
-        parts.push({
+        newParts.push({
           type: "text",
           text: `The above image's url is ${url} , only used for reference when you use tool.`,
         });
       }
+      return newParts;
     }
 
 
 
     for (const item of message.content) {
+
       if (item.type === "image_url") {
         let url = item.image_url.url.replace("file://", "");
-        handleImageContentItem(url);
+        const newParts = await handleImageContentItem(url);
+        parts.push(...newParts);
+        console.log("image item", JSON.stringify(parts, null, 2));
       } else if (item.type === "flow_step") {
         const results = item.flowResults
           .map((message) => {
@@ -383,8 +388,10 @@ export const convertMessageToAnthropicMessage = async (
         }
       } else if (item.type === "file") {
         const url = item.file_url.url.replace("file://", "");
+        console.log("file url", url);
         if (FileUtil.isImageFile(url)) {
-          handleImageContentItem(url);
+          const newParts = await handleImageContentItem(url);
+          parts.push(...newParts);
           continue;
         }
         const readableContent = isAgentMode

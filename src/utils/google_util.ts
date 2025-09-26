@@ -162,6 +162,7 @@ export const convertMessageToGoogleMessage = async (
     const isAgentMode = Runtime.isAgentMode();
 
     async function handleImageContentItem(url: string) {
+      const newParts: Part[] = [];
       url = await ImageUtil.compressImage(url);
       const mimeType = mime.getType(url);
       const base64 = await FileUtil.convertUrlToBase64(url);
@@ -172,7 +173,7 @@ export const convertMessageToGoogleMessage = async (
             mimeType: mimeType as string,
           },
         };
-        parts.push(image);
+        newParts.push(image);
       }
 
       const imageGenerationToolEnabled = params.imageGenerationToolEnabled && params.imageGenerationToolEnabled !== 'disabled';
@@ -181,14 +182,16 @@ export const convertMessageToGoogleMessage = async (
           text: `The above image's url is ${url} , only used for reference when you use tool.`,
         };
 
-        parts.push(text);
+        newParts.push(text);
       }
+      return newParts;
     }
 
     for (const item of message.content) {
       if (item.type === "image_url") {
         let url = item.image_url.url.replace("file://", "");
-        handleImageContentItem(url);
+        const newParts = await handleImageContentItem(url);
+        parts.push(...newParts);
       } else if (item.type === "flow_step") {
         let args = {};
         try {
@@ -342,7 +345,8 @@ export const convertMessageToGoogleMessage = async (
       } else if (item.type === "file") {
         const url = item.file_url.url.replace("file://", "");
         if (FileUtil.isImageFile(url)) {
-          handleImageContentItem(url);
+          const newParts = await handleImageContentItem(url);
+          parts.push(...newParts);
           continue;
         }
         const readableContent = isAgentMode
