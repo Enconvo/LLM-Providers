@@ -255,7 +255,8 @@ export const convertMessageToAnthropicMessage = async (
       }
 
       const imageGenerationToolEnabled = params.imageGenerationToolEnabled && params.imageGenerationToolEnabled !== 'disabled';
-      if ((Runtime.isAgentMode() || imageGenerationToolEnabled) && params.addImageAdditionalInfo !== false) {
+      const videoGenerationToolEnabled = params.videoGenerationToolEnabled && params.videoGenerationToolEnabled !== 'disabled';
+      if ((Runtime.isAgentMode() || imageGenerationToolEnabled || videoGenerationToolEnabled) && params.addImageAdditionalInfo !== false) {
         newParts.push({
           type: "text",
           text: `The above image's url is ${url} , only used for reference when you use tool.`,
@@ -272,7 +273,6 @@ export const convertMessageToAnthropicMessage = async (
         let url = item.image_url.url.replace("file://", "");
         const newParts = await handleImageContentItem(url);
         parts.push(...newParts);
-        console.log("image item", JSON.stringify(parts, null, 2));
       } else if (item.type === "flow_step") {
         const results = item.flowResults
           .map((message) => {

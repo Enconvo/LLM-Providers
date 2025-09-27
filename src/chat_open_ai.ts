@@ -39,7 +39,7 @@ export class ChatOpenAIProvider extends LLMProvider {
     }
 
     const params = await this.initParams(content);
-    console.log("openai params", JSON.stringify(params, null, 2))
+    // console.log("openai params", JSON.stringify(params, null, 2))
 
     let chatCompletion: any;
     chatCompletion = await this.client.chat.completions.create({
@@ -123,7 +123,7 @@ export class ChatOpenAIProvider extends LLMProvider {
     const messages = await OpenAIUtil.convertMessagesToOpenAIResponseMessages(
       this.options,
       content.messages,
-      content
+      content,
     );
 
     let params: OpenAI.Responses.ResponseCreateParamsStreaming = {
@@ -195,6 +195,7 @@ export class ChatOpenAIProvider extends LLMProvider {
     const messages = await OpenAIUtil.convertMessagesToOpenAIMessages(
       this.options,
       content.messages,
+      content,
     );
 
     const tools = OpenAIUtil.convertToolsToOpenAITools(content.tools);
@@ -316,9 +317,9 @@ export class ChatOpenAIProvider extends LLMProvider {
       baseURL = `https://${credentials?.resource_url}/v1`;
     }
 
-    console.log("headers", headers)
-    console.log("apiKey", apiKey)
-    console.log("baseURL", baseURL)
+    // console.log("headers", headers)
+    // console.log("apiKey", apiKey)
+    // console.log("baseURL", baseURL)
 
     const client = new OpenAI({
       apiKey: apiKey, // This is the default and can be omitted

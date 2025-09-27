@@ -134,7 +134,8 @@ export namespace OpenAIUtil {
           }
         }
         const imageGenerationToolEnabled = params.imageGenerationToolEnabled && params.imageGenerationToolEnabled !== 'disabled';
-        if ((isAgentMode || imageGenerationToolEnabled) && params.addImageAdditionalInfo !== false) {
+        const videoGenerationToolEnabled = params.videoGenerationToolEnabled && params.videoGenerationToolEnabled !== 'disabled';
+        if ((isAgentMode || imageGenerationToolEnabled || videoGenerationToolEnabled) && params.addImageAdditionalInfo !== false) {
           newMessageContents.push({
             type: "input_text",
             text: `The above image's url is ${url} , this url is only used for reference when you use tool, if not , ignore this .`,
@@ -329,6 +330,7 @@ export namespace OpenAIUtil {
   export const convertMessageToOpenAIMessage = async (
     llmOptions: LLMProvider.LLMOptions,
     message: BaseChatMessageLike,
+    params: LLMProvider.Params,
   ): Promise<OpenAI.Chat.ChatCompletionMessageParam[]> => {
     let role = message.role;
     if (
@@ -418,7 +420,9 @@ export namespace OpenAIUtil {
           }
         }
 
-        if (isAgentMode) {
+        const imageGenerationToolEnabled = params.imageGenerationToolEnabled && params.imageGenerationToolEnabled !== 'disabled';
+        const videoGenerationToolEnabled = params.videoGenerationToolEnabled && params.videoGenerationToolEnabled !== 'disabled';
+        if ((isAgentMode || imageGenerationToolEnabled || videoGenerationToolEnabled) && params.addImageAdditionalInfo !== false) {
           newMessageContents.push({
             type: "text",
             text: `The above image's url is ${url} , this url is only used for reference when you use tool, if not , ignore this .`,
@@ -698,6 +702,7 @@ export namespace OpenAIUtil {
   export const convertMessagesToOpenAIMessages = async (
     options: LLMProvider.LLMOptions,
     messages: BaseChatMessageLike[],
+    params: LLMProvider.Params,
   ): Promise<OpenAI.Chat.ChatCompletionMessageParam[]> => {
     if (
       options.modelName &&
@@ -753,7 +758,7 @@ export namespace OpenAIUtil {
     let newMessages = (
       await Promise.all(
         messages.map((message) =>
-          convertMessageToOpenAIMessage(options, message),
+          convertMessageToOpenAIMessage(options, message, params),
         ),
       )
     )
@@ -844,7 +849,7 @@ export namespace OpenAIUtil {
 
     newMessages = ensureFirstMessageIsUser(newMessages);
 
-    console.log("openai Completions newMessages", JSON.stringify(newMessages, null, 2))
+    // console.log("openai Completions newMessages", JSON.stringify(newMessages, null, 2))
     return newMessages;
   };
 
@@ -889,7 +894,7 @@ export namespace OpenAIUtil {
       let runningContentBlockType: BaseChatMessageChunk.ContentBlock['type'] | undefined;
       try {
         for await (const chunk of response) {
-          console.log("chunk", JSON.stringify(chunk, null, 2), options?.commandName)
+          // console.log("chunk", JSON.stringify(chunk, null, 2), options?.commandName)
           if (done) continue;
           if (chunk.choices.length > 0) {
             const choice = chunk.choices[0];
@@ -935,12 +940,21 @@ export namespace OpenAIUtil {
                 }
                 runningContentBlockType = 'tool_use';
                 if (toolFunction?.name) {
+                  let input = undefined;
+                  if (toolFunction.arguments) {
+                    try {
+                      input = JSON.parse(toolFunction.arguments);
+                    } catch (e) {
+                      input = {}
+                    }
+                  }
+
                   yield {
                     type: 'content_block_start',
                     content_block: {
                       type: 'tool_use',
                       name: toolFunction.name,
-                      input: {},
+                      input: input || {},
                       id: toolCall.id || '',
                     }
                   }
@@ -1007,7 +1021,6 @@ export namespace OpenAIUtil {
     }
 
     const stream = new Stream(iterator, controller);
-
     return stream;
   }
 

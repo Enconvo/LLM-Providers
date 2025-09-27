@@ -71,6 +71,7 @@ class ChatOpenAIProvider extends LLMProvider {
     const messages = await OpenAIUtil.convertMessagesToOpenAIMessages(
       this.options,
       content.messages,
+      content,
     );
 
     const tools = OpenAIUtil.convertToolsToOpenAITools(content.tools);

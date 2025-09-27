@@ -177,7 +177,8 @@ export const convertMessageToGoogleMessage = async (
       }
 
       const imageGenerationToolEnabled = params.imageGenerationToolEnabled && params.imageGenerationToolEnabled !== 'disabled';
-      if ((isAgentMode || imageGenerationToolEnabled) && params.addImageAdditionalInfo !== false) {
+      const videoGenerationToolEnabled = params.videoGenerationToolEnabled && params.videoGenerationToolEnabled !== 'disabled';
+      if ((isAgentMode || imageGenerationToolEnabled || videoGenerationToolEnabled) && params.addImageAdditionalInfo !== false) {
         const text: Part = {
           text: `The above image's url is ${url} , only used for reference when you use tool.`,
         };
