@@ -894,7 +894,7 @@ export namespace OpenAIUtil {
       let runningContentBlockType: BaseChatMessageChunk.ContentBlock['type'] | undefined;
       try {
         for await (const chunk of response) {
-          // console.log("chunk", JSON.stringify(chunk, null, 2), options?.commandName)
+          console.log("chunk", JSON.stringify(chunk, null, 2), options?.commandName)
           if (done) continue;
           if (chunk.choices.length > 0) {
             const choice = chunk.choices[0];
@@ -969,7 +969,7 @@ export namespace OpenAIUtil {
                 }
               }
               //@ts-ignore
-            } else if (choice.delta.reasoning && choice.delta.reasoning !== '') {
+            } else if (choice.delta.reasoning_content && choice.delta.reasoning_content !== '') {
               if (runningContentBlockType !== 'thinking') {
                 if (runningContentBlockType !== undefined) {
                   yield {
@@ -989,7 +989,7 @@ export namespace OpenAIUtil {
                   delta: {
                     type: 'thinking_delta',
                     //@ts-ignore
-                    thinking: choice.delta.reasoning,
+                    thinking: choice.delta.reasoning_content,
                   }
                 }
               } else {
@@ -998,7 +998,7 @@ export namespace OpenAIUtil {
                   delta: {
                     type: 'thinking_delta',
                     //@ts-ignore
-                    thinking: choice.delta.reasoning,
+                    thinking: choice.delta.reasoning_content,
                   }
                 }
               }
