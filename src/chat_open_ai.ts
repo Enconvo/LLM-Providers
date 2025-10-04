@@ -173,8 +173,7 @@ export class ChatOpenAIProvider extends LLMProvider {
       };
     }
 
-
-    // console.log("tools", JSON.stringify(params, null, 2))
+    // console.log("response params", JSON.stringify(params, null, 2))
     return params;
   }
 
@@ -233,6 +232,8 @@ export class ChatOpenAIProvider extends LLMProvider {
         parallel_tool_calls: modelOptions?.toolUse === true ? false : null,
       };
     }
+
+    console.log("openai params", JSON.stringify(params, null, 2));
 
     return params;
   }

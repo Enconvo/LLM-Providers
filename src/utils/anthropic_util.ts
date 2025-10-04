@@ -441,7 +441,6 @@ export const convertMessagesToAnthropicMessages = async (
   options: LLMProvider.LLMOptions,
   params: LLMProvider.Params,
 ): Promise<Anthropic.Messages.MessageParam[]> => {
-  console.log("Converting messages to Anthropic format...", JSON.stringify(messages, null, 2));
 
   let newMessages = (
     await Promise.all(

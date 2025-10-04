@@ -866,7 +866,7 @@ export namespace OpenAIUtil {
       )
     ).flat();
 
-    console.log("openai Responses newMessages", JSON.stringify(newMessages, null, 2))
+    // console.log("openai Responses newMessages", JSON.stringify(newMessages, null, 2))
     return newMessages;
   };
 
