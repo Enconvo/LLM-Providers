@@ -108,8 +108,8 @@ export namespace OpenAIUtil {
         }
       };
 
-      async function handleImageContentItem(url: string) {
-        const newMessageContents: ResponseInputContent[] = [];
+      async function handleImageContentItem(url: string, description?: string) {
+        const newMessageContents: (ResponseInputContent | ResponseOutputText)[] = [];
         if (
           role === "user" &&
           llmOptions.modelName.visionEnable === true
@@ -133,20 +133,127 @@ export namespace OpenAIUtil {
             }
           }
         }
-        const imageGenerationToolEnabled = params.imageGenerationToolEnabled && params.imageGenerationToolEnabled !== 'disabled';
-        const videoGenerationToolEnabled = params.videoGenerationToolEnabled && params.videoGenerationToolEnabled !== 'disabled';
-        if ((isAgentMode || imageGenerationToolEnabled || videoGenerationToolEnabled) && params.addImageAdditionalInfo !== false) {
-          newMessageContents.push({
-            type: "input_text",
-            text: `The above image's url is ${url} , this url is only used for reference when you use tool, if not , ignore this .`,
-          });
+        if (description) {
+          if (role === "user" || role === "system") {
+            newMessageContents.push({
+              type: "input_text",
+              text: description,
+            });
+          } else if (role === "assistant") {
+            newMessageContents.push({
+              type: "output_text",
+              text: description,
+              annotations: [],
+            });
+          }
+        } else {
+          const imageGenerationToolEnabled = params.imageGenerationToolEnabled && params.imageGenerationToolEnabled !== 'disabled';
+          const videoGenerationToolEnabled = params.videoGenerationToolEnabled && params.videoGenerationToolEnabled !== 'disabled';
+          if ((isAgentMode || imageGenerationToolEnabled || videoGenerationToolEnabled) && params.addImageAdditionalInfo !== false) {
+            if (role === "user" || role === "system") {
+              newMessageContents.push({
+                type: "input_text",
+                text: `The above image's url is ${url} , this url is only used for reference when you use tool, if not , ignore this .`,
+              });
+            } else if (role === "assistant") {
+              newMessageContents.push({
+                type: "output_text",
+                text: `The above image's url is ${url} , this url is only used for reference when you use tool, if not , ignore this .`,
+                annotations: [],
+              });
+            }
+          }
         }
         return newMessageContents;
       }
 
 
       for (const item of message.content) {
-        if (item.type === "image_url") {
+        if (item.type === "context") {
+          const contextItems = item.items;
+          for (const contextItem of contextItems) {
+            if (contextItem.type === "screenshot") {
+              const description = `[Context Item] This is a screenshot, url is ${contextItem.url}`;
+              const newMessageContents = await handleImageContentItem(contextItem.url, description);
+              messageContents.push(...newMessageContents);
+            } else if (
+              contextItem.type === "text" ||
+              contextItem.type === "selectionText"
+            ) {
+              const textContent = `[Context Item] ${JSON.stringify(contextItem)}`;
+              if (role === "user" || role === "system") {
+                messageContents.push({
+                  type: "input_text",
+                  text: textContent,
+                });
+              } else if (role === "assistant") {
+                messageContents.push({
+                  type: "output_text",
+                  text: textContent,
+                  annotations: [],
+                });
+              }
+            } else if (
+              contextItem.type === "browserTab" ||
+              contextItem.type === "window"
+            ) {
+              const textContent = `[Context Item] ${JSON.stringify(contextItem)}`;
+              if (role === "user" || role === "system") {
+                messageContents.push({
+                  type: "input_text",
+                  text: textContent,
+                });
+              } else if (role === "assistant") {
+                messageContents.push({
+                  type: "output_text",
+                  text: textContent,
+                  annotations: [],
+                });
+              }
+            } else if (contextItem.type === "file") {
+              const url = contextItem.url.replace("file://", "");
+              if (FileUtil.isImageFile(url)) {
+                const description = `[Context Item] This is a image file , url is ${url}`;
+                const newMessageContents = await handleImageContentItem(url, description);
+                messageContents.push(...newMessageContents);
+              } else {
+                const readableContent = isAgentMode
+                  ? []
+                  : await AttachmentUtils.getAttachmentsReadableContent({
+                    files: [url],
+                    loading: true,
+                  });
+
+                const textContent = (() => {
+                  if (readableContent.length > 0) {
+                    const text = readableContent[0].contents
+                      .map((item) => item.text)
+                      .join("\n");
+                    const newItem = {
+                      ...contextItem,
+                      content: text,
+                    };
+                    return `[Context Item] ${JSON.stringify(newItem)}`;
+                  }
+                  return `[Context Item] ${JSON.stringify(contextItem)}`;
+                })();
+
+                if (role === "user" || role === "system") {
+                  messageContents.push({
+                    type: "input_text",
+                    text: textContent,
+                  });
+                } else if (role === "assistant") {
+                  messageContents.push({
+                    type: "output_text",
+                    text: textContent,
+                    annotations: [],
+                  });
+                }
+              }
+            }
+          }
+        } else if (item.type === "image_url") {
           let url = item.image_url.url.replace("file://", "");
           const newMessageContents = await handleImageContentItem(url);
           messageContents.push(...newMessageContents);
@@ -342,39 +449,8 @@ export namespace OpenAIUtil {
       const assistantMessage: AssistantMessage = BaseChatMessage.assistant(
         "Got it, I will follow your instructions and respond using your language.",
       );
-
       //@ts-ignore
       return [message, assistantMessage];
-    }
-
-    if (message.role === "tool") {
-      const toolMessage = message as ToolMessage;
-      let content: ChatMessageContent[] = [];
-      try {
-        content = JSON.parse(message.content as string);
-        toolMessage.content = content.filter((item) => {
-          if (item.type === "image_url") {
-            return false;
-          }
-          return true;
-        });
-      } catch (e) {
-        console.log("toolMessage content error", message.content);
-      }
-      // const toolAdditionalMessages = convertToolResults(content, options)
-      toolMessage.content = JSON.stringify(content);
-      // console.log("toolMessage", JSON.stringify(toolMessage, null, 2));
-
-      //@ts-ignore
-      return [message];
-    }
-
-    if (message.role === "assistant") {
-      const aiMessage = message as AssistantMessage;
-      if (aiMessage.tool_calls && aiMessage.tool_calls.length > 0) {
-        //@ts-ignore
-        return [aiMessage];
-      }
     }
 
     if (typeof message.content === "string") {
@@ -390,7 +466,7 @@ export namespace OpenAIUtil {
       let messageContents: OpenAI.Chat.ChatCompletionContentPart[] = [];
       const isAgentMode = Runtime.isAgentMode();
 
-      async function handleImageContentItem(url: string) {
+      async function handleImageContentItem(url: string, description?: string) {
         const newMessageContents: OpenAI.Chat.ChatCompletionContentPart[] = [];
         if (
           role === "user" &&
@@ -420,6 +496,14 @@ export namespace OpenAIUtil {
           }
         }
 
+        if (description) {
+          newMessageContents.push({
+            type: "text",
+            text: description,
+          });
+          return newMessageContents;
+        }
+
         const imageGenerationToolEnabled = params.imageGenerationToolEnabled && params.imageGenerationToolEnabled !== 'disabled';
         const videoGenerationToolEnabled = params.videoGenerationToolEnabled && params.videoGenerationToolEnabled !== 'disabled';
         if ((isAgentMode || imageGenerationToolEnabled || videoGenerationToolEnabled) && params.addImageAdditionalInfo !== false) {
@@ -433,7 +517,71 @@ export namespace OpenAIUtil {
 
       for (const item of message.content) {
         let role = message.role as "user" | "assistant";
-        if (item.type === "image_url") {
+        if (item.type === "context") {
+          const contextItems = item.items;
+          for (const contextItem of contextItems) {
+            if (contextItem.type === "screenshot") {
+              const description = `[Context Item] This is a screenshot, url is ${contextItem.url}`;
+              const newMessageContents = await handleImageContentItem(
+                contextItem.url,
+                description,
+              );
+              messageContents.push(...newMessageContents);
+            } else if (
+              contextItem.type === "text" ||
+              contextItem.type === "selectionText"
+            ) {
+              messageContents.push({
+                type: "text",
+                text: `[Context Item] ${JSON.stringify(contextItem)}`,
+              });
+            } else if (
+              contextItem.type === "browserTab" ||
+              contextItem.type === "window"
+            ) {
+              messageContents.push({
+                type: "text",
+                text: `[Context Item] ${JSON.stringify(contextItem)}`,
+              });
+            } else if (contextItem.type === "file") {
+              const url = contextItem.url.replace("file://", "");
+              if (FileUtil.isImageFile(url)) {
+                const description = `[Context Item] This is a image file , url is ${url}`;
+                const newMessageContents = await handleImageContentItem(
+                  url,
+                  description,
+                );
+                messageContents.push(...newMessageContents);
+              } else {
+                const readableContent = isAgentMode
+                  ? []
+                  : await AttachmentUtils.getAttachmentsReadableContent({
+                    files: [url],
+                    loading: true,
+                  });
+
+                if (readableContent.length > 0) {
+                  const text = readableContent[0].contents
+                    .map((item) => item.text)
+                    .join("\n");
+                  const newItem = {
+                    ...contextItem,
+                    content: text,
+                  };
+                  messageContents.push({
+                    type: "text",
+                    text: `[Context Item] ${JSON.stringify(newItem)}`,
+                  });
+                } else {
+                  messageContents.push({
+                    type: "text",
+                    text: `[Context Item] ${JSON.stringify(contextItem)}`,
+                  });
+                }
+              }
+            }
+          }
+        } else if (item.type === "image_url") {
           let url = item.image_url.url.replace("file://", "");
           const newMessageContents = await handleImageContentItem(url);
           messageContents.push(...newMessageContents);
@@ -849,7 +997,7 @@ export namespace OpenAIUtil {
 
     newMessages = ensureFirstMessageIsUser(newMessages);
 
-    // console.log("openai Completions newMessages", JSON.stringify(newMessages, null, 2))
+    console.log("openai Completions newMessages", JSON.stringify(newMessages, null, 2))
     return newMessages;
   };
 
@@ -866,7 +1014,7 @@ export namespace OpenAIUtil {
       )
     ).flat();
 
-    // console.log("openai Responses newMessages", JSON.stringify(newMessages, null, 2))
+    console.log("openai Responses newMessages", JSON.stringify(newMessages, null, 2))
     return newMessages;
   };
 
@@ -894,7 +1042,7 @@ export namespace OpenAIUtil {
       let runningContentBlockType: BaseChatMessageChunk.ContentBlock['type'] | undefined;
       try {
         for await (const chunk of response) {
-          console.log("chunk", JSON.stringify(chunk, null, 2), options?.commandName)
+          // console.log("chunk", JSON.stringify(chunk, null, 2), options?.commandName)
           if (done) continue;
           if (chunk.choices.length > 0) {
             const choice = chunk.choices[0];

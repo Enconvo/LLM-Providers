@@ -128,7 +128,7 @@ export const convertMessageToVercelFormat = async (
     let parts: UserContent | AssistantContent = [];
     const isAgentMode = Runtime.isAgentMode();
 
-    async function handleImageContentItem(url: string) {
+    async function handleImageContentItem(url: string, description?: string) {
       const newParts: UserContent | AssistantContent = [];
       if (role === "user" && options.modelName.visionEnable === true) {
         if (url.startsWith("http://") || url.startsWith("https://")) {
@@ -160,21 +160,98 @@ export const convertMessageToVercelFormat = async (
         }
       }
 
-      const imageGenerationToolEnabled = params.imageGenerationToolEnabled && params.imageGenerationToolEnabled !== 'disabled';
-      const videoGenerationToolEnabled = params.videoGenerationToolEnabled && params.videoGenerationToolEnabled !== 'disabled';
-      if ((Runtime.isAgentMode() || imageGenerationToolEnabled || videoGenerationToolEnabled) && params.addImageAdditionalInfo !== false) {
+      if (description) {
         const textPart: TextPart = {
           type: "text",
-          text: `The above image's url is ${url} , only used for reference when you use tool.`,
+          text: description,
         };
         //@ts-ignore
         newParts.push(textPart);
+      } else {
+        const imageGenerationToolEnabled = params.imageGenerationToolEnabled && params.imageGenerationToolEnabled !== 'disabled';
+        const videoGenerationToolEnabled = params.videoGenerationToolEnabled && params.videoGenerationToolEnabled !== 'disabled';
+        if ((Runtime.isAgentMode() || imageGenerationToolEnabled || videoGenerationToolEnabled) && params.addImageAdditionalInfo !== false) {
+          const textPart: TextPart = {
+            type: "text",
+            text: `The above image's url is ${url} , only used for reference when you use tool.`,
+          };
+          //@ts-ignore
+          newParts.push(textPart);
+        }
       }
       return newParts;
     }
 
     for (const item of message.content) {
-      if (item.type === "image_url") {
+      if (item.type === "context") {
+        const contextItems = item.items;
+        for (const contextItem of contextItems) {
+          if (contextItem.type === "screenshot") {
+            const description = `[Context Item] This is a screenshot, url is ${contextItem.url}`;
+            const newParts = await handleImageContentItem(contextItem.url, description);
+            //@ts-ignore
+            parts.push(...newParts);
+          } else if (
+            contextItem.type === "text" ||
+            contextItem.type === "selectionText"
+          ) {
+            const textPart: TextPart = {
+              type: "text",
+              text: `[Context Item] ${JSON.stringify(contextItem)}`,
+            };
+            //@ts-ignore
+            parts.push(textPart);
+          } else if (
+            contextItem.type === "browserTab" ||
+            contextItem.type === "window"
+          ) {
+            const textPart: TextPart = {
+              type: "text",
+              text: `[Context Item] ${JSON.stringify(contextItem)}`,
+            };
+            //@ts-ignore
+            parts.push(textPart);
+          } else if (contextItem.type === "file") {
+            const url = contextItem.url.replace("file://", "");
+            if (FileUtil.isImageFile(url)) {
+              const description = `[Context Item] This is a image file , url is ${url}`;
+              const newParts = await handleImageContentItem(url, description);
+              //@ts-ignore
+              parts.push(...newParts);
+            } else {
+              const readableContent = isAgentMode
+                ? []
+                : await AttachmentUtils.getAttachmentsReadableContent({
+                  files: [url],
+                  loading: true,
+                });
+
+              if (readableContent.length > 0) {
+                const text = readableContent[0].contents
+                  .map((item) => item.text)
+                  .join("\n");
+                const newItem = {
+                  ...contextItem,
+                  content: text,
+                };
+                const textPart: TextPart = {
+                  type: "text",
+                  text: `[Context Item] ${JSON.stringify(newItem)}`,
+                };
+                //@ts-ignore
+                parts.push(textPart);
+              } else {
+                const textPart: TextPart = {
+                  type: "text",
+                  text: `[Context Item] ${JSON.stringify(contextItem)}`,
+                };
+                //@ts-ignore
+                parts.push(textPart);
+              }
+            }
+          }
+        }
+      } else if (item.type === "image_url") {
         let url = item.image_url.url.replace("file://", "");
         const newParts = await handleImageContentItem(url);
         //@ts-ignore

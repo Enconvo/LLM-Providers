@@ -210,7 +210,7 @@ export const convertMessageToAnthropicMessage = async (
     const isAgentMode = Runtime.isAgentMode();
 
 
-    async function handleImageContentItem(url: string) {
+    async function handleImageContentItem(url: string, description?: string) {
       const newParts: MessageContentType[] = [];
       if (
         role === "user" &&
@@ -254,12 +254,20 @@ export const convertMessageToAnthropicMessage = async (
         }
       }
 
-      const imageGenerationToolEnabled = params.imageGenerationToolEnabled && params.imageGenerationToolEnabled !== 'disabled';
-      const videoGenerationToolEnabled = params.videoGenerationToolEnabled && params.videoGenerationToolEnabled !== 'disabled';
-      if ((Runtime.isAgentMode() || imageGenerationToolEnabled || videoGenerationToolEnabled) && params.addImageAdditionalInfo !== false) {
+      if (!description) {
+
+        const imageGenerationToolEnabled = params.imageGenerationToolEnabled && params.imageGenerationToolEnabled !== 'disabled';
+        const videoGenerationToolEnabled = params.videoGenerationToolEnabled && params.videoGenerationToolEnabled !== 'disabled';
+        if ((Runtime.isAgentMode() || imageGenerationToolEnabled || videoGenerationToolEnabled) && params.addImageAdditionalInfo !== false) {
+          newParts.push({
+            type: "text",
+            text: `The above image's url is ${url} , only used for reference when you use tool.`,
+          });
+        }
+      } else {
         newParts.push({
           type: "text",
-          text: `The above image's url is ${url} , only used for reference when you use tool.`,
+          text: description,
         });
       }
       return newParts;
@@ -268,8 +276,64 @@ export const convertMessageToAnthropicMessage = async (
 
 
     for (const item of message.content) {
+      if (item.type === 'context') {
+        const contextItems = item.items
+        for (const contextItem of contextItems) {
+          if (contextItem.type === 'screenshot') {
+            const description = `[Context Item] This is a screenshot, url is ${contextItem.url}`;
+            const newParts = await handleImageContentItem(contextItem.url, description);
+            parts.push(...newParts);
+          } else if (contextItem.type === 'text' || contextItem.type === 'selectionText') {
+            parts.push({
+              type: "text",
+              text: `[Context Item] ${JSON.stringify(contextItem)}`,
+            });
+          } else if (contextItem.type === 'browserTab') {
+            parts.push({
+              type: "text",
+              text: `[Context Item] ${JSON.stringify(contextItem)}`,
+            });
+          } else if (contextItem.type === 'window') {
+            parts.push({
+              type: "text",
+              text: `[Context Item] ${JSON.stringify(contextItem)}`,
+            });
+          } else if (contextItem.type === 'file') {
+            const url = contextItem.url.replace("file://", "");
+            if (FileUtil.isImageFile(url)) {
+              const description = `[Context Item] This is a image file , url is ${url}`;
+              const newParts = await handleImageContentItem(url, description);
+              parts.push(...newParts);
+            } else {
+              const readableContent = isAgentMode
+                ? []
+                : await AttachmentUtils.getAttachmentsReadableContent({
+                  files: [url],
+                  loading: true,
+                });
 
-      if (item.type === "image_url") {
+              if (readableContent.length > 0) {
+                const text = readableContent[0].contents
+                  .map((item) => item.text)
+                  .join("\n");
+                const newItem = {
+                  ...contextItem,
+                  content: text
+                }
+                parts.push({
+                  type: "text",
+                  text: `[Context Item] ${JSON.stringify(newItem)}`,
+                });
+              } else {
+                parts.push({
+                  type: "text",
+                  text: `[Context Item] ${JSON.stringify(contextItem)}`,
+                });
+              }
+            }
+          }
+        }
+      } else if (item.type === "image_url") {
         let url = item.image_url.url.replace("file://", "");
         const newParts = await handleImageContentItem(url);
         parts.push(...newParts);
