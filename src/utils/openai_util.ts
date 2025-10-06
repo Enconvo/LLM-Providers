@@ -14,7 +14,8 @@ import {
   ToolMessage,
   uuid,
   ChatMessageContentListItem,
-  AttachmentUtils
+  AttachmentUtils,
+  ContextUtils,
 } from "@enconvo/api";
 import OpenAI from "openai";
 import {
@@ -153,12 +154,12 @@ export namespace OpenAIUtil {
             if (role === "user" || role === "system") {
               newMessageContents.push({
                 type: "input_text",
-                text: `The above image's url is ${url} , this url is only used for reference when you use tool, if not , ignore this .`,
+                text: `The above image's url is ${url} , only used for reference when you use tool.`,
               });
             } else if (role === "assistant") {
               newMessageContents.push({
                 type: "output_text",
-                text: `The above image's url is ${url} , this url is only used for reference when you use tool, if not , ignore this .`,
+                text: `The above image's url is ${url} , only used for reference when you use tool.`,
                 annotations: [],
               });
             }
@@ -250,6 +251,21 @@ export namespace OpenAIUtil {
                     annotations: [],
                   });
                 }
+              }
+            } else if (contextItem.type === "transcript") {
+              const newContextItem = await ContextUtils.syncUnloadedContextItem(contextItem);
+              const textContent = `[Context Item] ${JSON.stringify(newContextItem)}`;
+              if (role === "user" || role === "system") {
+                messageContents.push({
+                  type: "input_text",
+                  text: textContent,
+                });
+              } else if (role === "assistant") {
+                messageContents.push({
+                  type: "output_text",
+                  text: textContent,
+                  annotations: [],
+                });
               }
             }
           }

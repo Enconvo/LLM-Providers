@@ -13,6 +13,7 @@ import {
   uuid,
   ChatMessageContentListItem,
   AttachmentUtils,
+  ContextUtils,
 } from "@enconvo/api";
 import path from "path";
 import { writeFile } from "fs/promises";
@@ -250,6 +251,11 @@ export const convertMessageToGoogleMessage = async (
                 });
               }
             }
+          } else if (contextItem.type === "transcript") {
+            const newContextItem = await ContextUtils.syncUnloadedContextItem(contextItem);
+            parts.push({
+              text: `[Context Item] ${JSON.stringify(newContextItem)}`,
+            });
           }
         }
       } else if (item.type === "image_url") {

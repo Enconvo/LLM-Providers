@@ -11,6 +11,7 @@ import {
   SystemMessage,
   ToolMessage,
   uuid,
+  ContextUtils,
 } from "@enconvo/api";
 import mime from "mime";
 
@@ -249,6 +250,14 @@ export const convertMessageToVercelFormat = async (
                 parts.push(textPart);
               }
             }
+          } else if (contextItem.type === "transcript") {
+            const newContextItem = await ContextUtils.syncUnloadedContextItem(contextItem);
+            const textPart: TextPart = {
+              type: "text",
+              text: `[Context Item] ${JSON.stringify(newContextItem)}`,
+            };
+            //@ts-ignore
+            parts.push(textPart);
           }
         }
       } else if (item.type === "image_url") {

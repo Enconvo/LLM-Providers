@@ -11,6 +11,10 @@ import {
   Stream,
   ChatMessageContentListItem,
   AttachmentUtils,
+  NativeAPI,
+  ContextItem,
+  CacheUtils,
+  ContextUtils,
 } from "@enconvo/api";
 import path from "path";
 import mime from "mime";
@@ -255,7 +259,6 @@ export const convertMessageToAnthropicMessage = async (
       }
 
       if (!description) {
-
         const imageGenerationToolEnabled = params.imageGenerationToolEnabled && params.imageGenerationToolEnabled !== 'disabled';
         const videoGenerationToolEnabled = params.videoGenerationToolEnabled && params.videoGenerationToolEnabled !== 'disabled';
         if ((Runtime.isAgentMode() || imageGenerationToolEnabled || videoGenerationToolEnabled) && params.addImageAdditionalInfo !== false) {
@@ -331,6 +334,14 @@ export const convertMessageToAnthropicMessage = async (
                 });
               }
             }
+          } else if (contextItem.type === 'transcript') {
+            const newContextItem = await ContextUtils.syncUnloadedContextItem(contextItem)
+
+            parts.push({
+              type: "text",
+              text: `[Context Item] ${JSON.stringify(newContextItem)}`,
+            });
+
           }
         }
       } else if (item.type === "image_url") {
@@ -452,9 +463,10 @@ export const convertMessageToAnthropicMessage = async (
         }
       } else if (item.type === "file") {
         const url = item.file_url.url.replace("file://", "");
-        console.log("file url", url);
+        console.log("file url", url, FileUtil.isImageFile(url));
         if (FileUtil.isImageFile(url)) {
           const newParts = await handleImageContentItem(url);
+          console.log("newParts", newParts);
           parts.push(...newParts);
           continue;
         }
