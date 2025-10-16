@@ -185,6 +185,11 @@
                 },
                 {
                   "condition": "eq",
+                  "value": "anthropic/claude-haiku-4-5-20251001",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
                   "value": "anthropic/claude-opus-4-20250514",
                   "operator": "or"
                 },
@@ -870,6 +875,11 @@
                 {
                   "condition": "eq",
                   "value": "claude-sonnet-4-5-20250929",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "claude-haiku-4-5-20251001",
                   "operator": "or"
                 },
                 {
@@ -3768,6 +3778,11 @@
                 {
                   "condition": "eq",
                   "value": "anthropic/claude-sonnet-4-5-20250929",
+                  "operator": "or"
+                },
+                {
+                  "condition": "eq",
+                  "value": "anthropic/claude-haiku-4-5-20251001",
                   "operator": "or"
                 },
                 {
