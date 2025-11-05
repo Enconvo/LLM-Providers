@@ -1,6 +1,5 @@
-import { ListCache, RequestOptions } from "@enconvo/api";
+import { ListCache, Preference, RequestOptions } from "@enconvo/api";
 
-const models: ListCache.ListItem[] = [];
 
 /**
  * Fetches models from the API and transforms them into ModelOutput format
@@ -11,7 +10,6 @@ const models: ListCache.ListItem[] = [];
 async function fetchModels(
   options: RequestOptions,
 ): Promise<ListCache.ListItem[]> {
-  console.log("fetchModels", options.url, options.api_key, options.type);
   if (!options.url || !options.api_key || !options.type) {
     return [];
   }
@@ -27,27 +25,29 @@ async function fetchModels(
     }
 
     const data = await resp.json();
-    const result = data.data[options.type].map((item: any) => {
-      const model = models.find((m) => {
-        return m.value === item.model;
-      });
-
-      const context = model?.context || 8000;
-      const visionEnable = model?.visionEnable || false;
-      const toolUse = model?.toolUse || false;
-      const title = model?.title || item.name;
-      const value = model?.value || item.model;
-      const inputPrice = model?.inputPrice || 0;
-      const outputPrice = model?.outputPrice || 0;
-      return {
+    const result = data.data[options.type].map((item: any): Preference.LLMModel => {
+      const context = item.context || 8000;
+      const visionEnable = item.metadata?.features?.includes("Image input") || false;
+      const toolUse = false;
+      const title = item.name || item.model;
+      const value = item.model;
+      const inputPrice = item.pricing?.coins || 0;
+      const outputPrice = item.outputPrice || 0;
+      const model: Preference.LLMModel = {
+        type: "llm_model",
         title: title,
         value: value,
         context: context,
+        maxTokens: item.max_output || 10000,
         inputPrice: inputPrice,
         outputPrice: outputPrice,
+        perRequestPrice: item.pricing?.coins || 0,
+        // @ts-ignore
+        perRequestUnit: "100 words",
         toolUse: toolUse,
         visionEnable: visionEnable,
       };
+      return model;
     });
 
     // console.log("Total models fetched:", result)

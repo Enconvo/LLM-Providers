@@ -1,37 +1,33 @@
 import {
-  AssistantMessage,
-  BaseChatMessage,
   BaseChatMessageChunk,
   BaseChatMessageLike,
-  ChatMessageContent,
-  ChatMessageContentText,
+  ContextItem,
+  FileUtil,
   LLMProvider,
   Stream,
-  uuid,
 } from "@enconvo/api";
+import { ChatOpenAIProvider } from "./chat_open_ai.ts";
+import { createReadStream } from "fs";
 import axios from "axios";
-import { createReadStream } from "node:fs";
 import FormData from "form-data";
 
 export default function main(options: any) {
   return new StraicoProvider(options);
 }
 
-export class StraicoProvider extends LLMProvider {
-  constructor(options: LLMProvider.LLMOptions) {
-    super(options);
-  }
+export class StraicoProvider extends ChatOpenAIProvider {
 
-  protected async _call(content: LLMProvider.Params): Promise<BaseChatMessage> {
-    const response = await this.request(content.messages);
 
-    return new AssistantMessage(response);
-  }
+
 
   protected async _stream(
     content: LLMProvider.Params,
   ): Promise<Stream<BaseChatMessageChunk>> {
-    const response = await this.request(content.messages);
+
+
+    const messages = await this.handleMessages(content);
+
+    const response = await this.call({ messages: messages });
 
     async function* iterator(): AsyncIterator<
       BaseChatMessageChunk,
@@ -50,7 +46,7 @@ export class StraicoProvider extends LLMProvider {
         type: 'content_block_delta',
         delta: {
           type: 'text_delta',
-          text: response,
+          text: response.text,
         }
       }
 
@@ -64,134 +60,165 @@ export class StraicoProvider extends LLMProvider {
     return new Stream(iterator, controller);
   }
 
-  initParams() {
-    return {
-      model: this.options.modelName.value,
-      temperature: this.options.temperature.value,
-    };
-  }
+  private async handleMessages(
+    content: LLMProvider.Params,
+  ): Promise<BaseChatMessageLike[]> {
+    const messages = content.messages;
 
-  async request(messages: BaseChatMessageLike[]) {
-    const credentials = this.options.credentials;
-    // console.log("straico credentials", credentials)
-    if (!credentials?.apiKey) {
-      throw new Error("API key is required");
-    }
+    const uploadCache = new Map<string, string>();
 
-    const newMessages = await this.convertMessagesToStraicoMessages(messages);
-    console.log("newMessages", newMessages);
-    const images = newMessages
-      .map((message) => {
-        return message.images;
-      })
-      .flat();
-    console.log("images", images);
+    const uploadIfNecessary = async (
+      rawUrl: string,
+      options: { skipImageCheck?: boolean } = {},
+    ): Promise<string> => {
+      if (!rawUrl) {
+        return rawUrl;
+      }
+      if (rawUrl.startsWith("http://") || rawUrl.startsWith("https://")) {
+        return rawUrl;
+      }
 
-    const lastMessage = newMessages.pop();
-    const userInput = lastMessage?.text.text;
+      const { skipImageCheck = false } = options;
+      const sanitizedPath = rawUrl.startsWith("file://")
+        ? rawUrl.replace("file://", "")
+        : rawUrl;
 
-    const history = newMessages
-      .map((message) => {
-        return `${message.text.role}: ${message.text.text}`;
-      })
-      .join("\n");
+      if (!skipImageCheck && !FileUtil.isImageFile(sanitizedPath)) {
+        return rawUrl;
+      }
 
-    const prompt = `history messages:\n${history}\n\nuser input:\n${userInput}`;
+      if (uploadCache.has(sanitizedPath)) {
+        return uploadCache.get(sanitizedPath)!;
+      }
 
-    var data = JSON.stringify({
-      models: [this.options.modelName.value],
-      message: prompt,
-      temperature: this.options.temperature.value,
-      images: images,
-    });
+      try {
+        const uploadedUrl = await this.uploadFile(sanitizedPath);
+        if (uploadedUrl) {
+          uploadCache.set(sanitizedPath, uploadedUrl);
+          return uploadedUrl;
+        }
+      } catch (error) {
+        console.error("Failed to upload file to Straico:", error);
+      }
 
-    // console.log("data", data)
-
-    var config = {
-      method: "post",
-      maxBodyLength: Infinity,
-      url: "https://api.straico.com/v1/prompt/completion",
-      headers: {
-        Authorization: `Bearer ${credentials.apiKey}`,
-        "Content-Type": "application/json",
-      },
-      data: data,
+      uploadCache.set(sanitizedPath, rawUrl);
+      return rawUrl;
     };
 
-    // console.log("config", JSON.stringify(config))
+    const processedMessages: BaseChatMessageLike[] = [];
+    for (const originalMessage of messages) {
+      if (typeof originalMessage.content === "string") {
+        processedMessages.push(originalMessage);
+        continue;
+      }
 
-    try {
-      const response = await axios(config);
-      const modelResponse =
-        response.data.data.completions[this.options.modelName.value];
-      const modelResponseContent =
-        modelResponse.completion.choices[0].message.content;
-      console.log(modelResponseContent);
-      return modelResponseContent;
-    } catch (error) {
-      console.log(error);
-    }
-  }
+      if (!Array.isArray(originalMessage.content)) {
+        processedMessages.push(originalMessage);
+        continue;
+      }
 
-  private async convertMessageToStraicoMessage(
-    message: BaseChatMessageLike,
-  ): Promise<{ text: BaseChatMessage; images: string[] }> {
-    let role = message.role;
+      const newContent: any[] = [];
+      for (const item of originalMessage.content) {
+        if (item?.type === "context" && Array.isArray(item.items)) {
+          const newContextItems:ContextItem[] = [];
+          for (const contextItem of item.items) {
+            if (!contextItem) {
+              continue;
+            }
 
-    if (typeof message.content === "string") {
-      return {
-        text: new BaseChatMessage(role, [
-          ChatMessageContent.text(message.content),
-        ]),
-        images: [],
-      };
-    } else {
-      const content = message.content
-        .filter((item) => {
-          return item.type === "text" || item.type === "search_result_list";
-        })
-        .map((item) => {
-          if (item.type === "search_result_list") {
-            return JSON.stringify(item.items);
-          } else {
-            return item.text;
+            if (contextItem.type === "screenshot") {
+              const uploadedUrl = await uploadIfNecessary(contextItem.url, {
+                skipImageCheck: true,
+              });
+              newContextItems.push({
+                ...contextItem,
+                url: uploadedUrl,
+              });
+            } else if (contextItem.type === "file") {
+              const rawUrl = contextItem.url;
+              const sanitizedPath =
+                rawUrl?.startsWith("file://")
+                  ? rawUrl.replace("file://", "")
+                  : rawUrl;
+
+              if (
+                rawUrl &&
+                !rawUrl.startsWith("http://") &&
+                !rawUrl.startsWith("https://") &&
+                FileUtil.isImageFile(sanitizedPath)
+              ) {
+                const uploadedUrl = await uploadIfNecessary(rawUrl);
+                newContextItems.push({
+                  ...contextItem,
+                  url: uploadedUrl,
+                });
+              } else {
+                newContextItems.push(contextItem);
+              }
+            } else {
+              newContextItems.push(contextItem);
+            }
           }
-        });
 
-      const images = message.content
-        .filter((item) => {
-          return item.type === "image_url";
-        })
-        .map(async (item) => {
-          const url = item.image_url.url.replace("file://", "");
-          if (url.startsWith("http://") || url.startsWith("https://")) {
-            return url;
-          } else {
-            const fileUrl = await this.uploadFile(url);
-            return fileUrl;
+          newContent.push({
+            ...item,
+            items: newContextItems,
+          });
+          continue;
+        }
+
+        if (item?.type === "image_url" && item.image_url?.url) {
+          const uploadedUrl = await uploadIfNecessary(item.image_url.url, {
+            skipImageCheck: false,
+          });
+          newContent.push({
+            ...item,
+            image_url: {
+              ...item.image_url,
+              url: uploadedUrl,
+            },
+          });
+          continue;
+        }
+
+        if (item?.type === "file" && item.file_url?.url) {
+          const rawUrl = item.file_url.url;
+          const sanitizedPath = rawUrl.startsWith("file://")
+            ? rawUrl.replace("file://", "")
+            : rawUrl;
+
+          if (
+            !rawUrl.startsWith("http://") &&
+            !rawUrl.startsWith("https://") &&
+            FileUtil.isImageFile(sanitizedPath)
+          ) {
+            const uploadedUrl = await uploadIfNecessary(rawUrl);
+            newContent.push({
+              ...item,
+              file_url: {
+                ...item.file_url,
+                url: uploadedUrl,
+              },
+            });
+            continue;
           }
-        });
-      const files = await Promise.all(images);
-      return {
-        text: new BaseChatMessage(role, [
-          ChatMessageContent.text(content.join("\n")),
-        ]),
-        images: files,
+        }
+
+        newContent.push(item);
+      }
+
+      const processedMessage: BaseChatMessageLike = {
+        ...originalMessage,
+        content: newContent,
       };
+      processedMessages.push(processedMessage);
     }
+
+    return processedMessages;
   }
 
-  private async convertMessagesToStraicoMessages(
-    messages: BaseChatMessageLike[],
-  ): Promise<{ text: BaseChatMessage; images: string[] }[]> {
-    let newMessages = messages.map(
-      async (message) => await this.convertMessageToStraicoMessage(message),
-    );
-    return await Promise.all(newMessages);
-  }
 
   private async uploadFile(fileUrl: string): Promise<string> {
-    return "";
     var data = new FormData();
     const file = createReadStream(fileUrl.replaceAll("file://", ""));
     data.append("file", file);

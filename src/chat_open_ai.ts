@@ -19,6 +19,11 @@ export class ChatOpenAIProvider extends LLMProvider {
   protected async _stream(
     content: LLMProvider.Params,
   ): Promise<Stream<BaseChatMessageChunk>> {
+    if (this.options.originCommandName === "chat_straico") {
+      return await this._call(content);
+    }
+
+
     this.client = await this._createOpenaiClient(this.options);
     // console.log("this.options", this.options)
     const credentialsType = this.options.credentials?.credentials_type?.value;
@@ -316,11 +321,13 @@ export class ChatOpenAIProvider extends LLMProvider {
     let baseURL = credentials?.baseUrl || "https://api.openai.com/v1";
     if (options.originCommandName === "chat_qwen" && credentialsType === "oauth2") {
       baseURL = `https://${credentials?.resource_url}/v1`;
+    } else if (options.originCommandName === "chat_straico") {
+      baseURL = "https://api.straico.com/v2";
     }
 
     // console.log("headers", headers)
-    // console.log("apiKey", apiKey)
-    // console.log("baseURL", baseURL)
+    console.log("apiKey", apiKey)
+    console.log("baseURL", baseURL)
 
     const client = new OpenAI({
       apiKey: apiKey, // This is the default and can be omitted
