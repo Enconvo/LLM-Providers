@@ -320,6 +320,8 @@ export class GoogleGeminiProvider extends LLMProvider {
       this.options.gemini_thinking?.value;
 
 
+    const geminiThinkingLevel = this.options.gemini_thinking_level?.value;
+
     let geminiParams: GenerateContentParameters = {
       model: model,
       contents: newMessages,
@@ -345,11 +347,21 @@ export class GoogleGeminiProvider extends LLMProvider {
             : geminiThinking === "disabled"
               ? 0
               : parseInt(geminiThinking),
-        includeThoughts: geminiThinking !== "disabled",
+        includeThoughts: geminiThinking !== "disabled" && this.options.show_thoughts === true,
       };
     }
 
-    console.log("gemini params", JSON.stringify(geminiParams, null, 2))
+    if (geminiThinkingLevel) {
+      geminiParams.config!.thinkingConfig = {
+        thinkingLevel: geminiThinkingLevel,
+        includeThoughts: this.options.show_thoughts === true,
+      }
+    }
+
+    console.log("gemini thinking level", geminiThinkingLevel, geminiThinking, geminiParams.config!.thinkingConfig)
+
+
+    // console.log("gemini params", JSON.stringify(geminiParams, null, 2))
     return geminiParams;
   }
 }

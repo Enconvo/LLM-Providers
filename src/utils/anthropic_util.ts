@@ -466,7 +466,7 @@ export const convertMessageToAnthropicMessage = async (
         console.log("file url", url, FileUtil.isImageFile(url));
         if (FileUtil.isImageFile(url)) {
           const newParts = await handleImageContentItem(url);
-          console.log("newParts", newParts);
+          // console.log("newParts", newParts);
           parts.push(...newParts);
           continue;
         }
@@ -603,7 +603,7 @@ export const convertMessagesToAnthropicMessages = async (
     newMessages = newMessages.slice(1);
   }
 
-  console.log("anthropic newMessages", JSON.stringify(newMessages, null, 2));
+  // console.log("anthropic newMessages", JSON.stringify(newMessages, null, 2));
 
   return newMessages;
 };
