@@ -44,7 +44,7 @@ export class GoogleGeminiProvider extends LLMProvider {
   constructor(options: LLMProvider.LLMOptions) {
     super(options);
     const credentials = options.credentials;
-    const google = new GoogleGenAI({ apiKey: credentials?.apiKey });
+    const google = new GoogleGenAI({ apiKey: credentials?.apiKey, vertexai: false });
 
     this.ai = google;
   }

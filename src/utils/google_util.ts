@@ -14,6 +14,7 @@ import {
   ChatMessageContentListItem,
   AttachmentUtils,
   ContextUtils,
+  CacheUtils
 } from "@enconvo/api";
 import path from "path";
 import { writeFile } from "fs/promises";
@@ -285,6 +286,8 @@ export const convertMessageToGoogleMessage = async (
             parts = [];
           }
 
+          const thoughtSignature = CacheUtils.get(item.flowName) as string | undefined;
+          // console.log("thoughtSignature", thoughtSignature)
           const functionCall: Content = {
             role: convertRole(message.role),
             parts: [
@@ -293,6 +296,7 @@ export const convertMessageToGoogleMessage = async (
                   name: item.flowName,
                   args: args,
                 },
+                thoughtSignature: thoughtSignature,
               },
             ],
           };
@@ -533,12 +537,13 @@ export function streamFromGoogle(
     let runningContentBlockType: BaseChatMessageChunk.ContentBlock['type'] | undefined;
     try {
       for await (const chunk of response) {
-        console.log("google chunk", JSON.stringify(chunk, null, 2))
+        // console.log("google chunk", JSON.stringify(chunk, null, 2))
         if (done) continue;
         const candidate = chunk.candidates?.[0];
 
         const functionCalls = chunk.functionCalls;
         const groundingMetadata = candidate?.groundingMetadata;
+        const thoughtSignature = candidate?.content?.parts?.[0]?.thoughtSignature;
 
         if (candidate?.finishReason === "STOP") {
           done = true;
@@ -569,10 +574,17 @@ export function streamFromGoogle(
             runningContentBlockType = 'tool_use';
 
             const functionCall = functionCalls[0];
+            if (thoughtSignature && functionCall.name) {
+              CacheUtils.set(functionCall.name, thoughtSignature)
+              CacheUtils.save()
+            }
+
+
             yield {
               type: 'content_block_start',
               content_block: {
                 type: 'tool_use',
+                thought_signature: thoughtSignature,
                 name: functionCall.name || "",
                 input: functionCall.args || {},
                 id: functionCall.id || ""
