@@ -133,6 +133,21 @@ async function fetchModels(
   if (credentialsType === 'oauth2') {
     return [
       {
+        title: "Gemini 3 Pro Preview",
+        value: "gemini-3-pro-preview",
+        inputPrice: 1.25, // prompts <= 200k tokens
+        context: 200000,
+        visionEnable: true,
+        searchToolSupported: true,
+        toolUse: true,
+        maxTokens: 200000,
+        outputPrice: 10.0,
+        speed: 3,
+        intelligence: 5,
+        reasoning: 5,
+        type: "llm_model",
+      },
+      {
         title: "Gemini 2.5 Pro",
         value: "gemini-2.5-pro",
         inputPrice: 1.25, // prompts <= 200k tokens
