@@ -51,6 +51,22 @@ export const geminiModelsData: Preference.LLMModel[] = [
     toolUse: false,
     type: "llm_model",
   },
+  {
+    title: "Gemini 3 Pro Image Preview",
+    value: "gemini-3-pro-image-preview",
+    context: 32768,
+    maxTokens: 32768,
+    inputPrice: 100,
+    outputPrice: 0.4,
+    speed: 5,
+    intelligence: 3,
+    reasoning: 0,
+    visionEnable: true,
+    imageGeneration: true,
+    audioEnable: false,
+    toolUse: false,
+    type: "llm_model",
+  },
   // Gemini 2.5 Flash-Lite - Most cost effective model
   {
     title: "Gemini 2.5 Flash-Lite",
