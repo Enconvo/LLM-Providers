@@ -603,7 +603,7 @@ export const convertMessagesToAnthropicMessages = async (
     newMessages = newMessages.slice(1);
   }
 
-  // console.log("anthropic newMessages", JSON.stringify(newMessages, null, 2));
+  console.log("anthropic newMessages", JSON.stringify(newMessages, null, 2));
 
   return newMessages;
 };
@@ -719,6 +719,8 @@ export function streamFromAnthropic(
               delta: chunk.delta
             }
           } else if (chunk.delta.type === "signature_delta") {
+            // CacheUtils.set(chunk.delta.signature, chunk.delta.signature)
+            // CacheUtils.save()
             yield {
               type: 'content_block_delta',
               delta: chunk.delta

@@ -286,7 +286,7 @@ export const convertMessageToGoogleMessage = async (
             parts = [];
           }
 
-          const thoughtSignature = CacheUtils.get(item.flowName) as string | undefined;
+          const thoughtSignature = item.thought_signature || CacheUtils.get(item.flowName) as string | undefined;
           // console.log("thoughtSignature", thoughtSignature)
           const functionCall: Content = {
             role: convertRole(message.role),
@@ -477,7 +477,7 @@ export const convertMessagesToGoogleMessages = async (
   options: LLMProvider.LLMOptions,
   params: LLMProvider.Params,
 ): Promise<Content[]> => {
-  console.log("convertMessagesToGoogleMessages messages", JSON.stringify(messages, null, 2))
+  // console.log("convertMessagesToGoogleMessages messages", JSON.stringify(messages, null, 2))
   const newMessages = (
     await Promise.all(
       messages.map(async (message) => {
@@ -486,7 +486,7 @@ export const convertMessagesToGoogleMessages = async (
       ),
     )
   ).flat();
-  console.log("google newMessages", JSON.stringify(newMessages, null, 2));
+  // console.log("google newMessages", JSON.stringify(newMessages, null, 2));
   return newMessages;
 };
 
@@ -574,11 +574,6 @@ export function streamFromGoogle(
             runningContentBlockType = 'tool_use';
 
             const functionCall = functionCalls[0];
-            if (thoughtSignature && functionCall.name) {
-              CacheUtils.set(functionCall.name, thoughtSignature)
-              CacheUtils.save()
-            }
-
 
             yield {
               type: 'content_block_start',

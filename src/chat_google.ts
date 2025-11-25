@@ -358,10 +358,9 @@ export class GoogleGeminiProvider extends LLMProvider {
       }
     }
 
-    console.log("gemini thinking level", geminiThinkingLevel, geminiThinking, geminiParams.config!.thinkingConfig)
+    // console.log("gemini thinking level", geminiThinkingLevel, geminiThinking, geminiParams.config!.thinkingConfig)
 
-
-    console.log("gemini params", JSON.stringify(geminiParams, null, 2))
+    // console.log("gemini params", JSON.stringify(geminiParams, null, 2))
     return geminiParams;
   }
 }
