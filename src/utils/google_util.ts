@@ -163,7 +163,7 @@ export const convertMessageToGoogleMessage = async (
     const contents: Content[] = [];
     const isAgentMode = Runtime.isAgentMode();
 
-    async function handleImageContentItem(url: string, description?: string) {
+    async function handleImageContentItem({ url, description ,thoughtSignature}: { url: string; description?: string, thoughtSignature?: string }) {
       const newParts: Part[] = [];
       url = await ImageUtil.compressImage(url);
       const mimeType = mime.getType(url);
@@ -174,6 +174,7 @@ export const convertMessageToGoogleMessage = async (
             data: base64,
             mimeType: mimeType as string,
           },
+          thoughtSignature: thoughtSignature,
         };
         newParts.push(image);
       }
@@ -203,7 +204,7 @@ export const convertMessageToGoogleMessage = async (
         for (const contextItem of contextItems) {
           if (contextItem.type === "screenshot") {
             const description = `[Context Item] This is a screenshot, url is ${contextItem.url}`;
-            const newParts = await handleImageContentItem(contextItem.url, description);
+            const newParts = await handleImageContentItem({ url: contextItem.url, description });
             parts.push(...newParts);
           } else if (
             contextItem.type === "text" ||
@@ -225,7 +226,7 @@ export const convertMessageToGoogleMessage = async (
             const url = contextItem.url.replace("file://", "");
             if (FileUtil.isImageFile(url)) {
               const description = `[Context Item] This is a image file , url is ${url}`;
-              const newParts = await handleImageContentItem(url, description);
+              const newParts = await handleImageContentItem({ url, description });
               parts.push(...newParts);
             } else {
               const readableContent = isAgentMode
@@ -261,7 +262,7 @@ export const convertMessageToGoogleMessage = async (
         }
       } else if (item.type === "image_url") {
         let url = item.image_url.url.replace("file://", "");
-        const newParts = await handleImageContentItem(url);
+        const newParts = await handleImageContentItem({ url, thoughtSignature: item.thought_signature });
         parts.push(...newParts);
       } else if (item.type === "flow_step") {
         let args = {};
@@ -334,6 +335,7 @@ export const convertMessageToGoogleMessage = async (
         if (item.text.trim() !== "") {
           parts.push({
             text: item.text,
+            thoughtSignature: item.thought_signature,
           });
         }
       } else if (item.type === "audio") {
@@ -351,6 +353,7 @@ export const convertMessageToGoogleMessage = async (
               data: base64,
               mimeType: mimeType,
             },
+            thoughtSignature: item.thought_signature,
           };
           parts.push(audio);
         }
@@ -389,6 +392,7 @@ export const convertMessageToGoogleMessage = async (
                 data: base64,
                 mimeType: mimeType as string,
               },
+              thoughtSignature: item.thought_signature,
             };
             parts.push(video);
           }
@@ -419,7 +423,7 @@ export const convertMessageToGoogleMessage = async (
       } else if (item.type === "file") {
         const url = item.file_url.url.replace("file://", "");
         if (FileUtil.isImageFile(url)) {
-          const newParts = await handleImageContentItem(url);
+          const newParts = await handleImageContentItem({ url, thoughtSignature: item.thought_signature });
           parts.push(...newParts);
           continue;
         }
@@ -537,7 +541,7 @@ export function streamFromGoogle(
     let runningContentBlockType: BaseChatMessageChunk.ContentBlock['type'] | undefined;
     try {
       for await (const chunk of response) {
-        // console.log("google chunk", JSON.stringify(chunk, null, 2))
+        console.log("google chunk", JSON.stringify(chunk, null, 2))
         if (done) continue;
         const candidate = chunk.candidates?.[0];
 
@@ -615,6 +619,7 @@ export function streamFromGoogle(
                   type: 'message_content',
                   content: [
                     ChatMessageContent.imageUrl({
+                      thought_signature: thoughtSignature,
                       url: filePath,
                     })
                   ]
@@ -639,6 +644,7 @@ export function streamFromGoogle(
                   content: [
                     ChatMessageContent.audio({
                       url: filePath,
+                      thought_signature: thoughtSignature,
                     })
                   ]
                 }
@@ -682,6 +688,7 @@ export function streamFromGoogle(
                   content_block: {
                     type: 'text',
                     text: content?.text || "",
+                    thought_signature: thoughtSignature,
                   }
                 }
               } else if (runningContentBlockType === 'text') {

@@ -1,5 +1,44 @@
-import { ListCache, RequestOptions } from "@enconvo/api";
+import { ListCache, Preference, RequestOptions } from "@enconvo/api";
 import axios from "axios";
+
+
+interface FetchedModel {
+  id: string;
+  canonical_slug: string;
+  hugging_face_id: string;
+  name: string;
+  created: number;
+  description: string;
+  context_length: number;
+  architecture: {
+    modality: string;
+    input_modalities: string[];
+    output_modalities: string[];
+    tokenizer: string;
+    instruct_type: string | null;
+  };
+  pricing: {
+    prompt: string;
+    completion: string;
+    request: string;
+    image: string;
+    web_search: string;
+    internal_reasoning: string;
+    input_cache_read: string;
+  };
+  top_provider: {
+    context_length: number;
+    max_completion_tokens: number;
+    is_moderated: boolean;
+  };
+  per_request_limits: any | null;
+  supported_parameters: string[];
+  default_parameters: {
+    temperature: number | null;
+    top_p: number | null;
+    frequency_penalty: number | null;
+  };
+}
 
 /**
  * Fetches models from the API and transforms them into ModelOutput format
@@ -19,17 +58,32 @@ async function fetchModels(
     }
 
     const data = resp.data.data;
-    console.log("data", data);
-    const models = data.map((model: any) => ({
-      title: model.name,
-      value: model.id,
-      context: model.context_length,
-      inputPrice: model.pricing.prompt * 1000000,
-      outputPrice: model.pricing.completion * 1000000,
-      toolUse: false,
-      // toolUse: model.id.includes('openai/'),
-      visionEnable: model.architecture.modality === "text+image->text",
-    }));
+    console.log("data", JSON.stringify(data.filter((model: any) => model.id.includes('flash')), null, 2));
+    const models = data.map((model: FetchedModel) => {
+      const visionEnable = model.architecture.input_modalities.includes("image");
+      const audioEnable = model.architecture.input_modalities.includes("audio");
+      const videoEnable = model.architecture.input_modalities.includes("video");
+
+      const imageGenerationEnable = model.architecture.output_modalities.includes("image");
+      const audioGenerationEnable = model.architecture.output_modalities.includes("audio");
+      const toolUse = model.supported_parameters.includes("tools")
+
+      const llmModel: Preference.LLMModel = {
+        type: "llm_model",
+        title: model.name,
+        value: model.id,
+        context: model.context_length,
+        inputPrice: parseFloat(model.pricing.prompt) * 1000000,
+        outputPrice: parseFloat(model.pricing.completion) * 1000000,
+        toolUse: toolUse,
+        visionEnable: visionEnable,
+        imageGeneration: imageGenerationEnable,
+        audioEnable: audioEnable,
+        videoEnable: videoEnable,
+        audioGeneration: audioGenerationEnable,
+      };
+      return llmModel;
+    });
 
     // console.log("Total models fetched:", result)
     return models;

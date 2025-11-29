@@ -6,6 +6,81 @@ import { Preference } from "@enconvo/api";
 export const openai_codex_models_data: Preference.LLMModel[] = [
   {
     type: "llm_model",
+    title: "GPT-5.1",
+    value: "gpt-5.1",
+    context: 400000,
+    maxTokens: 128000,
+    inputPrice: 1.25,
+    outputPrice: 10,
+    systemMessageEnable: true,
+    speed: 3,
+    reasoning: 4,
+
+    toolUse: true,
+    visionEnable: true,
+  },
+  {
+    type: "llm_model",
+    title: "GPT-5-codex",
+    value: "gpt-5-codex",
+    context: 400000,
+    maxTokens: 128000,
+    inputPrice: 1.25,
+    outputPrice: 10,
+    systemMessageEnable: true,
+    speed: 3,
+    reasoning: 4,
+
+    toolUse: true,
+    visionEnable: true,
+  },
+  {
+    type: "llm_model",
+    title: "GPT-5.1-codex",
+    value: "gpt-5.1-codex",
+    context: 400000,
+    maxTokens: 128000,
+    inputPrice: 1.25,
+    outputPrice: 10,
+    systemMessageEnable: true,
+    speed: 3,
+    reasoning: 4,
+
+    toolUse: true,
+    visionEnable: true,
+  },
+  {
+    type: "llm_model",
+    title: "GPT-5.1-codex-max",
+    value: "gpt-5.1-codex-max",
+    context: 400000,
+    maxTokens: 128000,
+    inputPrice: 1.25,
+    outputPrice: 10,
+    systemMessageEnable: true,
+    speed: 3,
+    reasoning: 4,
+
+    toolUse: true,
+    visionEnable: true,
+  },
+  {
+    type: "llm_model",
+    title: "GPT-5.1-codex-mini",
+    value: "gpt-5.1-codex-mini",
+    context: 400000,
+    maxTokens: 128000,
+    inputPrice: 1.25,
+    outputPrice: 10,
+    systemMessageEnable: true,
+    speed: 3,
+    reasoning: 4,
+
+    toolUse: true,
+    visionEnable: true,
+  },
+  {
+    type: "llm_model",
     title: "GPT-5",
     value: "gpt-5",
     context: 400000,
@@ -35,6 +110,7 @@ export const openai_codex_models_data: Preference.LLMModel[] = [
     visionEnable: true,
   },
 ];
+
 export const openai_models_data: Preference.LLMModel[] = [
   // GPT-5 Series - Frontier models
   {

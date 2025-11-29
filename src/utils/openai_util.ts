@@ -16,6 +16,7 @@ import {
   ChatMessageContentListItem,
   AttachmentUtils,
   ContextUtils,
+  environment,
 } from "@enconvo/api";
 import OpenAI from "openai";
 import {
@@ -31,6 +32,9 @@ import {
   Tool,
 } from "openai/resources/responses/responses.mjs";
 import mime from "mime";
+import { MessageContentImageUrl } from "@langchain/core/messages";
+import path from "path";
+import { saveBinaryFile } from "./google_util.ts";
 
 export namespace OpenAIUtil {
 
@@ -1058,7 +1062,7 @@ export namespace OpenAIUtil {
       let runningContentBlockType: BaseChatMessageChunk.ContentBlock['type'] | undefined;
       try {
         for await (const chunk of response) {
-          // console.log("chunk", JSON.stringify(chunk, null, 2), options?.commandName)
+          console.log("chunk", JSON.stringify(chunk, null, 2), options?.commandName)
           if (done) continue;
           if (chunk.choices.length > 0) {
             const choice = chunk.choices[0];
@@ -1163,6 +1167,95 @@ export namespace OpenAIUtil {
                     type: 'thinking_delta',
                     //@ts-ignore
                     thinking: choice.delta.reasoning_content,
+                  }
+                }
+              }
+              //@ts-ignore
+            }else if (choice.delta.reasoning && choice.delta.reasoning !== '') {
+              if (runningContentBlockType !== 'thinking') {
+                if (runningContentBlockType !== undefined) {
+                  yield {
+                    type: 'content_block_stop',
+                  }
+                }
+                runningContentBlockType = 'thinking';
+                yield {
+                  type: 'content_block_start',
+                  content_block: {
+                    type: 'thinking',
+                    thinking: '',
+                  }
+                }
+                yield {
+                  type: 'content_block_delta',
+                  delta: {
+                    type: 'thinking_delta',
+                    //@ts-ignore
+                    thinking: choice.delta.reasoning,
+                  }
+                }
+              } else {
+                yield {
+                  type: 'content_block_delta',
+                  delta: {
+                    type: 'thinking_delta',
+                    //@ts-ignore
+                    thinking: choice.delta.reasoning,
+                  }
+                }
+              }
+              //@ts-ignore
+            } else if (choice.delta.images && Array.isArray(choice.delta.images) && choice.delta.images.length > 0) {
+              if (runningContentBlockType !== 'message_content') {
+                if (runningContentBlockType !== undefined) {
+                  yield {
+                    type: 'content_block_stop',
+                  }
+                }
+                //@ts-ignore
+                const respImages = choice.delta.images as MessageContentImageUrl[]
+
+                const images = await Promise.all(respImages.map(async (image: MessageContentImageUrl) => {
+                  const fileName = uuid();
+                  let fileExtension = "png";
+                  let base64Data = "";
+                  let imageUrl = "";
+                  
+                  if (typeof image.image_url === 'string') {
+                    imageUrl = image.image_url;
+                  } else {
+                    imageUrl = image.image_url?.url || "";
+                  }
+                  
+                  // Extract mime type from data URL header
+                  const dataUrlMatch = imageUrl.match(/^data:image\/([a-zA-Z]+);base64,/);
+                  if (dataUrlMatch) {
+                    fileExtension = dataUrlMatch[1];
+                    base64Data = imageUrl.replace(/^data:image\/[a-zA-Z]+;base64,/, "");
+                  } else {
+                    // Fallback if no data URL header found
+                    base64Data = imageUrl;
+                  }
+
+                  const buffer = Buffer.from(base64Data, "base64");
+
+                  const cachePath = environment.cachePath;
+                  const filePath = path.join(
+                    cachePath,
+                    `${fileName}.${fileExtension}`,
+                  );
+                  await saveBinaryFile(filePath, buffer);
+                  return ChatMessageContent.imageUrl({
+                    url: filePath,
+                  })
+                }));
+
+                runningContentBlockType = 'message_content';
+                yield {
+                  type: 'content_block_start',
+                  content_block: {
+                    type: 'message_content',
+                    content: images,
                   }
                 }
               }
