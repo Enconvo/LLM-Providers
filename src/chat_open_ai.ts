@@ -1,15 +1,22 @@
 import { env } from "process";
 import {
+  AssistantMessage,
   AuthProvider,
   BaseChatMessage,
   BaseChatMessageChunk,
+  ChatMessageContent,
+  environment,
   LLMProvider,
   Stream,
   UserMessage,
+  uuid,
 } from "@enconvo/api";
 import OpenAI from "openai";
 import { OpenAIUtil } from "./utils/openai_util.ts";
 import { codex_instructions } from "./utils/instructions.ts";
+import { MessageContentImageUrl } from "@langchain/core/messages";
+import { saveBinaryFile } from "./utils/google_util.ts";
+import path from "path";
 
 export default function main(options: any) {
   return new ChatOpenAIProvider(options);
@@ -92,8 +99,60 @@ export class ChatOpenAIProvider extends LLMProvider {
     });
 
     const result = chatCompletion.choices[0];
+    console.log("result", JSON.stringify(result, null, 2))
 
-    return new UserMessage(result?.message?.content || "");
+    const text = result?.message?.content || ""
+    const messageContents: ChatMessageContent[] = [];
+    if (text) {
+      messageContents.push({
+        type: "text",
+        text: text,
+      });
+    }
+    const images: MessageContentImageUrl[] = result?.message?.images || [];
+
+    const imageContents: ChatMessageContent[] = await Promise.all(images.map(async (image: MessageContentImageUrl) => {
+      const fileName = uuid();
+      let fileExtension = "png";
+      let base64Data = "";
+      let imageUrl = "";
+
+      if (typeof image.image_url === 'string') {
+        imageUrl = image.image_url;
+      } else {
+        imageUrl = image.image_url?.url || "";
+      }
+
+      // Extract mime type from data URL header
+      const dataUrlMatch = imageUrl.match(/^data:image\/([a-zA-Z]+);base64,/);
+      if (dataUrlMatch) {
+        fileExtension = dataUrlMatch[1];
+        base64Data = imageUrl.replace(/^data:image\/[a-zA-Z]+;base64,/, "");
+      } else {
+        // Fallback if no data URL header found
+        base64Data = imageUrl;
+      }
+
+      const buffer = Buffer.from(base64Data, "base64");
+
+      const cachePath = environment.cachePath;
+      const filePath = path.join(
+        cachePath,
+        `${fileName}.${fileExtension}`,
+      );
+      await saveBinaryFile(filePath, buffer);
+      return ChatMessageContent.imageUrl({
+        url: filePath,
+      })
+    }),
+    );
+    console.log("imageContents", imageContents)
+
+    messageContents.push(...imageContents);
+
+    return new AssistantMessage({
+      content: messageContents,
+    });
   }
 
   private async initResponseParams(
@@ -325,8 +384,8 @@ export class ChatOpenAIProvider extends LLMProvider {
     }
 
     // console.log("headers", headers)
-    console.log("apiKey", apiKey)
-    console.log("baseURL", baseURL)
+    console.log("apiKey---", apiKey)
+    console.log("baseURL----", baseURL)
 
     const client = new OpenAI({
       apiKey: apiKey, // This is the default and can be omitted

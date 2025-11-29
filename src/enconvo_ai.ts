@@ -6,6 +6,7 @@ export default async function main(options: LLMProvider.LLMOptions) {
 
 async function initLLMProvider(options: LLMProvider.LLMOptions) {
   const newLLMArr = options.modelName.value.split("/");
+  console.log("newLLMArr", newLLMArr)
   const modelProvider = newLLMArr[0];
 
   const anthropicApiUrl = "https://api.enconvo.com/";
