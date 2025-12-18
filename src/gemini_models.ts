@@ -164,6 +164,21 @@ async function fetchModels(
         type: "llm_model",
       },
       {
+        title: "Gemini 3 Flash Preview",
+        value: "gemini-3-flash-preview",
+        inputPrice: 0.3, // text/image/video
+        context: 1000000,
+        visionEnable: true,
+        searchToolSupported: true,
+        toolUse: true,
+        maxTokens: 1000000,
+        outputPrice: 2.5,
+        speed: 4,
+        intelligence: 4,
+        reasoning: 4,
+        type: "llm_model",
+      },
+      {
         title: "Gemini 2.5 Pro",
         value: "gemini-2.5-pro",
         inputPrice: 1.25, // prompts <= 200k tokens
