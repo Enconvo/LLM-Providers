@@ -541,7 +541,7 @@ export function streamFromGoogle(
     let runningContentBlockType: BaseChatMessageChunk.ContentBlock['type'] | undefined;
     try {
       for await (const chunk of response) {
-        // console.log("google chunk", JSON.stringify(chunk, null, 2))
+        console.log("google chunk", JSON.stringify(chunk, null, 2))
         if (done) continue;
         const candidate = chunk.candidates?.[0];
 
@@ -549,7 +549,13 @@ export function streamFromGoogle(
         const groundingMetadata = candidate?.groundingMetadata;
         const thoughtSignature = candidate?.content?.parts?.[0]?.thoughtSignature;
 
-        if (candidate?.finishReason === "STOP") {
+        if (candidate?.finishReason === "MAX_TOKENS") {
+          done = true;
+          yield {
+            type: 'content_block_stop',
+            finish_reason: 'max_tokens'
+          };
+        } else if (candidate?.finishReason === "STOP") {
           done = true;
         } else if (candidate?.finishReason === FinishReason.PROHIBITED_CONTENT) {
           done = true;

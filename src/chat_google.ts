@@ -313,7 +313,9 @@ export class GoogleGeminiProvider extends LLMProvider {
     }
 
 
-    const maxTokens = this.options.maxTokens?.value;
+    // const maxTokens =  250;
+    const maxTokens = this.options.maxTokens || 65536;
+    console.log("maxTokens", maxTokens)
     const temperature = this.options.temperature?.value || 0;
     const geminiThinking =
       this.options.gemini_thinking_pro?.value ||
