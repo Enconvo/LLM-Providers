@@ -163,7 +163,7 @@ export const convertMessageToGoogleMessage = async (
     const contents: Content[] = [];
     const isAgentMode = Runtime.isAgentMode();
 
-    async function handleImageContentItem({ url, description ,thoughtSignature}: { url: string; description?: string, thoughtSignature?: string }) {
+    async function handleImageContentItem({ url, description, thoughtSignature }: { url: string; description?: string, thoughtSignature?: string }) {
       const newParts: Part[] = [];
       url = await ImageUtil.compressImage(url);
       const mimeType = mime.getType(url);
@@ -676,6 +676,7 @@ export function streamFromGoogle(
                 }
               }
             } else if (content?.text && content?.text !== "") {
+              // console.log("content?.text", content?.text, runningContentBlockType)
               if (runningContentBlockType !== 'text') {
                 if (runningContentBlockType !== undefined) {
                   yield {
@@ -689,6 +690,13 @@ export function streamFromGoogle(
                     type: 'text',
                     text: content?.text || "",
                     thought_signature: thoughtSignature,
+                  }
+                }
+                yield {
+                  type: 'content_block_delta',
+                  delta: {
+                    type: 'text_delta',
+                    text: content?.text || "",
                   }
                 }
               } else if (runningContentBlockType === 'text') {

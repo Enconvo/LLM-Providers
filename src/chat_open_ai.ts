@@ -8,7 +8,6 @@ import {
   environment,
   LLMProvider,
   Stream,
-  UserMessage,
   uuid,
 } from "@enconvo/api";
 import OpenAI from "openai";
@@ -27,6 +26,7 @@ export class ChatOpenAIProvider extends LLMProvider {
     content: LLMProvider.Params,
   ): Promise<Stream<BaseChatMessageChunk>> {
     if (this.options.originCommandName === "chat_straico") {
+      //@ts-ignore
       return await this._call(content);
     }
 
@@ -93,6 +93,7 @@ export class ChatOpenAIProvider extends LLMProvider {
   }): Promise<BaseChatMessage> {
     this.client = await this._createOpenaiClient(this.options);
     const params = await this.initParams(content);
+    // console.log("params", JSON.stringify(params, null, 2))
 
     const chatCompletion = await this.client.chat.completions.create({
       ...params,
@@ -109,6 +110,7 @@ export class ChatOpenAIProvider extends LLMProvider {
         text: text,
       });
     }
+    //@ts-ignore
     const images: MessageContentImageUrl[] = result?.message?.images || [];
 
     const imageContents: ChatMessageContent[] = await Promise.all(images.map(async (image: MessageContentImageUrl) => {
@@ -294,6 +296,14 @@ export class ChatOpenAIProvider extends LLMProvider {
         tool_choice: content.tool_choice,
         parallel_tool_calls: modelOptions?.toolUse === true ? false : null,
       };
+    }
+
+    if (content.structuredOutputFormatText) {
+      // params.responseFormat = { type: 'json_object' }
+      // params.messages.push({
+      //   role: 'user',
+      //   content: `Please generate a JSON object based on the following instructions: ${content.structuredOutputFormatText}`
+      // })
     }
 
     // console.log("openai params", JSON.stringify(params, null, 2));
