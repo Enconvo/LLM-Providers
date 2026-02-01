@@ -682,7 +682,7 @@ export function streamFromGoogle(
                 }
               }
             } else if (content?.text && content?.text !== "") {
-              // console.log("content?.text", content?.text, runningContentBlockType)
+              console.log("content?.text", content?.text, runningContentBlockType)
               if (runningContentBlockType !== 'text') {
                 if (runningContentBlockType !== undefined) {
                   yield {
@@ -694,7 +694,7 @@ export function streamFromGoogle(
                   type: 'content_block_start',
                   content_block: {
                     type: 'text',
-                    text: content?.text || "",
+                    text:  "",
                     thought_signature: thoughtSignature,
                   }
                 }
