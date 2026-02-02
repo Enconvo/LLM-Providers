@@ -11,8 +11,6 @@ import {
   RequestOptions,
   Runtime,
   Stream,
-  ToolMessage,
-  uuid,
   ChatMessageContentListItem,
   AttachmentUtils,
   ContextUtils,
@@ -35,6 +33,7 @@ import mime from "mime";
 import { MessageContentImageUrl } from "@langchain/core/messages";
 import path from "path";
 import { saveBinaryFile } from "./google_util.ts";
+import { v4 as uuidv4 } from 'uuid';
 
 export namespace OpenAIUtil {
 
@@ -68,7 +67,8 @@ export namespace OpenAIUtil {
           role: "user",
         };
       } else {
-        const id = message.id || `msg_${uuid()}`;
+        const id = message.id || `msg_${uuidv4()}`;
+        console.log("id", id)
         newMessage = {
           id: id.startsWith("msg_") ? id : `msg_${id}`,
           type: "message",
@@ -98,7 +98,7 @@ export namespace OpenAIUtil {
                 role === "system" ? "user" : (role as EasyInputMessage["role"]),
             });
           } else if (role === "assistant") {
-            const id = message.id || `msg_${uuid()}`;
+            const id = message.id || `msg_${uuidv4()}`;
             newMessages.push({
               type: "message",
               content: messageContents as Array<
@@ -1216,7 +1216,7 @@ export namespace OpenAIUtil {
                 const respImages = choice.delta.images as MessageContentImageUrl[]
 
                 const images = await Promise.all(respImages.map(async (image: MessageContentImageUrl) => {
-                  const fileName = uuid();
+                  const fileName = uuidv4();
                   let fileExtension = "png";
                   let base64Data = "";
                   let imageUrl = "";
