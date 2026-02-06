@@ -16,6 +16,7 @@ import { codex_instructions } from "./utils/instructions.ts";
 import { MessageContentImageUrl } from "@langchain/core/messages";
 import { saveBinaryFile } from "./utils/google_util.ts";
 import path from "path";
+import { ReasoningEffort } from "openai/resources/index.mjs";
 
 export default function main(options: any) {
   return new ChatOpenAIProvider(options);
@@ -225,9 +226,10 @@ export class ChatOpenAIProvider extends LLMProvider {
     if (tools.length > 0) {
       params.tools = tools;
     }
-
-    let reasoning_effort = this.options?.reasoning_effort?.value || this.options?.reasoning_effort_new?.value;
-    if (reasoning_effort && reasoning_effort !== "off") {
+    const modelNameConfig: { reasoning_effort: ReasoningEffort } = this.options?.modelName_preferences?.[params.model || '']
+    let reasoning_effort = modelNameConfig?.reasoning_effort
+    // console.log("reasoning_effort", reasoning_effort)
+    if (reasoning_effort) {
       if (reasoning_effort === 'minimal' && tools.some(tool => tool.type === 'web_search_preview' || tool.type === 'image_generation')) {
         reasoning_effort = 'low';
       }
