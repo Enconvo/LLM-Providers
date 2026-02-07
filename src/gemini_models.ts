@@ -3,6 +3,80 @@ import { GoogleGenAI } from "@google/genai";
 
 // Gemini models pricing and configuration data
 export const geminiModelsData: Preference.LLMModel[] = [
+  {
+    title: "Gemini 3 Pro Preview",
+    value: "gemini-3-pro-preview",
+    inputPrice: 1.25, // prompts <= 200k tokens
+    context: 200000,
+    visionEnable: true,
+    searchToolSupported: true,
+    toolUse: true,
+    maxTokens: 65536,
+    outputPrice: 10.0,
+    speed: 3,
+    intelligence: 5,
+    reasoning: 5,
+    type: "llm_model",
+    preferences: [
+      {
+        name: "reasoning_effort",
+        description: "Applicable to reasoning models only, this option controls the reasoning token length.",
+        type: "dropdown",
+        required: false,
+        title: "Reasoning Effort",
+        default: "low",
+        "data": [
+          {
+            "title": "Low",
+            "value": "low",
+            "description": "Low thinking level"
+          },
+          {
+            "title": "High",
+            "value": "high",
+            "description": "High thinking level"
+          }
+        ],
+      }
+    ]
+  },
+  {
+    title: "Gemini 3 Flash Preview",
+    value: "gemini-3-flash-preview",
+    inputPrice: 0.3, // text/image/video
+    context: 1000000,
+    visionEnable: true,
+    searchToolSupported: true,
+    toolUse: true,
+    maxTokens: 65536,
+    outputPrice: 2.5,
+    speed: 4,
+    intelligence: 4,
+    reasoning: 4,
+    type: "llm_model",
+    preferences: [
+      {
+        name: "reasoning_effort",
+        description: "Applicable to reasoning models only, this option controls the reasoning token length.",
+        type: "dropdown",
+        required: false,
+        title: "Reasoning Effort",
+        default: "low",
+        "data": [
+          {
+            "title": "Low",
+            "value": "low",
+            "description": "Low thinking level"
+          },
+          {
+            "title": "High",
+            "value": "high",
+            "description": "High thinking level"
+          }
+        ],
+      }
+    ]
+  },
   // Gemini 2.5 Pro - State-of-the-art multipurpose model
   {
     title: "Gemini 2.5 Pro",
@@ -18,6 +92,43 @@ export const geminiModelsData: Preference.LLMModel[] = [
     searchToolSupported: true,
     toolUse: true,
     visionEnable: true,
+    preferences: [
+      {
+        name: "reasoning_effort",
+        description: "Applicable to reasoning models only, this option controls the reasoning token length.",
+        type: "dropdown",
+        required: false,
+        title: "Reasoning Effort",
+        default: "auto",
+        "data": [
+          {
+            "title": "Auto",
+            "value": "auto",
+            "description": "Model decides when and how much to think"
+          },
+          {
+            "title": "Minimal",
+            "value": "128",
+            "description": "Thinking budgets: 128"
+          },
+          {
+            "title": "Low",
+            "value": "1024",
+            "description": "Thinking budgets: 1024"
+          },
+          {
+            "title": "Medium",
+            "value": "10000",
+            "description": "Thinking budgets: 10000"
+          },
+          {
+            "title": "High",
+            "value": "30000",
+            "description": "Thinking budgets: 30000"
+          }
+        ]
+      }
+    ]
   },
   // Gemini 2.5 Flash - Hybrid reasoning model with 1M token context
   {
@@ -34,6 +145,48 @@ export const geminiModelsData: Preference.LLMModel[] = [
     searchToolSupported: true,
     toolUse: true,
     visionEnable: true,
+    preferences: [
+      {
+        name: "reasoning_effort",
+        description: "Applicable to reasoning models only, this option controls the reasoning token length.",
+        type: "dropdown",
+        required: false,
+        title: "Reasoning Effort",
+        default: "none",
+        "data": [
+          {
+            "title": "None",
+            "value": "none",
+            "description": "Model does not think"
+          },
+          {
+            "title": "Auto",
+            "value": "auto",
+            "description": "Model decides when and how much to think"
+          },
+          {
+            "title": "Minimal",
+            "value": "512",
+            "description": "Thinking budgets: 512"
+          },
+          {
+            "title": "Low",
+            "value": "1024",
+            "description": "Thinking budgets: 1024"
+          },
+          {
+            "title": "Medium",
+            "value": "10000",
+            "description": "Thinking budgets: 10000"
+          },
+          {
+            "title": "High",
+            "value": "20000",
+            "description": "Thinking budgets: 20000"
+          }
+        ]
+      }
+    ]
   },
   {
     title: "Gemini 2.5 Flash Image Preview",
@@ -82,6 +235,48 @@ export const geminiModelsData: Preference.LLMModel[] = [
     searchToolSupported: true,
     toolUse: true,
     visionEnable: true,
+    preferences: [
+      {
+        name: "reasoning_effort",
+        description: "Applicable to reasoning models only, this option controls the reasoning token length.",
+        type: "dropdown",
+        required: false,
+        title: "Reasoning Effort",
+        default: "none",
+        "data": [
+          {
+            "title": "None",
+            "value": "none",
+            "description": "Model does not think"
+          },
+          {
+            "title": "Auto",
+            "value": "auto",
+            "description": "Model decides when and how much to think"
+          },
+          {
+            "title": "Minimal",
+            "value": "512",
+            "description": "Thinking budgets: 512"
+          },
+          {
+            "title": "Low",
+            "value": "1024",
+            "description": "Thinking budgets: 1024"
+          },
+          {
+            "title": "Medium",
+            "value": "10000",
+            "description": "Thinking budgets: 10000"
+          },
+          {
+            "title": "High",
+            "value": "20000",
+            "description": "Thinking budgets: 20000"
+          }
+        ]
+      }
+    ]
   },
   // Gemini 2.0 Flash - Balanced multimodal model for Agents era
   {
@@ -162,6 +357,28 @@ async function fetchModels(
         intelligence: 5,
         reasoning: 5,
         type: "llm_model",
+        preferences: [
+          {
+            name: "reasoning_effort",
+            description: "Applicable to reasoning models only, this option controls the reasoning token length.",
+            type: "dropdown",
+            required: false,
+            title: "Reasoning Effort",
+            default: "low",
+            "data": [
+              {
+                "title": "Low",
+                "value": "low",
+                "description": "Low thinking level"
+              },
+              {
+                "title": "High",
+                "value": "high",
+                "description": "High thinking level"
+              }
+            ],
+          }
+        ]
       },
       {
         title: "Gemini 3 Flash Preview",
@@ -177,6 +394,28 @@ async function fetchModels(
         intelligence: 4,
         reasoning: 4,
         type: "llm_model",
+        preferences: [
+          {
+            name: "reasoning_effort",
+            description: "Applicable to reasoning models only, this option controls the reasoning token length.",
+            type: "dropdown",
+            required: false,
+            title: "Reasoning Effort",
+            default: "low",
+            "data": [
+              {
+                "title": "Low",
+                "value": "low",
+                "description": "Low thinking level"
+              },
+              {
+                "title": "High",
+                "value": "high",
+                "description": "High thinking level"
+              }
+            ],
+          }
+        ]
       },
       {
         title: "Gemini 2.5 Pro",
@@ -192,6 +431,43 @@ async function fetchModels(
         intelligence: 5,
         reasoning: 5,
         type: "llm_model",
+        preferences: [
+          {
+            name: "reasoning_effort",
+            description: "Applicable to reasoning models only, this option controls the reasoning token length.",
+            type: "dropdown",
+            required: false,
+            title: "Reasoning Effort",
+            default: "auto",
+            "data": [
+              {
+                "title": "Auto",
+                "value": "auto",
+                "description": "Model decides when and how much to think"
+              },
+              {
+                "title": "Minimal",
+                "value": "128",
+                "description": "Thinking budgets: 128"
+              },
+              {
+                "title": "Low",
+                "value": "1024",
+                "description": "Thinking budgets: 1024"
+              },
+              {
+                "title": "Medium",
+                "value": "10000",
+                "description": "Thinking budgets: 10000"
+              },
+              {
+                "title": "High",
+                "value": "30000",
+                "description": "Thinking budgets: 30000"
+              }
+            ]
+          }
+        ]
       },
       {
         title: "Gemini 2.5 Flash",
@@ -207,6 +483,48 @@ async function fetchModels(
         intelligence: 4,
         reasoning: 4,
         type: "llm_model",
+        preferences: [
+          {
+            name: "reasoning_effort",
+            description: "Applicable to reasoning models only, this option controls the reasoning token length.",
+            type: "dropdown",
+            required: false,
+            title: "Reasoning Effort",
+            default: "none",
+            "data": [
+              {
+                "title": "None",
+                "value": "none",
+                "description": "Model does not think"
+              },
+              {
+                "title": "Auto",
+                "value": "auto",
+                "description": "Model decides when and how much to think"
+              },
+              {
+                "title": "Minimal",
+                "value": "512",
+                "description": "Thinking budgets: 512"
+              },
+              {
+                "title": "Low",
+                "value": "1024",
+                "description": "Thinking budgets: 1024"
+              },
+              {
+                "title": "Medium",
+                "value": "10000",
+                "description": "Thinking budgets: 10000"
+              },
+              {
+                "title": "High",
+                "value": "20000",
+                "description": "Thinking budgets: 20000"
+              }
+            ]
+          }
+        ]
       },
       {
         title: "Gemini 2.5 Flash-Lite",
@@ -222,6 +540,48 @@ async function fetchModels(
         intelligence: 3,
         reasoning: 3,
         type: "llm_model",
+        preferences: [
+          {
+            name: "reasoning_effort",
+            description: "Applicable to reasoning models only, this option controls the reasoning token length.",
+            type: "dropdown",
+            required: false,
+            title: "Reasoning Effort",
+            default: "none",
+            "data": [
+              {
+                "title": "None",
+                "value": "none",
+                "description": "Model does not think"
+              },
+              {
+                "title": "Auto",
+                "value": "auto",
+                "description": "Model decides when and how much to think"
+              },
+              {
+                "title": "Minimal",
+                "value": "512",
+                "description": "Thinking budgets: 512"
+              },
+              {
+                "title": "Low",
+                "value": "1024",
+                "description": "Thinking budgets: 1024"
+              },
+              {
+                "title": "Medium",
+                "value": "10000",
+                "description": "Thinking budgets: 10000"
+              },
+              {
+                "title": "High",
+                "value": "20000",
+                "description": "Thinking budgets: 20000"
+              }
+            ]
+          }
+        ]
       }
     ];
   }

@@ -150,6 +150,33 @@ const groqModelsData = [
     intelligence: 4,
     context: 131072, // 131k context window
     maxTokens: 32766, // 32k max completion tokens
+    preferences: [
+      {
+        "name": "reasoning_effort",
+        "description": "Applicable to reasoning models only, this option controls the reasoning token length.",
+        "type": "dropdown",
+        "required": false,
+        "title": "Reasoning Effort",
+        "default": "low",
+        "data": [
+          {
+            "title": "low",
+            "value": "low",
+            "description": "Favors speed and economical token usage with basic reasoning"
+          },
+          {
+            "title": "medium",
+            "value": "medium",
+            "description": "Balance between speed and reasoning accuracy (default)"
+          },
+          {
+            "title": "high",
+            "value": "high",
+            "description": "Favors more complete reasoning with higher token usage"
+          }
+        ]
+      }
+    ]
   },
   {
     title: "OpenAI GPT OSS 20B",
@@ -161,6 +188,33 @@ const groqModelsData = [
     intelligence: 3,
     context: 131072, // 131k context window
     maxTokens: 32768, // 32k max completion tokens
+    preferences: [
+      {
+        "name": "reasoning_effort",
+        "description": "Applicable to reasoning models only, this option controls the reasoning token length.",
+        "type": "dropdown",
+        "required": false,
+        "title": "Reasoning Effort",
+        "default": "low",
+        "data": [
+          {
+            "title": "low",
+            "value": "low",
+            "description": "Favors speed and economical token usage with basic reasoning"
+          },
+          {
+            "title": "medium",
+            "value": "medium",
+            "description": "Balance between speed and reasoning accuracy (default)"
+          },
+          {
+            "title": "high",
+            "value": "high",
+            "description": "Favors more complete reasoning with higher token usage"
+          }
+        ]
+      }
+    ]
   },
 
   // PlayAI TTS Models

@@ -1,4 +1,4 @@
-import { ListCache, RequestOptions } from "@enconvo/api";
+import { ListCache, Preference, RequestOptions } from "@enconvo/api";
 
 import Anthropic from "@anthropic-ai/sdk";
 
@@ -39,7 +39,7 @@ async function fetchModels(
   const models = await anthropic.models.list();
   // console.log("anthropic models", models)
 
-  let result: ListCache.ListItem[] = [];
+  let result: Preference.ListItem[] = [];
   for await (const model of models.iterPages()) {
     const items = model.data.map((item) => {
       // Default values for all Claude models
@@ -47,7 +47,7 @@ async function fetchModels(
       const toolUse = true;
       const visionEnable = true;
       let searchToolSupported = false;
-      let maxTokens = 8192;
+      let maxTokens = 32000;
       let inputPrice = 1;
       let outputPrice = 1;
       let speed = 3; // Default speed rating (1-5, 5 being fastest)
@@ -118,7 +118,10 @@ async function fetchModels(
         intelligence = 2; // Quick and accurate targeted performance
       }
 
-      return {
+
+
+      const model: Preference.LLMModel = {
+        type: "llm_model",
         title: item.display_name,
         providerName: "anthropic",
         value: item.id,
@@ -131,7 +134,45 @@ async function fetchModels(
         toolUse: toolUse,
         visionEnable: visionEnable,
         searchToolSupported: searchToolSupported,
+        preferences: [
+          {
+            name: "reasoning_effort",
+            description: "Applicable to reasoning models only, this option controls the reasoning token length.",
+            type: "dropdown",
+            required: false,
+            title: "Reasoning Effort",
+            default: "none",
+            data: [
+              {
+                "title": "None",
+                "value": "none",
+                "description": "Model does not think"
+              },
+              {
+                "title": "Minimal",
+                "value": "1024",
+                "description": "Thinking budget tokens: 1024"
+              },
+              {
+                "title": "Low",
+                "value": "2048",
+                "description": "Thinking budget tokens: 2048"
+              },
+              {
+                "title": "Medium",
+                "value": "5120",
+                "description": "Thinking budget tokens: 5120"
+              },
+              {
+                "title": "High",
+                "value": "10240",
+                "description": "Thinking budget tokens: 10240"
+              }
+            ]
+          }
+        ]
       };
+      return model;
     });
 
     result.push(...items);

@@ -171,22 +171,22 @@ export class AnthropicProvider extends LLMProvider {
       messages: newMessages,
     };
 
-    const claudeThinking = this.options.claude_thinking?.value;
-    if (claudeThinking && claudeThinking !== "disabled") {
+    const modelNameConfig: { reasoning_effort: string } = this.options?.modelName_preferences?.[params.model || '']
+    let reasoning_effort = modelNameConfig?.reasoning_effort
+    if (reasoning_effort && reasoning_effort !== "disabled" && reasoning_effort !== "none") {
       params.thinking = {
         type: "enabled",
-        budget_tokens: parseInt(claudeThinking),
+        budget_tokens: parseInt(reasoning_effort),
       };
     }
 
-
+    // console.log("reasoning_effort anthropic", params.thinking);
     let tools: Anthropic.ToolUnion[] = [];
     const newTools = AnthropicUtil.convertToolsToAnthropicTools(content.tools);
     if (newTools) {
       tools.push(...newTools);
     }
 
-    console.log("searchToolEnabled anthropic", content.searchToolEnabled);
     if (content.searchToolEnabled === 'auto') {
       if (this.options.modelName.searchToolSupported === true) {
         tools.push({

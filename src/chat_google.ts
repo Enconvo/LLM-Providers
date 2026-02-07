@@ -22,6 +22,7 @@ import {
   GenerateContentParameters,
   GoogleGenAI,
   Modality,
+  ThinkingLevel,
   Tool,
   ToolConfig,
 } from "@google/genai";
@@ -315,14 +316,13 @@ export class GoogleGeminiProvider extends LLMProvider {
 
     // const maxTokens =  250;
     const maxTokens = this.options.maxTokens || 65536;
-    console.log("maxTokens", maxTokens)
+    // console.log("maxTokens", maxTokens)
     const temperature = this.options.temperature?.value || 0;
-    const geminiThinking =
-      this.options.gemini_thinking_pro?.value ||
-      this.options.gemini_thinking?.value;
 
 
-    const geminiThinkingLevel = this.options.gemini_thinking_level?.value;
+    const modelNameConfig: { reasoning_effort: string } = this.options?.modelName_preferences?.[model || '']
+    let reasoning_effort = modelNameConfig?.reasoning_effort
+    // console.log("reasoning_effort", reasoning_effort)
 
     let geminiParams: GenerateContentParameters = {
       model: model,
@@ -341,28 +341,29 @@ export class GoogleGeminiProvider extends LLMProvider {
       },
     };
 
-    if (geminiThinking) {
+    const isGemini3Series = model.includes("gemini-3");
+
+    if (reasoning_effort && !isGemini3Series) {
       geminiParams.config!.thinkingConfig = {
         thinkingBudget:
-          geminiThinking === "auto"
+          reasoning_effort === "auto"
             ? -1
-            : geminiThinking === "disabled"
+            : (reasoning_effort === "disabled" || reasoning_effort === "none")
               ? 0
-              : parseInt(geminiThinking),
-        includeThoughts: geminiThinking !== "disabled" && this.options.show_thoughts === true,
+              : parseInt(reasoning_effort),
+        includeThoughts: (reasoning_effort !== "disabled" && reasoning_effort !== "none") && this.options.show_thoughts === true,
       };
     }
 
-    if (geminiThinkingLevel) {
+    if (reasoning_effort && isGemini3Series) {
       geminiParams.config!.thinkingConfig = {
-        thinkingLevel: geminiThinkingLevel,
+        thinkingLevel: reasoning_effort as ThinkingLevel,
         includeThoughts: this.options.show_thoughts === true,
       }
     }
 
-    // console.log("gemini thinking level", geminiThinkingLevel, geminiThinking, geminiParams.config!.thinkingConfig)
 
-    // console.log("gemini params", JSON.stringify(geminiParams, null, 2))
+    console.log("gemini params", JSON.stringify(geminiParams, null, 2))
     return geminiParams;
   }
 }

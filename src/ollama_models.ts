@@ -1,4 +1,4 @@
-import { ListCache, RequestOptions } from "@enconvo/api";
+import { ListCache, Preference, RequestOptions } from "@enconvo/api";
 import { Ollama } from "ollama";
 
 async function fetchModels(options: RequestOptions) {
@@ -38,9 +38,10 @@ async function fetchModels(options: RequestOptions) {
           return null;
         }
 
-        return {
+        const model: Preference.LLMModel = {
           title: item.name,
           value: item.name,
+          type: "llm_model",
           providerName: item.details.family,
           toolUse: modelInfo.capabilities.includes("tools"),
           thinking: modelInfo.capabilities.includes("thinking"),
@@ -48,6 +49,32 @@ async function fetchModels(options: RequestOptions) {
           maxTokens: 1024,
           visionEnable: modelInfo.capabilities.includes("vision"),
         };
+
+        if (model.thinking) {
+          model.preferences = [
+            {
+              name: "reasoning_effort",
+              description: "Applicable to reasoning models only, this option controls the reasoning token length.",
+              type: "dropdown",
+              required: false,
+              title: "Reasoning Effort",
+              "default": "disabled",
+              "data": [
+                {
+                  "title": "None",
+                  "value": "disabled",
+                  "description": "Disabled"
+                },
+                {
+                  "title": "Thinking",
+                  "value": "enabled",
+                  "description": "Enabled"
+                }
+              ]
+            }
+          ]
+        }
+        return model;
       }))).filter((item) => item !== null);
   } catch (err) {
     console.log(err);

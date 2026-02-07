@@ -22,7 +22,7 @@ async function fetchModels(
 
   try {
     const availableModels = await gateway.getAvailableModels();
-    console.log("availableModels", JSON.stringify(availableModels, null, 2));
+    // console.log("availableModels", JSON.stringify(availableModels, null, 2));
 
     const result: Preference.LLMModel[] = availableModels.models
       .filter((model) => model.modelType === "language")

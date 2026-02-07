@@ -17,6 +17,33 @@ const models: ListCache.ListItem[] = [
     outputPrice: 0.28, // Price per 1M tokens
     sequenceContentDisable: true,
     systemMessageEnable: false,
+    preferences: [
+      {
+        name: "reasoning_effort",
+        description: "Applicable to reasoning models only, this option controls the reasoning token length.",
+        type: "dropdown",
+        required: false,
+        title: "Reasoning Effort",
+        "default": "low",
+        "data": [
+          {
+            "title": "low",
+            "value": "low",
+            "description": "Favors speed and economical token usage with basic reasoning"
+          },
+          {
+            "title": "medium",
+            "value": "medium",
+            "description": "Balance between speed and reasoning accuracy (default)"
+          },
+          {
+            "title": "high",
+            "value": "high",
+            "description": "Favors more complete reasoning with higher token usage"
+          }
+        ],
+      }
+    ]
   },
 ];
 
