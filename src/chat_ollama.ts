@@ -77,20 +77,27 @@ export class OllamaProvider extends LLMProvider {
       this.options,
     );
 
-    const thinking = this.options.modelName.thinking || false
 
     const params: ChatRequest = {
-      model: this.options.modelName.value,
+      model: this.options.modelName?.value,
       messages: newMessages,
-      tools: OllamaUtil.convertAIToolsToOllamaTools(content.tools),
-      think: thinking ? this.options.reasoning_effort.value === "enabled" ? undefined : false : undefined,
       options: {
-        temperature: this.options.temperature.value || 1,
+        temperature: this.options.temperature?.value || 1,
       }
     };
 
 
-    console.log("ollama params", JSON.stringify(params, null, 2));
+    const modelNameConfig: { reasoning_effort: string } = this.options?.modelName_preferences?.[params.model || '']
+    let reasoning_effort = modelNameConfig?.reasoning_effort
+    if (reasoning_effort && reasoning_effort !== "disabled" && reasoning_effort !== "none") {
+      params.think = reasoning_effort === "enabled" ? true : false;
+    }
+
+    if (this.options.modelName.toolUse === true) {
+      params.tools = OllamaUtil.convertAIToolsToOllamaTools(content.tools);
+    }
+
+    // console.log("ollama params", JSON.stringify(params, null, 2));
     return params;
   }
 }

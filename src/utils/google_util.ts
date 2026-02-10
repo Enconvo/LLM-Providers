@@ -105,12 +105,21 @@ export namespace GoogleUtil {
           },
         );
 
-        // // Remove all unsupported fields
+        //Remove all unsupported fields
         delete tool.parameters?.additionalProperties;
+        //@ts-ignore
         delete tool.parameters?.$schema;
 
         if (Object.keys(tool.parameters?.properties || {}).length === 0) {
           delete tool.parameters;
+        }
+
+        // Filter required array to only include properties that are actually defined
+        if (tool.parameters?.required && tool.parameters?.properties) {
+          const definedProps = Object.keys(tool.parameters.properties);
+          tool.parameters.required = tool.parameters.required.filter(
+            (prop: string) => definedProps.includes(prop),
+          );
         }
 
         const functionDeclarationTool: FunctionDeclaration = {

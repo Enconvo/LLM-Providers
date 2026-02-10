@@ -303,6 +303,38 @@ export const openai_models_data: Preference.LLMModel[] = [
     visionEnable: true,
     searchToolSupported: true,
     imageGeneration: true,
+    preferences: [
+      {
+        name: "reasoning_effort",
+        description: "Applicable to reasoning models only, this option controls the reasoning token length.",
+        type: "dropdown",
+        required: false,
+        title: "Reasoning Effort",
+        default: "minimal",
+        data: [
+          {
+            title: "Minimal",
+            description: "Minimal reasoning",
+            value: "minimal"
+          },
+          {
+            title: "Low",
+            description: "Basic reasoning",
+            value: "low"
+          },
+          {
+            title: "Medium",
+            description: "Medium reasoning",
+            value: "medium"
+          },
+          {
+            title: "High",
+            description: "High reasoning",
+            value: "high"
+          },
+        ]
+      }
+    ]
   },
   {
     type: "llm_model",
@@ -320,6 +352,38 @@ export const openai_models_data: Preference.LLMModel[] = [
     visionEnable: true,
     searchToolSupported: true,
     imageGeneration: true,
+    preferences: [
+      {
+        name: "reasoning_effort",
+        description: "Applicable to reasoning models only, this option controls the reasoning token length.",
+        type: "dropdown",
+        required: false,
+        title: "Reasoning Effort",
+        default: "minimal",
+        data: [
+          {
+            title: "Minimal",
+            description: "Minimal reasoning",
+            value: "minimal"
+          },
+          {
+            title: "Low",
+            description: "Basic reasoning",
+            value: "low"
+          },
+          {
+            title: "Medium",
+            description: "Medium reasoning",
+            value: "medium"
+          },
+          {
+            title: "High",
+            description: "High reasoning",
+            value: "high"
+          },
+        ]
+      }
+    ]
   },
   {
     type: "llm_model",
@@ -336,6 +400,38 @@ export const openai_models_data: Preference.LLMModel[] = [
     toolUse: true,
     visionEnable: true,
     searchToolSupported: true,
+    preferences: [
+      {
+        name: "reasoning_effort",
+        description: "Applicable to reasoning models only, this option controls the reasoning token length.",
+        type: "dropdown",
+        required: false,
+        title: "Reasoning Effort",
+        default: "minimal",
+        data: [
+          {
+            title: "Minimal",
+            description: "Minimal reasoning",
+            value: "minimal"
+          },
+          {
+            title: "Low",
+            description: "Basic reasoning",
+            value: "low"
+          },
+          {
+            title: "Medium",
+            description: "Medium reasoning",
+            value: "medium"
+          },
+          {
+            title: "High",
+            description: "High reasoning",
+            value: "high"
+          },
+        ]
+      }
+    ]
   },
   {
     type: "llm_model",
