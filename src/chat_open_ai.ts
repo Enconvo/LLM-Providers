@@ -13,7 +13,6 @@ import {
 import OpenAI from "openai";
 import { OpenAIUtil } from "./utils/openai_util.ts";
 import { codex_instructions } from "./utils/instructions.ts";
-import { MessageContentImageUrl } from "@langchain/core/messages";
 import { saveBinaryFile } from "./utils/google_util.ts";
 import path from "path";
 import { ReasoningEffort } from "openai/resources/index.mjs";
@@ -32,18 +31,14 @@ export class ChatOpenAIProvider extends LLMProvider {
     }
 
     this.client = await this._createOpenaiClient(this.options);
-    // console.log("this.options", this.options)
     const credentialsType = this.options.credentials?.credentials_type?.value;
     const apiType = this.options.credentials?.api_type?.value || "completions";
-    console.log("apiType", apiType)
 
     const isCodex = credentialsType === "oauth2" && this.options.originCommandName === "chat_open_ai"
     const isUseEnconvoResponsesAPI = this.options.modelName.providerName === 'openai' && this.options.originCommandName === "enconvo_ai"
 
     if (isCodex || apiType === "responses" || isUseEnconvoResponsesAPI) {
-      console.log("_stream_v2");
       const credentials = this.options.credentials;
-      // console.log("openai credentials", credentials)
       if (!credentials?.access_token && isCodex) {
         throw new Error("Please authorize with OAuth2 first");
       }
@@ -51,7 +46,6 @@ export class ChatOpenAIProvider extends LLMProvider {
     }
 
     const params = await this.initParams(content);
-    // console.log("openai params", JSON.stringify(params, null, 2))
 
     let chatCompletion: any;
     chatCompletion = await this.client.chat.completions.create({
@@ -94,14 +88,12 @@ export class ChatOpenAIProvider extends LLMProvider {
   }): Promise<BaseChatMessage> {
     this.client = await this._createOpenaiClient(this.options);
     const params = await this.initParams(content);
-    // console.log("params", JSON.stringify(params, null, 2))
 
     const chatCompletion = await this.client.chat.completions.create({
       ...params,
     });
 
     const result = chatCompletion.choices[0];
-    console.log("result", JSON.stringify(result, null, 2))
 
     const text = result?.message?.content || ""
     const messageContents: ChatMessageContent[] = [];
@@ -112,9 +104,9 @@ export class ChatOpenAIProvider extends LLMProvider {
       });
     }
     //@ts-ignore
-    const images: MessageContentImageUrl[] = result?.message?.images || [];
+    const images: any[] = result?.message?.images || [];
 
-    const imageContents: ChatMessageContent[] = await Promise.all(images.map(async (image: MessageContentImageUrl) => {
+    const imageContents: ChatMessageContent[] = await Promise.all(images.map(async (image) => {
       const fileName = uuid();
       let fileExtension = "png";
       let base64Data = "";
@@ -149,7 +141,6 @@ export class ChatOpenAIProvider extends LLMProvider {
       })
     }),
     );
-    console.log("imageContents", imageContents)
 
     messageContents.push(...imageContents);
 
@@ -162,7 +153,6 @@ export class ChatOpenAIProvider extends LLMProvider {
     content: LLMProvider.Params,
     isCodex: boolean = false,
   ): Promise<OpenAI.Responses.ResponseCreateParamsStreaming> {
-    // console.log("openai options", JSON.stringify(content.messages, null, 2))
 
     const modelOptions = this.options.modelName;
 
@@ -228,7 +218,6 @@ export class ChatOpenAIProvider extends LLMProvider {
     }
     const modelNameConfig: { reasoning_effort: ReasoningEffort } = this.options?.modelName_preferences?.[params.model || '']
     let reasoning_effort = modelNameConfig?.reasoning_effort
-    // console.log("reasoning_effort", reasoning_effort)
     if (reasoning_effort) {
       if (reasoning_effort === 'minimal' && tools.some(tool => tool.type === 'web_search_preview' || tool.type === 'image_generation')) {
         reasoning_effort = 'low';
@@ -240,12 +229,10 @@ export class ChatOpenAIProvider extends LLMProvider {
       };
     }
 
-    // console.log("response params", JSON.stringify(params, null, 2))
     return params;
   }
 
   private async initParams(content: LLMProvider.Params) {
-    // console.log("openai options", JSON.stringify(this.options, null, 2))
     const credentials = this.options.credentials;
     const credentialsType = credentials?.credentials_type?.value || "apiKey";
     if (!credentials?.apiKey && credentialsType === "apiKey") {
@@ -308,7 +295,6 @@ export class ChatOpenAIProvider extends LLMProvider {
       // })
     }
 
-    // console.log("openai params", JSON.stringify(params, null, 2));
 
     return params;
   }
@@ -318,7 +304,6 @@ export class ChatOpenAIProvider extends LLMProvider {
   ): Promise<OpenAI> {
     let credentials = options.credentials || null;
     const credentialsType = credentials?.credentials_type?.value || "apiKey";
-    console.log("options.originCommandName", options.originCommandName, credentialsType)
     if (
       credentialsType === "oauth2" &&
       options.originCommandName === "chat_open_ai"
@@ -332,7 +317,6 @@ export class ChatOpenAIProvider extends LLMProvider {
           session_id: "a55064f6-4010-4e60-876d-a7ca1cb8d401",
         },
         fetch: async (url, init) => {
-          // console.log("url", url, init)
           return fetch("https://chatgpt.com/backend-api/codex/responses", init);
         },
       });
@@ -365,7 +349,6 @@ export class ChatOpenAIProvider extends LLMProvider {
         const authProvider = await AuthProvider.create("qwen");
         //@ts-ignore
         credentials = await authProvider.authenticate();
-        // console.log("loaded credentials", credentials);
       }
     }
 
@@ -383,7 +366,6 @@ export class ChatOpenAIProvider extends LLMProvider {
     if (options.baseUrl === "http://127.0.0.1:5001") {
       options.frequencyPenalty = 0.0001;
     }
-    // console.log("credentials", options.originCommandName, credentialsType);
     const apiKey =
       credentialsType === "oauth2"
         ? credentials?.access_token
@@ -395,9 +377,6 @@ export class ChatOpenAIProvider extends LLMProvider {
       baseURL = "https://api.straico.com/v2";
     }
 
-    // console.log("headers", headers)
-    console.log("apiKey---", apiKey)
-    console.log("baseURL----", baseURL)
 
     const client = new OpenAI({
       apiKey: apiKey, // This is the default and can be omitted

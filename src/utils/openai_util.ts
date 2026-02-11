@@ -30,7 +30,6 @@ import {
   Tool,
 } from "openai/resources/responses/responses.mjs";
 import mime from "mime";
-import { MessageContentImageUrl } from "@langchain/core/messages";
 import path from "path";
 import { saveBinaryFile } from "./google_util.ts";
 import { v4 as uuidv4 } from 'uuid';
@@ -1171,7 +1170,7 @@ export namespace OpenAIUtil {
                 }
               }
               //@ts-ignore
-            }else if (choice.delta.reasoning && choice.delta.reasoning !== '') {
+            } else if (choice.delta.reasoning && choice.delta.reasoning !== '') {
               if (runningContentBlockType !== 'thinking') {
                 if (runningContentBlockType !== undefined) {
                   yield {
@@ -1212,21 +1211,22 @@ export namespace OpenAIUtil {
                     type: 'content_block_stop',
                   }
                 }
-                //@ts-ignore
-                const respImages = choice.delta.images as MessageContentImageUrl[]
 
-                const images = await Promise.all(respImages.map(async (image: MessageContentImageUrl) => {
+                //@ts-ignore
+                const respImages = choice.delta.images as any[];
+
+                const images = await Promise.all(respImages.map(async (image) => {
                   const fileName = uuidv4();
                   let fileExtension = "png";
                   let base64Data = "";
                   let imageUrl = "";
-                  
+
                   if (typeof image.image_url === 'string') {
                     imageUrl = image.image_url;
                   } else {
                     imageUrl = image.image_url?.url || "";
                   }
-                  
+
                   // Extract mime type from data URL header
                   const dataUrlMatch = imageUrl.match(/^data:image\/([a-zA-Z]+);base64,/);
                   if (dataUrlMatch) {
