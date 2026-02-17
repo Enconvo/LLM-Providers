@@ -94,7 +94,6 @@ export class AnthropicProvider extends LLMProvider {
   protected async _stream(
     content: LLMProvider.Params,
   ): Promise<Stream<BaseChatMessageChunk>> {
-    console.log("AnthropicProvider _stream called");
     await this.initClient();
     const credentials = this.options.credentials;
     if (!credentials?.anthropicApiKey && !credentials?.access_token) {

@@ -18,6 +18,7 @@ import {
 } from "@enconvo/api";
 import path from "path";
 import mime from "mime";
+import { MessageUtils } from "./message_utils.ts";
 
 
 
@@ -277,6 +278,7 @@ export const convertMessageToAnthropicMessage = async (
     }
 
 
+    message.content = await MessageUtils.preHandleMessageContent(message.content);
 
     for (const item of message.content) {
       if (item.type === 'context') {
