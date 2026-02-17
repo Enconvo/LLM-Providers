@@ -72,6 +72,8 @@ export class MinaiProvider extends LLMProvider {
         const decoder = new TextDecoder();
 
         try {
+          let runningContentBlockType: BaseChatMessageChunk.ContentBlock['type'] | undefined;
+
           while (true) {
             const { done, value } = await reader.read();
             if (done) break;
@@ -84,25 +86,27 @@ export class MinaiProvider extends LLMProvider {
 
               try {
                 // 1min AI streaming response is plain text, not SSE format
-                const content = line.trim();
+                const content = line;
                 if (content) {
-                  const newChunk: BaseChatMessageChunk = {
-                    model: this.options.modelName.value,
-                    id: uuid(),
-                    choices: [
-                      {
-                        delta: {
-                          content: content,
-                          role: "assistant",
-                        },
-                        finish_reason: null,
-                        index: 0,
-                      },
-                    ],
-                    created: Date.now(),
-                    object: "chat.completion.chunk",
-                  };
-                  yield newChunk;
+                  if (!runningContentBlockType) {
+                    runningContentBlockType = 'text';
+                    yield {
+                      type: 'content_block_start',
+                      content_block: {
+                        type: runningContentBlockType,
+                        text: '',
+                      }
+                    }
+                  }
+
+                  yield {
+                    type: 'content_block_delta',
+                    delta: {
+                      type: 'text_delta',
+                      text: content,
+                    }
+                  }
+
                 }
               } catch (e) {
                 // Skip invalid lines
@@ -112,6 +116,9 @@ export class MinaiProvider extends LLMProvider {
           }
         } finally {
           reader.releaseLock();
+          yield {
+            type: 'content_block_stop',
+          }
         }
       } catch (e) {
         if (e instanceof Error && e.name === "AbortError") return;
