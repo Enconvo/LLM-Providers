@@ -6,7 +6,7 @@ import {
   LLMProvider,
   Stream,
 } from "@enconvo/api";
-import Anthropic from "@anthropic-ai/sdk";
+import Anthropic, { ClientOptions } from "@anthropic-ai/sdk";
 import {
   AnthropicUtil,
   convertMessagesToAnthropicMessages,
@@ -58,21 +58,23 @@ export class AnthropicProvider extends LLMProvider {
 
       const authProvider = await AuthProvider.create("anthropic");
       oauthCredentials = await authProvider.loadCredentials();
-      // console.log("loaded anthropic credentials", oauthCredentials,authProvider);
+      console.log("loaded anthropic credentials", oauthCredentials, authProvider);
 
       headers["anthropic-beta"] =
         "oauth-2025-04-20,claude-code-20250219,interleaved-thinking-2025-05-14,fine-grained-tool-streaming-2025-05-14";
     }
 
 
-    const anthropic = new Anthropic({
+    const params: ClientOptions = {
       apiKey:
-        credentialsType === "apiKey" ? credentials?.anthropicApiKey : undefined,
+        credentialsType === "apiKey" ? credentials?.anthropicApiKey || credentials?.apiKey : undefined,
       authToken:
         credentialsType === "oauth2" ? oauthCredentials?.access_token : undefined,
-      baseURL: credentials?.anthropicApiUrl,
+      baseURL: credentials?.anthropicApiUrl || credentials?.baseUrl,
       defaultHeaders: headers,
-    });
+    }
+    console.log("Anthropic client options", params);
+    const anthropic = new Anthropic(params);
 
     this.anthropic = anthropic;
   }
@@ -96,11 +98,13 @@ export class AnthropicProvider extends LLMProvider {
   ): Promise<Stream<BaseChatMessageChunk>> {
     await this.initClient();
     const credentials = this.options.credentials;
-    if (!credentials?.anthropicApiKey && !credentials?.access_token) {
+    if ((!credentials?.anthropicApiKey && !credentials?.apiKey) && !credentials?.access_token) {
+      console.error("Anthropic credentials are missing", credentials);
       throw new Error("Anthropic API key or OAuth is required");
     }
 
     const params = await this.initParams(content);
+    console.log("Final Anthropic API params", JSON.stringify(params, null, 2));
 
     const stream = this.anthropic.messages.stream(params);
 
@@ -177,6 +181,10 @@ export class AnthropicProvider extends LLMProvider {
         type: "enabled",
         budget_tokens: parseInt(reasoning_effort),
       };
+    }else {
+      params.thinking = {
+        type: "disabled",
+      }
     }
 
     // console.log("reasoning_effort anthropic", params.thinking);
