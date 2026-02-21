@@ -629,7 +629,7 @@ export function streamFromAnthropic(
     consumed = true;
     try {
       for await (const chunk of response) {
-        // console.log("chunk", JSON.stringify(chunk, null, 2))
+        console.log("chunk", JSON.stringify(chunk, null, 2))
         if (chunk.type === "message_start") {
           yield {
             type: 'message_start',

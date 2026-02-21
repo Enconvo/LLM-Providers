@@ -8,10 +8,10 @@ async function initLLMProvider(options: LLMProvider.LLMOptions) {
   const newLLMArr = options.modelName.value.split("/");
   const modelProvider = newLLMArr[0];
 
-  // const anthropicApiUrl = "https://api.enconvo.com/";
+  const anthropicApiUrl = "https://api.enconvo.com/";
   const openAIBaseUrl = "https://api.enconvo.com/v1/";
   const googleApiUrl = "https://api.enconvo.com";
-  const anthropicApiUrl = "http://127.0.0.1:8181/"
+  // const anthropicApiUrl = "http://127.0.0.1:8181/"
   // const openAIBaseUrl = "http://127.0.0.1:8181/v1/"
   // const googleApiUrl = "http://127.0.0.1:8181"
 
