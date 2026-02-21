@@ -550,7 +550,7 @@ export function streamFromGoogle(
     let runningContentBlockType: BaseChatMessageChunk.ContentBlock['type'] | undefined;
     try {
       for await (const chunk of response) {
-        console.log("google chunk", JSON.stringify(chunk, null, 2))
+        // console.log("google chunk", JSON.stringify(chunk, null, 2))
         if (done) continue;
         const candidate = chunk.candidates?.[0];
 

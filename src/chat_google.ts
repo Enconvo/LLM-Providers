@@ -167,7 +167,13 @@ export class GoogleGeminiProvider extends LLMProvider {
       if (!this.server) {
         await this.initCodeAssistServer();
       }
-      result = await this.server!.generateContentStream(params, "Enconvo");
+      try {
+        result = await this.server!.generateContentStream(params, "Enconvo");
+      } catch (error) {
+        console.error("Error generating content stream from Google:", error);
+        throw error;
+      }
+
     } else {
       result = await this.ai.models.generateContentStream(params);
     }
