@@ -364,7 +364,7 @@ export const convertMessageToAnthropicMessage = async (
         try {
           args = JSON.parse(item.flowParams || "{}");
         } catch (e) {
-          console.log("flowParams error", item.flowParams);
+          // console.log("flowParams error", item.flowParams);
         }
 
         const toolUseMessage: Anthropic.ToolUseBlockParam = {
@@ -403,7 +403,7 @@ export const convertMessageToAnthropicMessage = async (
           },
         ];
         parts = [];
-        console.log("flow step parsed");
+        // console.log("flow step parsed");
 
         contents.push(...toolUseMessages);
       } else if (item.type === "text" && item.text.trim() !== "") {
@@ -465,7 +465,7 @@ export const convertMessageToAnthropicMessage = async (
         }
       } else if (item.type === "file") {
         const url = item.file_url.url.replace("file://", "");
-        console.log("file url", url, FileUtil.isImageFile(url));
+        // console.log("file url", url, FileUtil.isImageFile(url));
         if (FileUtil.isImageFile(url)) {
           const newParts = await handleImageContentItem(url);
           // console.log("newParts", newParts);
@@ -534,7 +534,7 @@ export const convertMessagesToAnthropicMessages = async (
         typeof message.content === "string" &&
         message.content.trim() === ""
       ) {
-        console.log("message.content is empty", message);
+        // console.log("message.content is empty", message);
         return false;
       } else {
         return message.content?.length !== 0;
@@ -605,7 +605,7 @@ export const convertMessagesToAnthropicMessages = async (
     newMessages = newMessages.slice(1);
   }
 
-  console.log("anthropic newMessages", JSON.stringify(newMessages, null, 2));
+  // console.log("anthropic newMessages", JSON.stringify(newMessages, null, 2));
 
   return newMessages;
 };
@@ -629,7 +629,7 @@ export function streamFromAnthropic(
     consumed = true;
     try {
       for await (const chunk of response) {
-        console.log("chunk", JSON.stringify(chunk, null, 2))
+        // console.log("chunk", JSON.stringify(chunk, null, 2))
         if (chunk.type === "message_start") {
           yield {
             type: 'message_start',

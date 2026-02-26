@@ -58,10 +58,13 @@ export class AnthropicProvider extends LLMProvider {
 
       const authProvider = await AuthProvider.create("anthropic");
       oauthCredentials = await authProvider.loadCredentials();
-      console.log("loaded anthropic credentials", oauthCredentials, authProvider);
+      // console.log("loaded anthropic credentials", oauthCredentials, authProvider);
 
       headers["anthropic-beta"] =
         "oauth-2025-04-20,claude-code-20250219,interleaved-thinking-2025-05-14,fine-grained-tool-streaming-2025-05-14";
+    }else {
+      headers["anthropic-beta"] =
+        "interleaved-thinking-2025-05-14,fine-grained-tool-streaming-2025-05-14";
     }
 
 
@@ -73,7 +76,7 @@ export class AnthropicProvider extends LLMProvider {
       baseURL: credentials?.anthropicApiUrl || credentials?.baseUrl,
       defaultHeaders: headers,
     }
-    console.log("Anthropic client options", params);
+    // console.log("Anthropic client options", params);
     const anthropic = new Anthropic(params);
 
     this.anthropic = anthropic;
@@ -104,7 +107,7 @@ export class AnthropicProvider extends LLMProvider {
     }
 
     const params = await this.initParams(content);
-    console.log("Final Anthropic API params", JSON.stringify(params, null, 2));
+    // console.log("Final Anthropic API params", JSON.stringify(params, null, 2));
 
     const stream = this.anthropic.messages.stream(params);
 
