@@ -344,6 +344,7 @@ export class GoogleGeminiProvider extends LLMProvider {
           headers: headers,
         },
         responseModalities: responseModalities,
+        abortSignal: params.signal
       },
     };
 
@@ -369,7 +370,7 @@ export class GoogleGeminiProvider extends LLMProvider {
     }
 
 
-    console.log("gemini params", JSON.stringify(geminiParams, null, 2))
+    // console.log("gemini params", JSON.stringify(geminiParams, null, 2))
     return geminiParams;
   }
 }

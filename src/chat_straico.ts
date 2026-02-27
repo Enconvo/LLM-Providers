@@ -27,7 +27,7 @@ export class StraicoProvider extends ChatOpenAIProvider {
 
     const messages = await this.handleMessages(content);
 
-    const response = await this.call({ messages: messages });
+    const response = await this.call({ messages: messages, signal: content.signal });
 
     async function* iterator(): AsyncIterator<
       BaseChatMessageChunk,

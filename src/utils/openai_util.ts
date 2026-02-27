@@ -97,7 +97,12 @@ export namespace OpenAIUtil {
                 role === "system" ? "user" : (role as EasyInputMessage["role"]),
             });
           } else if (role === "assistant") {
-            const id = message.id || `msg_${uuidv4()}`;
+            let id = message.id || `msg_${uuidv4()}`;
+            if (id.endsWith('_')) {
+              id = id.slice(0, -1);
+            }
+            // console.log("msg_id", message.id, id)
+
             newMessages.push({
               type: "message",
               content: messageContents as Array<
@@ -1061,7 +1066,7 @@ export namespace OpenAIUtil {
       let runningContentBlockType: BaseChatMessageChunk.ContentBlock['type'] | undefined;
       try {
         for await (const chunk of response) {
-          console.log("chunk", JSON.stringify(chunk, null, 2), options?.commandName)
+          // console.log("chunk", JSON.stringify(chunk, null, 2), options?.commandName)
           if (done) continue;
           if (chunk.choices.length > 0) {
             const choice = chunk.choices[0];

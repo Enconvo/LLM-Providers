@@ -54,6 +54,8 @@ export class ChatOpenAIProvider extends LLMProvider {
       stream_options: {
         include_usage: true,
       },
+    }, {
+      signal: content.signal
     });
 
     const ac = new AbortController();
@@ -73,6 +75,8 @@ export class ChatOpenAIProvider extends LLMProvider {
     const params = await this.initResponseParams(content, isCodex);
     const response = await this.client.responses.create({
       ...params
+    }, {
+      signal: content.signal
     });
 
     const ac = new AbortController();
@@ -83,14 +87,14 @@ export class ChatOpenAIProvider extends LLMProvider {
 
   client: OpenAI;
 
-  protected async _call(content: {
-    messages: BaseChatMessage[];
-  }): Promise<BaseChatMessage> {
+  protected async _call(content: LLMProvider.Params): Promise<BaseChatMessage> {
     this.client = await this._createOpenaiClient(this.options);
     const params = await this.initParams(content);
 
     const chatCompletion = await this.client.chat.completions.create({
       ...params,
+    }, {
+      signal: content.signal
     });
 
     const result = chatCompletion.choices[0];

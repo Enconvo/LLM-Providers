@@ -48,11 +48,20 @@ export class OllamaProvider extends LLMProvider {
 
     const params = await this.initParams(content);
 
-    const response = await this.ollama.chat({
+    const responsePromise = this.ollama.chat({
       ...params,
       stream: false,
     });
 
+    if (content.signal) {
+      const abortPromise = new Promise<never>((_, reject) => {
+        content.signal!.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), { once: true });
+      });
+      const response = await Promise.race([responsePromise, abortPromise]);
+      return new AssistantMessage(response.message.content);
+    }
+
+    const response = await responsePromise;
     return new AssistantMessage(response.message.content);
   }
 
@@ -66,6 +75,10 @@ export class OllamaProvider extends LLMProvider {
       ...params,
       stream: true,
     });
+
+    if (content.signal) {
+      content.signal.addEventListener('abort', () => response.abort(), { once: true });
+    }
 
     return OllamaUtil.streamFromOllama(response);
   }

@@ -2,15 +2,16 @@ import {
   AssistantMessage,
   BaseChatMessage,
   BaseChatMessageChunk,
+  BaseChatMessageLike,
   LLMProvider,
   Stream,
-  uuid,
 } from "@enconvo/api";
-import { MinaiUtil } from "./utils/minai_util.ts";
 
 export default function main(options: any) {
   return new MinaiProvider(options);
 }
+
+type StreamChunk = { type: "text"; text: string };
 
 export class MinaiProvider extends LLMProvider {
   private baseUrl: string;
@@ -26,26 +27,29 @@ export class MinaiProvider extends LLMProvider {
   }
 
   protected async _call(content: LLMProvider.Params): Promise<BaseChatMessage> {
-    const requestPayload = this.buildRequestPayload(content, false);
+    const requestPayload = this.buildRequestPayload(content);
+    const response = await this.makeApiRequest(requestPayload, false, content.signal);
+    const json = await response.json()
 
-    const response = await this.makeApiRequest(requestPayload, false);
-
-    if (response.error) {
-      throw new Error(`1min AI API error: ${response.error}`);
+    if (json.error) {
+      throw new Error(`1min AI API error: ${json.error}`);
     }
 
-    // Extract response content from the 1min AI response format
-    const messageContent = this.extractResponseContent(response);
+    const messageContent = this.extractResponseContent(json);
     return new AssistantMessage(messageContent);
   }
 
   protected async _stream(
     content: LLMProvider.Params,
   ): Promise<Stream<BaseChatMessageChunk>> {
-    const requestPayload = this.buildRequestPayload(content, true);
+    const requestPayload = this.buildRequestPayload(content);
 
     let consumed = false;
     const controller = new AbortController();
+
+    if (content.signal) {
+      content.signal.addEventListener('abort', () => controller.abort(), { once: true });
+    }
 
     async function* iterator(
       this: MinaiProvider,
@@ -69,56 +73,68 @@ export class MinaiProvider extends LLMProvider {
         }
 
         const reader = response.body.getReader();
+
         const decoder = new TextDecoder();
 
         try {
-          let runningContentBlockType: BaseChatMessageChunk.ContentBlock['type'] | undefined;
+          let runningContentBlockType:
+            | BaseChatMessageChunk.ContentBlock["type"]
+            | undefined;
+          let buffer = "";
 
           while (true) {
             const { done, value } = await reader.read();
             if (done) break;
 
-            const chunk = decoder.decode(value, { stream: true });
-            const lines = chunk.split("\n");
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split("\n");
+            // Keep the last potentially incomplete line in the buffer
+            buffer = lines.pop() || "";
 
             for (const line of lines) {
-              if (line.trim() === "") continue;
-
-              try {
-                // 1min AI streaming response is plain text, not SSE format
-                const content = line;
-                if (content) {
-                  if (!runningContentBlockType) {
-                    runningContentBlockType = 'text';
-                    yield {
-                      type: 'content_block_start',
-                      content_block: {
-                        type: runningContentBlockType,
-                        text: '',
-                      }
-                    }
-                  }
-
+              const chunks = MinaiProvider.parseStreamLine(line);
+              for (const chunk of chunks) {
+                if (
+                  !runningContentBlockType ||
+                  runningContentBlockType !== "text"
+                ) {
+                  runningContentBlockType = "text";
                   yield {
-                    type: 'content_block_delta',
-                    delta: {
-                      type: 'text_delta',
-                      text: content,
-                    }
-                  }
-
+                    type: "content_block_start",
+                    content_block: { type: "text", text: "" },
+                  };
                 }
-              } catch (e) {
-                // Skip invalid lines
-                console.warn("Failed to parse 1min AI stream chunk:", e);
+                yield {
+                  type: "content_block_delta",
+                  delta: { type: "text_delta", text: chunk.text },
+                };
               }
+            }
+          }
+
+          // Process remaining buffer
+          if (buffer.trim()) {
+            const chunks = MinaiProvider.parseStreamLine(buffer);
+            for (const chunk of chunks) {
+              if (
+                !runningContentBlockType ||
+                runningContentBlockType !== "text"
+              ) {
+                runningContentBlockType = "text";
+                yield {
+                  type: "content_block_start",
+                  content_block: { type: "text", text: "" },
+                };
+              }
+              yield {
+                type: "content_block_delta",
+                delta: { type: "text_delta", text: chunk.text },
+              };
             }
           }
         } finally {
           reader.releaseLock();
-          yield {
-            type: 'content_block_stop',
-          }
+          yield { type: "content_block_stop" };
         }
       } catch (e) {
         if (e instanceof Error && e.name === "AbortError") return;
@@ -126,60 +142,94 @@ export class MinaiProvider extends LLMProvider {
       }
     }
 
-    controller.signal.addEventListener("abort", () => {
-      // Cleanup will be handled in the iterator
-    });
-
     return new Stream(iterator.bind(this), controller);
   }
 
-  private buildRequestPayload(
-    content: LLMProvider.Params,
-    isStreaming: boolean,
-  ) {
-    const messages = MinaiUtil.convertMessagesToMinaiMessages(content.messages);
-    const modelName = this.options.modelName?.value || "gpt-4o-mini";
+  /**
+   * Parse a single stream line, handling both SSE format and raw text.
+   */
+  private static parseStreamLine(line: string): StreamChunk[] {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed === "data: [DONE]") return [];
 
-    // Build the 1min AI specific request format
-    const promptObject: any = {
-      prompt: messages[messages.length - 1]?.content || "",
-      isMixed: false,
-      webSearch: false,
-      numOfSite: 1,
-      maxWord: 500,
-    };
+    // SSE format: "data: {...}"
+    if (trimmed.startsWith("data: ")) {
+      const data = trimmed.slice(6);
+      try {
+        const parsed = JSON.parse(data);
 
-    // Add image support if available
-    if (content.messages) {
-      const imageList = MinaiUtil.extractImagesFromMessages(content.messages);
-      if (imageList.length > 0) {
-        promptObject.imageList = imageList;
+        // OpenAI-compatible streaming format
+        const delta = parsed.choices?.[0]?.delta;
+        if (delta) {
+          if (delta.content) {
+            return [{ type: "text", text: delta.content }];
+          }
+          return [];
+        }
+
+        // Direct content fields
+        if (parsed.content) return [{ type: "text", text: parsed.content }];
+        if (parsed.text) return [{ type: "text", text: parsed.text }];
+        if (typeof parsed === "string") return [{ type: "text", text: parsed }];
+
+        return [];
+      } catch {
+        // Not valid JSON after "data: " - treat as raw text
+        return data ? [{ type: "text", text: data }] : [];
       }
     }
 
+    // Raw text line
+    return [{ type: "text", text: trimmed }];
+  }
+
+  private buildRequestPayload(content: LLMProvider.Params) {
+    const messages = content.messages || [];
+    const modelName = this.options.modelName?.value || "gpt-4o-mini";
+
+    const prompt = this.formatMessagesAsPrompt(messages);
+
+    const promptObject: any = {
+      prompt,
+      isMixed: false,
+      webSearch: false,
+      numOfSite: 0,
+    };
+
+    console.log("obj", promptObject)
     return {
-      type: this.getFeatureType(content),
+      type: "CHAT_WITH_AI",
       model: modelName,
-      promptObject: promptObject,
+      promptObject,
     };
   }
 
-  private getFeatureType(content: LLMProvider.Params): string {
-    // Determine feature type based on message content
-    const hasImages = content.messages?.some(
-      (msg) =>
-        Array.isArray(msg.content) &&
-        msg.content.some(
-          (item) => typeof item === "object" && "image_url" in item,
-        ),
-    );
+  private formatMessagesAsPrompt(messages: BaseChatMessageLike[]): string {
+    if (messages.length === 0) return "";
 
-    if (hasImages) {
-      return "CHAT_WITH_IMAGE";
+    console.log("messages", JSON.stringify(messages, null, 2))
+    const parts: string[] = [];
+    for (const msg of messages) {
+      const role = msg.role;
+      if (role === "system") {
+        parts.push('System Instruction:\n')
+      } else if (role === 'user') {
+        parts.push('User Message:\n')
+      } else if (role === 'assistant') {
+        parts.push('Assistant Message:\n')
+      }
+      for (const msgContent of msg.content) {
+        if (msgContent.type === 'text') {
+          parts.push(msgContent.text);
+        } else {
+          parts.push('raw content:' + JSON.stringify(msgContent))
+        }
+      }
     }
 
-    return "CHAT_WITH_AI";
+    return parts.join("\n\n");
   }
+
 
   private async makeApiRequest(
     payload: any,
@@ -190,52 +240,30 @@ export class MinaiProvider extends LLMProvider {
       ? `${this.baseUrl}/api/features?isStreaming=true`
       : `${this.baseUrl}/api/features`;
 
-    const headers: Record<string, string> = {
-      "API-KEY": this.apiKey,
-      "Content-Type": "application/json",
-    };
-
     const response = await fetch(endpoint, {
       method: "POST",
-      headers: headers,
+      headers: {
+        "API-KEY": this.apiKey,
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify(payload),
-      signal: signal,
+      signal,
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(
-        `1min AI API request failed with status ${response.status}: ${errorText}`,
-      );
+      throw new Error(`1min AI API error (${response.status}): ${errorText}`);
     }
 
-    if (isStreaming) {
-      return response;
-    } else {
-      return await response.json();
-    }
+    return response;
   }
 
   private extractResponseContent(response: any): string {
-    // Extract content from 1min AI response format
     if (response.aiRecord?.aiRecordDetail?.resultObject) {
-      const resultObject = response.aiRecord.aiRecordDetail.resultObject;
-      if (typeof resultObject === "string") {
-        return resultObject;
-      }
-      if (Array.isArray(resultObject) && resultObject.length > 0) {
-        return resultObject[0];
-      }
+      const result = response.aiRecord.aiRecordDetail.resultObject;
+      if (typeof result === "string") return result;
+      if (Array.isArray(result) && result.length > 0) return result[0];
     }
-
-    if (response.content) {
-      return response.content;
-    }
-
-    if (response.message) {
-      return response.message;
-    }
-
-    return "";
+    return response.content || response.message || "";
   }
 }

@@ -593,8 +593,6 @@ export const convertMessagesToAnthropicMessages = async (
     });
   }
 
-  newMessages = newMessages.slice(-20);
-
   if (
     newMessages[0].role === "user" &&
     newMessages[0].content &&

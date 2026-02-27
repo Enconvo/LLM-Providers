@@ -62,7 +62,7 @@ export class AnthropicProvider extends LLMProvider {
 
       headers["anthropic-beta"] =
         "oauth-2025-04-20,claude-code-20250219,interleaved-thinking-2025-05-14,fine-grained-tool-streaming-2025-05-14";
-    }else {
+    } else {
       headers["anthropic-beta"] =
         "interleaved-thinking-2025-05-14,fine-grained-tool-streaming-2025-05-14";
     }
@@ -109,9 +109,11 @@ export class AnthropicProvider extends LLMProvider {
     const params = await this.initParams(content);
     // console.log("Final Anthropic API params", JSON.stringify(params, null, 2));
 
-    const stream = this.anthropic.messages.stream(params);
-
+    const stream = this.anthropic.messages.stream(params, {
+      signal: content.signal
+    });
     return streamFromAnthropic(stream, stream.controller);
+
   }
 
   async initParams(content: LLMProvider.Params): Promise<MessageStreamParams> {
@@ -184,7 +186,7 @@ export class AnthropicProvider extends LLMProvider {
         type: "enabled",
         budget_tokens: parseInt(reasoning_effort),
       };
-    }else {
+    } else {
       params.thinking = {
         type: "disabled",
       }

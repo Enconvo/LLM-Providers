@@ -147,7 +147,7 @@ export class VercelAIGatewayProvider extends LLMProvider {
       maxOutputTokens: params.maxTokens,
       tools: tools,
       // toolChoice: params.toolChoice,
-      abortSignal: params.abortSignal,
+      abortSignal: content.signal,
       providerOptions: providerOptions,
     });
 
@@ -170,7 +170,6 @@ export class VercelAIGatewayProvider extends LLMProvider {
       model: model,
       temperature: temperature,
       maxTokens: defaultMaxTokens,
-      abortSignal: new AbortController().signal,
     };
 
     return params;
