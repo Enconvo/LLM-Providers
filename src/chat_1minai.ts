@@ -86,52 +86,31 @@ export class MinaiProvider extends LLMProvider {
             const { done, value } = await reader.read();
             if (done) break;
 
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split("\n");
-            // Keep the last potentially incomplete line in the buffer
-            buffer = lines.pop() || "";
+            buffer = decoder.decode(value, { stream: true });
+            console.log("buffer", buffer)
+            // const lines = buffer.split("\n");
+            // // Keep the last potentially incomplete line in the buffer
+            // buffer = lines.pop() || "";
 
-            for (const line of lines) {
-              const chunks = MinaiProvider.parseStreamLine(line);
-              for (const chunk of chunks) {
-                if (
-                  !runningContentBlockType ||
-                  runningContentBlockType !== "text"
-                ) {
-                  runningContentBlockType = "text";
-                  yield {
-                    type: "content_block_start",
-                    content_block: { type: "text", text: "" },
-                  };
-                }
-                yield {
-                  type: "content_block_delta",
-                  delta: { type: "text_delta", text: chunk.text },
-                };
-              }
-            }
-          }
-
-          // Process remaining buffer
-          if (buffer.trim()) {
-            const chunks = MinaiProvider.parseStreamLine(buffer);
-            for (const chunk of chunks) {
-              if (
-                !runningContentBlockType ||
-                runningContentBlockType !== "text"
-              ) {
-                runningContentBlockType = "text";
-                yield {
-                  type: "content_block_start",
-                  content_block: { type: "text", text: "" },
-                };
-              }
+            if (
+              !runningContentBlockType ||
+              runningContentBlockType !== "text"
+            ) {
+              runningContentBlockType = "text";
               yield {
-                type: "content_block_delta",
-                delta: { type: "text_delta", text: chunk.text },
+                type: "content_block_start",
+                content_block: { type: "text", text: "" },
               };
             }
+            yield {
+              type: "content_block_delta",
+              delta: { type: "text_delta", text: buffer },
+            };
+
+           
           }
+
+         
         } finally {
           reader.releaseLock();
           yield { type: "content_block_stop" };
@@ -153,31 +132,31 @@ export class MinaiProvider extends LLMProvider {
     if (!trimmed || trimmed === "data: [DONE]") return [];
 
     // SSE format: "data: {...}"
-    if (trimmed.startsWith("data: ")) {
-      const data = trimmed.slice(6);
-      try {
-        const parsed = JSON.parse(data);
+    // if (trimmed.startsWith("data: ")) {
+    //   const data = trimmed.slice(6);
+    //   try {
+    //     const parsed = JSON.parse(data);
 
-        // OpenAI-compatible streaming format
-        const delta = parsed.choices?.[0]?.delta;
-        if (delta) {
-          if (delta.content) {
-            return [{ type: "text", text: delta.content }];
-          }
-          return [];
-        }
+    //     // OpenAI-compatible streaming format
+    //     const delta = parsed.choices?.[0]?.delta;
+    //     if (delta) {
+    //       if (delta.content) {
+    //         return [{ type: "text", text: delta.content }];
+    //       }
+    //       return [];
+    //     }
 
-        // Direct content fields
-        if (parsed.content) return [{ type: "text", text: parsed.content }];
-        if (parsed.text) return [{ type: "text", text: parsed.text }];
-        if (typeof parsed === "string") return [{ type: "text", text: parsed }];
+    //     // Direct content fields
+    //     if (parsed.content) return [{ type: "text", text: parsed.content }];
+    //     if (parsed.text) return [{ type: "text", text: parsed.text }];
+    //     if (typeof parsed === "string") return [{ type: "text", text: parsed }];
 
-        return [];
-      } catch {
-        // Not valid JSON after "data: " - treat as raw text
-        return data ? [{ type: "text", text: data }] : [];
-      }
-    }
+    //     return [];
+    //   } catch {
+    //     // Not valid JSON after "data: " - treat as raw text
+    //     return data ? [{ type: "text", text: data }] : [];
+    //   }
+    // }
 
     // Raw text line
     return [{ type: "text", text: trimmed }];
