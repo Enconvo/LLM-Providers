@@ -182,7 +182,7 @@ export class GoogleGeminiProvider extends LLMProvider {
   }
 
   async initParams(
-    params: LLMProvider.Params,
+    params: LLMProvider.DynamicParams,
   ): Promise<GenerateContentParameters> {
     const credentials = this.options.credentials;
     const credentialsType = credentials?.credentials_type?.value || 'apiKey'
