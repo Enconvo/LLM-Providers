@@ -11,7 +11,6 @@ export default function main(options: any) {
   return new MinaiProvider(options);
 }
 
-type StreamChunk = { type: "text"; text: string };
 
 export class MinaiProvider extends LLMProvider {
   private baseUrl: string;
@@ -26,7 +25,7 @@ export class MinaiProvider extends LLMProvider {
     }
   }
 
-  protected async _call(content: LLMProvider.Params): Promise<BaseChatMessage> {
+  protected async _call(content: LLMProvider.ResolvedParams): Promise<BaseChatMessage> {
     const requestPayload = this.buildRequestPayload(content);
     const response = await this.makeApiRequest(requestPayload, false, content.signal);
     const json = await response.json()
@@ -40,7 +39,7 @@ export class MinaiProvider extends LLMProvider {
   }
 
   protected async _stream(
-    content: LLMProvider.Params,
+    content: LLMProvider.ResolvedParams,
   ): Promise<Stream<BaseChatMessageChunk>> {
     const requestPayload = this.buildRequestPayload(content);
 
@@ -88,9 +87,6 @@ export class MinaiProvider extends LLMProvider {
 
             buffer = decoder.decode(value, { stream: true });
             console.log("buffer", buffer)
-            // const lines = buffer.split("\n");
-            // // Keep the last potentially incomplete line in the buffer
-            // buffer = lines.pop() || "";
 
             if (
               !runningContentBlockType ||
@@ -107,10 +103,10 @@ export class MinaiProvider extends LLMProvider {
               delta: { type: "text_delta", text: buffer },
             };
 
-           
+
           }
 
-         
+
         } finally {
           reader.releaseLock();
           yield { type: "content_block_stop" };
@@ -124,45 +120,8 @@ export class MinaiProvider extends LLMProvider {
     return new Stream(iterator.bind(this), controller);
   }
 
-  /**
-   * Parse a single stream line, handling both SSE format and raw text.
-   */
-  private static parseStreamLine(line: string): StreamChunk[] {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed === "data: [DONE]") return [];
 
-    // SSE format: "data: {...}"
-    // if (trimmed.startsWith("data: ")) {
-    //   const data = trimmed.slice(6);
-    //   try {
-    //     const parsed = JSON.parse(data);
-
-    //     // OpenAI-compatible streaming format
-    //     const delta = parsed.choices?.[0]?.delta;
-    //     if (delta) {
-    //       if (delta.content) {
-    //         return [{ type: "text", text: delta.content }];
-    //       }
-    //       return [];
-    //     }
-
-    //     // Direct content fields
-    //     if (parsed.content) return [{ type: "text", text: parsed.content }];
-    //     if (parsed.text) return [{ type: "text", text: parsed.text }];
-    //     if (typeof parsed === "string") return [{ type: "text", text: parsed }];
-
-    //     return [];
-    //   } catch {
-    //     // Not valid JSON after "data: " - treat as raw text
-    //     return data ? [{ type: "text", text: data }] : [];
-    //   }
-    // }
-
-    // Raw text line
-    return [{ type: "text", text: trimmed }];
-  }
-
-  private buildRequestPayload(content: LLMProvider.Params) {
+  private buildRequestPayload(content: LLMProvider.ResolvedParams) {
     const messages = content.messages || [];
     const modelName = this.options.modelName?.value || "gpt-4o-mini";
 
@@ -172,7 +131,7 @@ export class MinaiProvider extends LLMProvider {
       prompt,
       isMixed: false,
       webSearch: false,
-      numOfSite: 0,
+      numOfSite: 5,
     };
 
     console.log("obj", promptObject)

@@ -14,7 +14,7 @@ export default function main(options: any) {
 
 class ChatOpenAIProvider extends LLMProvider {
   protected async _stream(
-    content: LLMProvider.Params,
+    content: LLMProvider.ResolvedParams,
   ): Promise<Stream<BaseChatMessageChunk>> {
     const params = await this.initParams(content);
     // console.log("params", params)
@@ -50,7 +50,7 @@ class ChatOpenAIProvider extends LLMProvider {
     return new UserMessage(result?.message?.content || "");
   }
 
-  private async initParams(content: LLMProvider.Params) {
+  private async initParams(content: LLMProvider.ResolvedParams) {
     if (!this.options.credentials?.azureOpenAIApiKey) {
       throw new Error("API key is required");
     }

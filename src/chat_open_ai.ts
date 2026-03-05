@@ -23,7 +23,7 @@ export default function main(options: any) {
 
 export class ChatOpenAIProvider extends LLMProvider {
   protected async _stream(
-    content: LLMProvider.Params,
+    content: LLMProvider.ResolvedParams,
   ): Promise<Stream<BaseChatMessageChunk>> {
     if (this.options.originCommandName === "chat_straico") {
       //@ts-ignore
@@ -69,7 +69,7 @@ export class ChatOpenAIProvider extends LLMProvider {
   }
 
   protected async _stream_v2(
-    content: LLMProvider.Params,
+    content: LLMProvider.ResolvedParams,
     isCodex: boolean = false,
   ): Promise<Stream<BaseChatMessageChunk>> {
     const params = await this.initResponseParams(content, isCodex);
@@ -87,7 +87,7 @@ export class ChatOpenAIProvider extends LLMProvider {
 
   client: OpenAI;
 
-  protected async _call(content: LLMProvider.Params): Promise<BaseChatMessage> {
+  protected async _call(content: LLMProvider.ResolvedParams): Promise<BaseChatMessage> {
     this.client = await this._createOpenaiClient(this.options);
     const params = await this.initParams(content);
 
@@ -154,7 +154,7 @@ export class ChatOpenAIProvider extends LLMProvider {
   }
 
   private async initResponseParams(
-    content: LLMProvider.Params,
+    content: LLMProvider.ResolvedParams,
     isCodex: boolean = false,
   ): Promise<OpenAI.Responses.ResponseCreateParamsStreaming> {
 
@@ -236,7 +236,7 @@ export class ChatOpenAIProvider extends LLMProvider {
     return params;
   }
 
-  private async initParams(content: LLMProvider.Params) {
+  private async initParams(content: LLMProvider.ResolvedParams) {
     const credentials = this.options.credentials;
     const credentialsType = credentials?.credentials_type?.value || "apiKey";
     if (!credentials?.apiKey && credentialsType === "apiKey") {

@@ -40,7 +40,7 @@ export class VercelAIGatewayProvider extends LLMProvider {
     });
   }
 
-  protected async _call(content: LLMProvider.Params): Promise<BaseChatMessage> {
+  protected async _call(content: LLMProvider.ResolvedParams): Promise<BaseChatMessage> {
     const stream = await this._stream(content);
     let message = "";
     for await (const chunk of stream) {
@@ -74,7 +74,7 @@ export class VercelAIGatewayProvider extends LLMProvider {
   }
 
   protected async _stream(
-    content: LLMProvider.Params,
+    content: LLMProvider.ResolvedParams,
   ): Promise<Stream<BaseChatMessageChunk>> {
     const credentials = this.options.credentials;
     if (!credentials?.apiKey) {
@@ -154,7 +154,7 @@ export class VercelAIGatewayProvider extends LLMProvider {
     return streamFromVercel(result);
   }
 
-  async initParams(content: LLMProvider.Params) {
+  async initParams(content: LLMProvider.ResolvedParams) {
     const model = this.options.modelName.value;
     let temperature = Number(this.options.temperature.value);
     if (temperature > 1) {

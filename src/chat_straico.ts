@@ -21,7 +21,7 @@ export class StraicoProvider extends ChatOpenAIProvider {
 
 
   protected async _stream(
-    content: LLMProvider.Params,
+    content: LLMProvider.ResolvedParams,
   ): Promise<Stream<BaseChatMessageChunk>> {
 
 
@@ -61,7 +61,7 @@ export class StraicoProvider extends ChatOpenAIProvider {
   }
 
   private async handleMessages(
-    content: LLMProvider.Params,
+    content: LLMProvider.ResolvedParams,
   ): Promise<BaseChatMessageLike[]> {
     const messages = content.messages;
 

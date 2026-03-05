@@ -4,6 +4,48 @@ import { GoogleGenAI } from "@google/genai";
 // Gemini models pricing and configuration data
 export const geminiModelsData: Preference.LLMModel[] = [
   {
+    title: "Gemini 3.1 Flash-Lite Preview",
+    value: "gemini-3.1-flash-lite-preview",
+    context: 1048576,
+    maxTokens: 65536,
+    inputPrice: 0.1,
+    outputPrice: 0.4,
+    speed: 5,
+    intelligence: 3,
+    reasoning: 3,
+    type: "llm_model",
+    searchToolSupported: true,
+    toolUse: true,
+    visionEnable: true,
+    preferences: [
+      {
+        name: "reasoning_effort",
+        description: "Applicable to reasoning models only, this option controls the reasoning token length.",
+        type: "dropdown",
+        required: false,
+        title: "Reasoning Effort",
+        default: "low",
+        "data": [
+          {
+            "title": "Low",
+            "value": "low",
+            "description": "Low thinking level"
+          },
+          {
+            "title": "Medium",
+            "value": "medium",
+            "description": "Medium thinking level"
+          },
+          {
+            "title": "High",
+            "value": "high",
+            "description": "High thinking level"
+          }
+        ],
+      }
+    ]
+  },
+  {
     title: "Gemini 3.1 Pro Preview",
     value: "gemini-3.1-pro-preview",
     inputPrice: 1.25, // prompts <= 200k tokens
@@ -385,6 +427,48 @@ async function fetchModels(
   const credentialsType = credentials?.credentials_type?.value || 'apiKey'
   if (credentialsType === 'oauth2') {
     return [
+      {
+        title: "Gemini 3.1 Flash-Lite Preview",
+        value: "gemini-3.1-flash-lite-preview",
+        context: 1048576,
+        visionEnable: true,
+        searchToolSupported: true,
+        toolUse: true,
+        maxTokens: 65536,
+        inputPrice: 0.1,
+        outputPrice: 0.4,
+        speed: 5,
+        intelligence: 3,
+        reasoning: 3,
+        type: "llm_model",
+        preferences: [
+          {
+            name: "reasoning_effort",
+            description: "Applicable to reasoning models only, this option controls the reasoning token length.",
+            type: "dropdown",
+            required: false,
+            title: "Reasoning Effort",
+            default: "low",
+            "data": [
+              {
+                "title": "Low",
+                "value": "low",
+                "description": "Low thinking level"
+              },
+              {
+                "title": "Medium",
+                "value": "medium",
+                "description": "Medium thinking level"
+              },
+              {
+                "title": "High",
+                "value": "high",
+                "description": "High thinking level"
+              }
+            ],
+          }
+        ]
+      },
       {
         title: "Gemini 3.1 Pro Preview",
         value: "gemini-3.1-pro-preview",

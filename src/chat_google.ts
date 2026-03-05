@@ -62,7 +62,7 @@ export class GoogleGeminiProvider extends LLMProvider {
   }
 
 
-  protected async _call(content: LLMProvider.Params): Promise<BaseChatMessage> {
+  protected async _call(content: LLMProvider.ResolvedParams): Promise<BaseChatMessage> {
     const params = await this.initParams(content);
 
     const credentialsType = this.options.credentials?.credentials_type?.value || 'apiKey'
@@ -157,7 +157,7 @@ export class GoogleGeminiProvider extends LLMProvider {
 
 
   protected async _stream(
-    content: LLMProvider.Params,
+    content: LLMProvider.ResolvedParams,
   ): Promise<Stream<BaseChatMessageChunk>> {
     const params = await this.initParams(content);
     const credentialsType = this.options.credentials?.credentials_type?.value || 'apiKey'

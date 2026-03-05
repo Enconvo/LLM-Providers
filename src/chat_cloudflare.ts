@@ -10,10 +10,10 @@ export default function main(options: any) {
 }
 
 export class ChatCloudflareWorkersProvider extends LLMProvider {
-  protected _call(content: LLMProvider.Params): Promise<BaseChatMessage> {
+  protected _call(content: LLMProvider.ResolvedParams): Promise<BaseChatMessage> {
     throw new Error("Method not implemented.");
   }
-  protected _stream(content: LLMProvider.Params): Promise<Stream<BaseChatMessageChunk>> {
+  protected _stream(content: LLMProvider.ResolvedParams): Promise<Stream<BaseChatMessageChunk>> {
     throw new Error("Method not implemented.");
   }
 

@@ -82,7 +82,7 @@ export class AnthropicProvider extends LLMProvider {
     this.anthropic = anthropic;
   }
 
-  protected async _call(content: LLMProvider.Params): Promise<BaseChatMessage> {
+  protected async _call(content: LLMProvider.ResolvedParams): Promise<BaseChatMessage> {
     await this.initClient();
     const stream = await this._stream(content);
     let message = "";
@@ -97,7 +97,7 @@ export class AnthropicProvider extends LLMProvider {
 
 
   protected async _stream(
-    content: LLMProvider.Params,
+    content: LLMProvider.ResolvedParams,
   ): Promise<Stream<BaseChatMessageChunk>> {
     await this.initClient();
     const credentials = this.options.credentials;
@@ -116,7 +116,7 @@ export class AnthropicProvider extends LLMProvider {
 
   }
 
-  async initParams(content: LLMProvider.Params): Promise<MessageStreamParams> {
+  async initParams(content: LLMProvider.ResolvedParams): Promise<MessageStreamParams> {
     const messages = content.messages;
     const systemMessages = messages.filter(
       (message) => message.role === "system",

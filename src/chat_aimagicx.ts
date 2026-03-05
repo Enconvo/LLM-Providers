@@ -29,7 +29,7 @@ export class AimagicxProvider extends LLMProvider {
     }
   }
 
-  protected async _call(content: LLMProvider.Params): Promise<BaseChatMessage> {
+  protected async _call(content: LLMProvider.ResolvedParams): Promise<BaseChatMessage> {
     const messageData = AimagicxUtil.convertMessagesToSingleMessage(
       content.messages,
     );
@@ -49,7 +49,7 @@ export class AimagicxProvider extends LLMProvider {
   }
 
   protected async _stream(
-    content: LLMProvider.Params,
+    content: LLMProvider.ResolvedParams,
   ): Promise<Stream<BaseChatMessageChunk>> {
     const messageData = AimagicxUtil.convertMessagesToSingleMessage(
       content.messages,
@@ -187,7 +187,7 @@ export class AimagicxProvider extends LLMProvider {
   }
 
   private buildRequestParams(
-    content: LLMProvider.Params,
+    content: LLMProvider.ResolvedParams,
     stream: boolean,
     messageData: { message: string; system?: string },
   ): any {

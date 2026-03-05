@@ -1,7 +1,7 @@
 {
   "$schema": "https://enconvo.com/schemas/extension.json",
   "name": "llm",
-  "version": "1.3.316",
+  "version": "1.3.323",
   "description": "Large Language Models (LLM) services providers",
   "title": "AI Model Providers",
   "icon": "icon.png",
@@ -20,6 +20,7 @@
       "icon": "enconvo.png",
       "mode": "no-view",
       "commandType": "provider",
+      "private": true,
       "preferences": [
         {
           "name": "credentials",
@@ -199,7 +200,8 @@
             }
           ]
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "chat_anthropic",
@@ -254,7 +256,8 @@
             }
           ]
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "chat_minimax",
@@ -359,7 +362,8 @@
             }
           ]
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "chat_google",
@@ -522,7 +526,8 @@
             }
           }
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "chat_ollama",
@@ -585,7 +590,8 @@
             }
           ]
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "deepseek",
@@ -648,7 +654,8 @@
             }
           ]
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "chat_groq",
@@ -711,7 +718,8 @@
             }
           ]
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "azure_openai",
@@ -784,7 +792,8 @@
           "label": "Streaming",
           "visibility": "hidden"
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "chat_x_ai",
@@ -847,7 +856,8 @@
             }
           ]
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "chat_mistral",
@@ -910,7 +920,8 @@
             }
           ]
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "chat_qwen",
@@ -974,7 +985,8 @@
             }
           ]
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "anthropic_models",
@@ -999,7 +1011,8 @@
           },
           "title": "Credential Provider"
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "chat_cohere",
@@ -1062,7 +1075,8 @@
             }
           ]
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "chat_perplexity",
@@ -1135,7 +1149,8 @@
           "default": "1",
           "visibility": "hidden"
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "siliconflow",
@@ -1198,7 +1213,8 @@
             }
           ]
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "chat_lm_studio",
@@ -1259,7 +1275,8 @@
             }
           ]
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "chat_openrouter",
@@ -1382,7 +1399,8 @@
             }
           }
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "chat_fireworks",
@@ -1446,7 +1464,8 @@
             }
           ]
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "chat_together_ai",
@@ -1509,7 +1528,8 @@
             }
           ]
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "chat_poe",
@@ -1572,7 +1592,8 @@
             }
           ]
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "chat_moonshot_ai",
@@ -1635,7 +1656,8 @@
             }
           ]
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "chat_dashscope",
@@ -1698,7 +1720,8 @@
             }
           ]
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "chat_sambanova",
@@ -1761,7 +1784,8 @@
             }
           ]
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "chat_cerebras",
@@ -1824,7 +1848,8 @@
             }
           ]
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "chat_arli",
@@ -1887,7 +1912,8 @@
             }
           ]
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "chat_straico",
@@ -1950,7 +1976,8 @@
             }
           ]
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "302_ai",
@@ -2013,7 +2040,8 @@
             }
           ]
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "ollama_models",
@@ -2038,7 +2066,8 @@
           },
           "title": "Credential Provider"
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "openrouter_models",
@@ -2047,7 +2076,8 @@
       "description": "get openrouter model list",
       "icon": "openrouter.png",
       "showInCommandList": false,
-      "mode": "no-view"
+      "mode": "no-view",
+      "private": true
     },
     {
       "name": "perplexity_models",
@@ -2067,7 +2097,8 @@
           "required": false,
           "default": "https://file.enconvo.com/modles/perplexity.json"
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "groq_models",
@@ -2092,7 +2123,8 @@
           },
           "title": "Credential Provider"
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "x_ai_models",
@@ -2117,7 +2149,8 @@
           },
           "title": "Credential Provider"
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "moonshot_models",
@@ -2142,7 +2175,8 @@
           },
           "title": "Credential Provider"
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "straico_models",
@@ -2176,7 +2210,8 @@
           "title": "Type",
           "default": "chat"
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "gemini_models",
@@ -2202,7 +2237,8 @@
           },
           "title": "Credential Provider"
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "deepseek_models",
@@ -2212,7 +2248,8 @@
       "icon": "deepseek.png",
       "showInCommandList": false,
       "mode": "no-view",
-      "preferences": []
+      "preferences": [],
+      "private": true
     },
     {
       "name": "dashscope_models",
@@ -2243,7 +2280,8 @@
           "placeholder": "OpenAI Api Base Url",
           "visibility": "hidden"
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "sambanova_models",
@@ -2269,7 +2307,8 @@
           },
           "title": "Credential Provider"
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "cerebras_models",
@@ -2295,7 +2334,8 @@
           },
           "title": "Credential Provider"
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "mistral_models",
@@ -2326,7 +2366,8 @@
           "defaultProxy": "credentials|mistral",
           "placeholder": "Mixtral Api Base Url"
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "poe_models",
@@ -2351,7 +2392,8 @@
           },
           "title": "Credential Provider"
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "together_models",
@@ -2371,7 +2413,8 @@
           "required": false,
           "default": "https://api-v.enconvo.com/together/v1/models"
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "fireworks_models",
@@ -2396,7 +2439,8 @@
           },
           "title": "Credential Provider"
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "302_ai_models",
@@ -2421,7 +2465,8 @@
           },
           "title": "Credential Provider"
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "fetch_models",
@@ -2430,7 +2475,8 @@
       "icon": "together.png",
       "commandType": "function_command",
       "showInCommandList": false,
-      "mode": "no-view"
+      "mode": "no-view",
+      "private": true
     },
     {
       "name": "enconvo_models",
@@ -2449,7 +2495,8 @@
           "required": false,
           "default": "https://file.enconvo.com/modles/enconvo.json"
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "qwen_models",
@@ -2475,7 +2522,8 @@
           "title": "Credential Provider",
           "defaultProxy": "llm|chat_qwen"
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "vercel_ai_gateway_models",
@@ -2501,7 +2549,8 @@
           "title": "Credential Provider",
           "defaultProxy": "llm|chat_vercel_ai_gateway"
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "openai_models",
@@ -2527,7 +2576,8 @@
           "title": "Credential Provider",
           "defaultProxy": "llm|chat_open_ai"
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "lmstudio_models",
@@ -2554,7 +2604,8 @@
           },
           "title": "Credential Provider"
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "azureai_models",
@@ -2573,7 +2624,8 @@
           "required": false,
           "default": "https://file.enconvo.com/modles/openai.json"
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "cloudflare_models",
@@ -2592,7 +2644,8 @@
           "required": false,
           "default": "https://api-v.enconvo.com/cloudflare/v1/models"
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "cohere_models",
@@ -2612,7 +2665,8 @@
           "required": false,
           "default": "https://api-v.enconvo.com/cohere/v1/models"
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "silliconflow_models",
@@ -2631,7 +2685,8 @@
           "required": false,
           "default": "https://api-v.enconvo.com/siliconflow/v1/models"
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "chat_aimagicx",
@@ -2698,7 +2753,8 @@
           "title": "Max Tokens",
           "default": "4096"
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "aimagicx_models",
@@ -2725,7 +2781,8 @@
           },
           "title": "Credential Provider"
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "chat_1minai",
@@ -2792,7 +2849,8 @@
           "title": "Max Tokens",
           "default": "4096"
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "1minai_models",
@@ -2819,7 +2877,8 @@
           },
           "title": "Credential Provider"
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "arli_models",
@@ -2846,7 +2905,8 @@
           },
           "title": "Credential Provider"
         }
-      ]
+      ],
+      "private": true
     },
     {
       "name": "chat_vercel_ai_gateway",
@@ -2969,7 +3029,8 @@
             }
           }
         }
-      ]
+      ],
+      "private": true
     }
   ],
   "dependencies": {
