@@ -166,7 +166,7 @@
           "type": "dropdown",
           "required": false,
           "title": "Model Name",
-          "default": "gpt-5.2",
+          "default": "gpt-5.4",
           "dataProxy": "llm|openai_models",
           "dataCustomTitle": "Add Custom Model"
         },
