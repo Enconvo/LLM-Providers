@@ -3,7 +3,6 @@ import path from "path";
 
 export namespace ImageUtil {
   export const compressImage = async (url: string): Promise<string> => {
-    console.time("compress_image");
     const compressResult = await NativeAPI.callCommand(
       "compress_image|image_compress",
       {
@@ -17,7 +16,6 @@ export namespace ImageUtil {
         image_files: [url],
       },
     );
-    console.timeEnd("compress_image");
     if (compressResult.data?.[0]) {
       return compressResult.data[0];
     }
