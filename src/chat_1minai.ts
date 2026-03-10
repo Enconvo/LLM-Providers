@@ -86,7 +86,11 @@ export class MinaiProvider extends LLMProvider {
             if (done) break;
 
             buffer = decoder.decode(value, { stream: true });
-            console.log("buffer", buffer)
+            console.log("buffer",buffer)
+
+            if (buffer.startsWith("🌐 Crawling site")) {
+              continue;
+            }
 
             if (
               !runningContentBlockType ||

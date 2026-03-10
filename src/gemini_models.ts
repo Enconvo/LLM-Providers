@@ -24,8 +24,13 @@ export const geminiModelsData: Preference.LLMModel[] = [
         type: "dropdown",
         required: false,
         title: "Reasoning Effort",
-        default: "low",
+        default: "minimal",
         "data": [
+          {
+            "title": "Minimal",
+            "value": "minimal",
+            "description": "Minimal thinking level"
+          },
           {
             "title": "Low",
             "value": "low",
@@ -448,8 +453,13 @@ async function fetchModels(
             type: "dropdown",
             required: false,
             title: "Reasoning Effort",
-            default: "low",
+            default: "minimal",
             "data": [
+              {
+                "title": "Minimal",
+                "value": "minimal",
+                "description": "Minimal thinking level"
+              },
               {
                 "title": "Low",
                 "value": "low",
