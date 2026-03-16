@@ -630,6 +630,8 @@ export function streamFromAnthropic(
     let accumulatedOutputTokens = 0;
     let accumulatedCacheCreationTokens = 0;
     let accumulatedCacheReadTokens = 0;
+    // Track whether the stream completed normally (received message_stop or message_delta with stop_reason)
+    let streamCompleted = false;
 
     try {
       for await (const chunk of response) {
@@ -656,6 +658,9 @@ export function streamFromAnthropic(
           if (deltaUsage) {
             accumulatedOutputTokens += deltaUsage.output_tokens || 0;
           }
+          streamCompleted = true;
+        } else if (chunk.type === "message_stop") {
+          streamCompleted = true;
         }
 
         if (chunk.type === "content_block_start") {
@@ -755,21 +760,28 @@ export function streamFromAnthropic(
     } catch (e) {
       if (e instanceof Error && e.name === "AbortError") return;
       throw e;
-    } finally {
-      // Yield accumulated usage at end of stream
-      if (accumulatedInputTokens > 0 || accumulatedOutputTokens > 0) {
-        const totalTokens = accumulatedInputTokens + accumulatedOutputTokens + accumulatedCacheCreationTokens + accumulatedCacheReadTokens;
-        yield {
-          type: 'usage' as const,
-          usage: {
-            input_tokens: accumulatedInputTokens,
-            output_tokens: accumulatedOutputTokens,
-            cache_creation_input_tokens: accumulatedCacheCreationTokens || undefined,
-            cache_read_input_tokens: accumulatedCacheReadTokens || undefined,
-            total_tokens: totalTokens,
-          }
-        };
-      }
+    }
+
+    // Yield usage OUTSIDE try/finally — only when stream completed normally.
+    // yield inside finally causes issues when consumer calls .return() on the generator.
+    if (accumulatedInputTokens > 0 || accumulatedOutputTokens > 0) {
+      const totalTokens = accumulatedInputTokens + accumulatedOutputTokens + accumulatedCacheCreationTokens + accumulatedCacheReadTokens;
+      yield {
+        type: 'usage' as const,
+        usage: {
+          input_tokens: accumulatedInputTokens,
+          output_tokens: accumulatedOutputTokens,
+          cache_creation_input_tokens: accumulatedCacheCreationTokens || undefined,
+          cache_read_input_tokens: accumulatedCacheReadTokens || undefined,
+          total_tokens: totalTokens,
+        }
+      };
+    }
+
+    // If stream ended without message_stop/message_delta (server closed connection early),
+    // signal an incomplete stream so the consumer can retry
+    if (!streamCompleted) {
+      throw new Error("context overflow: Anthropic stream ended prematurely without completing the response");
     }
   }
 
