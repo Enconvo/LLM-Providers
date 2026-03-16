@@ -548,10 +548,23 @@ export function streamFromGoogle(
     consumed = true;
     let done = false;
     let runningContentBlockType: BaseChatMessageChunk.ContentBlock['type'] | undefined;
+    // Track usage from Google usageMetadata (updated on each chunk)
+    let lastPromptTokenCount = 0;
+    let lastCandidatesTokenCount = 0;
+    let lastTotalTokenCount = 0;
+
     try {
       for await (const chunk of response) {
         // console.log("google chunk", JSON.stringify(chunk, null, 2))
         if (done) continue;
+
+        // Track latest usageMetadata
+        if (chunk.usageMetadata) {
+          lastPromptTokenCount = chunk.usageMetadata.promptTokenCount || 0;
+          lastCandidatesTokenCount = chunk.usageMetadata.candidatesTokenCount || 0;
+          lastTotalTokenCount = chunk.usageMetadata.totalTokenCount || 0;
+        }
+
         const candidate = chunk.candidates?.[0];
 
         const functionCalls = chunk.functionCalls;
@@ -764,6 +777,17 @@ export function streamFromGoogle(
         yield {
           type: 'content_block_stop',
         }
+      }
+      // Yield accumulated usage at end of stream
+      if (lastPromptTokenCount > 0 || lastCandidatesTokenCount > 0) {
+        yield {
+          type: 'usage' as const,
+          usage: {
+            input_tokens: lastPromptTokenCount,
+            output_tokens: lastCandidatesTokenCount,
+            total_tokens: lastTotalTokenCount || (lastPromptTokenCount + lastCandidatesTokenCount),
+          }
+        };
       }
       if (!done) controller.abort();
     }

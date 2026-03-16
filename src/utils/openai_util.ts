@@ -1064,10 +1064,24 @@ export namespace OpenAIUtil {
       consumed = true;
       let done = false;
       let runningContentBlockType: BaseChatMessageChunk.ContentBlock['type'] | undefined;
+      // Track usage from OpenAI stream (sent when stream_options.include_usage is true)
+      let streamUsage: { input_tokens: number; output_tokens: number; total_tokens: number; cache_read_input_tokens?: number } | undefined;
+
       try {
         for await (const chunk of response) {
           // console.log("chunk", JSON.stringify(chunk, null, 2), options?.commandName)
           if (done) continue;
+
+          // Capture final usage chunk (OpenAI sends this with empty choices when include_usage is true)
+          if (chunk.usage) {
+            streamUsage = {
+              input_tokens: chunk.usage.prompt_tokens,
+              output_tokens: chunk.usage.completion_tokens,
+              total_tokens: chunk.usage.total_tokens,
+              cache_read_input_tokens: chunk.usage.prompt_tokens_details?.cached_tokens || undefined,
+            };
+          }
+
           if (chunk.choices.length > 0) {
             const choice = chunk.choices[0];
             if (choice.delta.content) {
@@ -1278,6 +1292,18 @@ export namespace OpenAIUtil {
             type: 'content_block_stop',
           }
         }
+        // Yield accumulated usage at end of stream
+        if (streamUsage) {
+          yield {
+            type: 'usage' as const,
+            usage: {
+              input_tokens: streamUsage.input_tokens,
+              output_tokens: streamUsage.output_tokens,
+              total_tokens: streamUsage.total_tokens,
+              cache_read_input_tokens: streamUsage.cache_read_input_tokens,
+            }
+          };
+        }
         if (!done) controller.abort();
       }
     }
@@ -1304,6 +1330,9 @@ export namespace OpenAIUtil {
       }
       consumed = true;
       let done = false;
+      // Track usage from OpenAI Response API
+      let responseUsage: { input_tokens: number; output_tokens: number; total_tokens: number } | undefined;
+
       try {
         for await (const chunk of response) {
           // console.log("chunk", JSON.stringify(chunk, null, 2))
@@ -1404,6 +1433,16 @@ export namespace OpenAIUtil {
               }
             }
           } else if (chunk.type === "response.completed") {
+            // Capture usage from response.completed
+            const respUsage = chunk.response.usage;
+            if (respUsage) {
+              responseUsage = {
+                input_tokens: respUsage.input_tokens,
+                output_tokens: respUsage.output_tokens,
+                total_tokens: respUsage.input_tokens + respUsage.output_tokens,
+              };
+            }
+
             const item = chunk.response.output.find((item) => item.type === 'message' && item.content.some((item) => item.type === 'output_text' && item.annotations));
             if (item && item.type === 'message') {
               const withAnnotationsContentItem = item.content.find((item) => item.type === 'output_text' && item.annotations);
@@ -1450,6 +1489,17 @@ export namespace OpenAIUtil {
         if (e instanceof Error && e.name === "AbortError") return;
         throw e;
       } finally {
+        // Yield accumulated usage at end of stream
+        if (responseUsage) {
+          yield {
+            type: 'usage' as const,
+            usage: {
+              input_tokens: responseUsage.input_tokens,
+              output_tokens: responseUsage.output_tokens,
+              total_tokens: responseUsage.total_tokens,
+            }
+          };
+        }
         if (!done) controller.abort();
       }
     }

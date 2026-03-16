@@ -625,10 +625,23 @@ export function streamFromAnthropic(
       );
     }
     consumed = true;
+    // Track usage from Anthropic stream events
+    let accumulatedInputTokens = 0;
+    let accumulatedOutputTokens = 0;
+    let accumulatedCacheCreationTokens = 0;
+    let accumulatedCacheReadTokens = 0;
+
     try {
       for await (const chunk of response) {
         // console.log("chunk", JSON.stringify(chunk, null, 2))
         if (chunk.type === "message_start") {
+          // Capture input token usage from message_start
+          const msgUsage = (chunk.message as any).usage;
+          if (msgUsage) {
+            accumulatedInputTokens += msgUsage.input_tokens || 0;
+            accumulatedCacheCreationTokens += msgUsage.cache_creation_input_tokens || 0;
+            accumulatedCacheReadTokens += msgUsage.cache_read_input_tokens || 0;
+          }
           yield {
             type: 'message_start',
             message: {
@@ -636,6 +649,12 @@ export function streamFromAnthropic(
               content: [],
               model: chunk.message.model,
             }
+          }
+        } else if (chunk.type === "message_delta") {
+          // Capture output token usage from message_delta
+          const deltaUsage = (chunk as any).usage;
+          if (deltaUsage) {
+            accumulatedOutputTokens += deltaUsage.output_tokens || 0;
           }
         }
 
@@ -737,6 +756,20 @@ export function streamFromAnthropic(
       if (e instanceof Error && e.name === "AbortError") return;
       throw e;
     } finally {
+      // Yield accumulated usage at end of stream
+      if (accumulatedInputTokens > 0 || accumulatedOutputTokens > 0) {
+        const totalTokens = accumulatedInputTokens + accumulatedOutputTokens + accumulatedCacheCreationTokens + accumulatedCacheReadTokens;
+        yield {
+          type: 'usage' as const,
+          usage: {
+            input_tokens: accumulatedInputTokens,
+            output_tokens: accumulatedOutputTokens,
+            cache_creation_input_tokens: accumulatedCacheCreationTokens || undefined,
+            cache_read_input_tokens: accumulatedCacheReadTokens || undefined,
+            total_tokens: totalTokens,
+          }
+        };
+      }
     }
   }
 

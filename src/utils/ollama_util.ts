@@ -63,6 +63,20 @@ export namespace OllamaUtil {
 
           if (chunk.done) {
             done = true;
+            // Capture usage from Ollama's final chunk
+            const ollamaChunk = chunk as any;
+            const promptEvalCount = ollamaChunk.prompt_eval_count || 0;
+            const evalCount = ollamaChunk.eval_count || 0;
+            if (promptEvalCount > 0 || evalCount > 0) {
+              yield {
+                type: 'usage' as const,
+                usage: {
+                  input_tokens: promptEvalCount,
+                  output_tokens: evalCount,
+                  total_tokens: promptEvalCount + evalCount,
+                }
+              };
+            }
             continue;
           }
           if (chunk.message.tool_calls && chunk.message.tool_calls.length > 0) {
