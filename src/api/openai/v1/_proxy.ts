@@ -1,61 +1,45 @@
 /**
- * OpenAI API streaming proxy.
- *
- * Forwards requests to api.openai.com, supporting:
- * - SSE streaming (chat/completions, responses)
- * - Binary responses (audio/speech TTS)
- * - Multipart uploads (audio/transcriptions)
- * - Standard JSON responses
- *
- * API key is read from the incoming Authorization header — never hardcoded.
- *
- * Route: llm/openai_proxy
- * Usage: POST with { base_url?, path, ...body }
- *        or pass path via headers.path
+ * Shared OpenAI proxy logic.
+ * API key MUST be passed via headers (Authorization: Bearer sk-xxx).
+ * Optional: base_url in body to proxy to OpenAI-compatible services.
  */
 
-interface ProxyParams {
-    /** OpenAI API path, e.g. "/v1/chat/completions" */
-    path?: string
-    /** Override base URL (default: https://api.openai.com) */
+interface ProxyBody {
     base_url?: string
-    /** API key — if not in Authorization header */
-    api_key?: string
-    /** The actual request body to forward to OpenAI */
     [key: string]: any
 }
 
-export default async function POST(request: Request): Promise<Response> {
-    const options = await request.json() as ProxyParams
+export async function proxyToOpenAI(
+    request: Request,
+    openaiPath: string
+): Promise<Response> {
+    const options = await request.json() as ProxyBody
 
-    // Resolve API key: explicit param > Authorization header
-    const authHeader = (options as any).headers?.authorization || ''
-    const apiKey = options.api_key || authHeader.replace(/^Bearer\s+/i, '')
+    // API key from headers only
+    const authorization = options.headers?.authorization || options.headers?.Authorization || ''
+    const apiKey = authorization.replace(/^Bearer\s+/i, '')
 
     if (!apiKey) {
         return Response.json(
-            { error: 'Missing API key. Pass api_key in body or Authorization header.' },
+            { error: 'Missing API key. Pass Authorization header with Bearer token.' },
             { status: 401 }
         )
     }
 
-    // Resolve target URL
+    // Target URL
     const baseUrl = (options.base_url || 'https://api.openai.com').replace(/\/$/, '')
-    const apiPath = options.path || (options as any).headers?.path || '/v1/chat/completions'
-    const targetUrl = `${baseUrl}${apiPath}`
+    const targetUrl = `${baseUrl}${openaiPath}`
 
-    // Build request body — strip our meta fields
-    const { path: _p, base_url: _b, api_key: _k, headers: _h, ...forwardBody } = options
-
-    const reqHeaders: Record<string, string> = {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-    }
+    // Strip meta fields, forward the rest as request body
+    const { base_url: _b, headers: _h, ...forwardBody } = options
 
     try {
         const upstream = await fetch(targetUrl, {
             method: 'POST',
-            headers: reqHeaders,
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json',
+            },
             body: JSON.stringify(forwardBody),
         })
 
@@ -82,10 +66,7 @@ export default async function POST(request: Request): Promise<Response> {
             }
 
             return new Response(readable, {
-                headers: {
-                    'Content-Type': 'text/event-stream',
-                    'Cache-Control': 'no-cache',
-                },
+                headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache' },
             })
         }
 
