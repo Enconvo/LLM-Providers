@@ -263,7 +263,7 @@ const groqModelsData = [
 async function fetchModels(
   options: RequestOptions,
 ): Promise<ListCache.ListItem[]> {
-  // console.log("fetchModels", url, api_key, type)
+  console.log("fetchModels", options)
   try {
     if (!options.url || !options.api_key) {
       throw new Error("URL and API key are required");
@@ -346,7 +346,7 @@ export default async function main(req: Request): Promise<string> {
   url = `${url}models`;
 
   options.url = url;
-  console.log("groq_models options", options);
+  // console.log("groq_models options", options);
 
   const modelCache = new ListCache(fetchModels);
 

@@ -1,7 +1,7 @@
 import { env } from "process";
 import {
   AssistantMessage,
-  AuthProvider,
+  CredentialsProvider,
   BaseChatMessage,
   BaseChatMessageChunk,
   ChatMessageContent,
@@ -350,7 +350,7 @@ export class ChatOpenAIProvider extends LLMProvider {
       };
 
       if (credentialsType === "oauth2") {
-        const authProvider = await AuthProvider.create("qwen");
+        const authProvider = await CredentialsProvider.create("qwen");
         //@ts-ignore
         credentials = await authProvider.authenticate();
       }

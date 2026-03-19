@@ -1,6 +1,6 @@
 import {
   AssistantMessage,
-  AuthProvider,
+  CredentialsProvider,
   BaseChatMessage,
   BaseChatMessageChunk,
   LLMProvider,
@@ -53,11 +53,11 @@ export class AnthropicProvider extends LLMProvider {
     const credentials = options.credentials;
     const credentialsType = credentials?.credentials_type?.value || "apiKey";
 
-    let oauthCredentials: AuthProvider.Credentials | null = null;
+    let oauthCredentials: CredentialsProvider.Credentials | null = null;
     if (credentialsType === "oauth2") {
 
-      const authProvider = await AuthProvider.create("anthropic");
-      oauthCredentials = await authProvider.loadCredentials();
+      const authProvider = await CredentialsProvider.create("anthropic");
+      oauthCredentials = await authProvider.load();
       // console.log("loaded anthropic credentials", oauthCredentials, authProvider);
 
       headers["anthropic-beta"] =

@@ -1,1 +1,13 @@
-[]
+[
+  {
+    "name": "models",
+    "title": "models",
+    "description": "",
+    "routePath": "llm/models",
+    "parameters": {
+      "type": "object",
+      "properties": {},
+      "required": []
+    }
+  }
+]
