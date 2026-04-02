@@ -32,9 +32,106 @@ export const openai_codex_models_data: Preference.LLMModel[] = [
             value: "none"
           },
           {
-            title: "Minimal",
-            description: "Minimal reasoning",
-            value: "minimal"
+            title: "Low",
+            description: "Basic reasoning",
+            value: "low"
+          },
+          {
+            title: "Medium",
+            description: "Medium reasoning",
+            value: "medium"
+          },
+          {
+            title: "High",
+            description: "High reasoning",
+            value: "high"
+          },
+          {
+            title: "X-High",
+            description: "Extra high reasoning",
+            value: "xhigh"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    type: "llm_model",
+    title: "GPT-5.4-mini",
+    value: "gpt-5.4-mini",
+    context: 400000,
+    maxTokens: 128000,
+    inputPrice: 0.75,
+    outputPrice: 4.5,
+    systemMessageEnable: true,
+    speed: 4,
+    reasoning: 4,
+    toolUse: true,
+    visionEnable: true,
+    preferences: [
+      {
+        name: "reasoning_effort",
+        description: "Applicable to reasoning models only, this option controls the reasoning token length.",
+        type: "dropdown",
+        required: false,
+        title: "Reasoning Effort",
+        default: "none",
+        data: [
+          {
+            title: "None",
+            description: "No reasoning",
+            value: "none"
+          },
+          {
+            title: "Low",
+            description: "Basic reasoning",
+            value: "low"
+          },
+          {
+            title: "Medium",
+            description: "Medium reasoning",
+            value: "medium"
+          },
+          {
+            title: "High",
+            description: "High reasoning",
+            value: "high"
+          },
+          {
+            title: "X-High",
+            description: "Extra high reasoning",
+            value: "xhigh"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    type: "llm_model",
+    title: "GPT-5.4-nano",
+    value: "gpt-5.4-nano",
+    context: 400000,
+    maxTokens: 128000,
+    inputPrice: 0.2,
+    outputPrice: 1.25,
+    systemMessageEnable: true,
+    speed: 5,
+    reasoning: 4,
+    toolUse: true,
+    visionEnable: true,
+    preferences: [
+      {
+        name: "reasoning_effort",
+        description: "Applicable to reasoning models only, this option controls the reasoning token length.",
+        type: "dropdown",
+        required: false,
+        title: "Reasoning Effort",
+        default: "none",
+        data: [
+          {
+            title: "None",
+            description: "No reasoning",
+            value: "none"
           },
           {
             title: "Low",
@@ -342,6 +439,113 @@ export const openai_codex_models_data: Preference.LLMModel[] = [
 ];
 
 export const openai_models_data: Preference.LLMModel[] = [
+  // GPT-5.4 Series
+  {
+    type: "llm_model",
+    title: "GPT-5.4-mini",
+    value: "gpt-5.4-mini",
+    context: 400000,
+    maxTokens: 128000,
+    inputPrice: 0.75,
+    outputPrice: 4.5,
+    systemMessageEnable: true,
+    speed: 4,
+    reasoning: 4,
+    toolUse: true,
+    visionEnable: true,
+    searchToolSupported: true,
+    imageGeneration: true,
+    preferences: [
+      {
+        name: "reasoning_effort",
+        description: "Applicable to reasoning models only, this option controls the reasoning token length.",
+        type: "dropdown",
+        required: false,
+        title: "Reasoning Effort",
+        default: "none",
+        data: [
+          {
+            title: "None",
+            description: "No reasoning",
+            value: "none"
+          },
+          {
+            title: "Low",
+            description: "Basic reasoning",
+            value: "low"
+          },
+          {
+            title: "Medium",
+            description: "Medium reasoning",
+            value: "medium"
+          },
+          {
+            title: "High",
+            description: "High reasoning",
+            value: "high"
+          },
+          {
+            title: "X-High",
+            description: "Extra high reasoning",
+            value: "xhigh"
+          },
+        ]
+      }
+    ]
+  },
+  {
+    type: "llm_model",
+    title: "GPT-5.4-nano",
+    value: "gpt-5.4-nano",
+    context: 400000,
+    maxTokens: 128000,
+    inputPrice: 0.2,
+    outputPrice: 1.25,
+    systemMessageEnable: true,
+    speed: 5,
+    reasoning: 4,
+    toolUse: true,
+    visionEnable: true,
+    searchToolSupported: true,
+    preferences: [
+      {
+        name: "reasoning_effort",
+        description: "Applicable to reasoning models only, this option controls the reasoning token length.",
+        type: "dropdown",
+        required: false,
+        title: "Reasoning Effort",
+        default: "none",
+        data: [
+          {
+            title: "None",
+            description: "No reasoning",
+            value: "none"
+          },
+          {
+            title: "Low",
+            description: "Basic reasoning",
+            value: "low"
+          },
+          {
+            title: "Medium",
+            description: "Medium reasoning",
+            value: "medium"
+          },
+          {
+            title: "High",
+            description: "High reasoning",
+            value: "high"
+          },
+          {
+            title: "X-High",
+            description: "Extra high reasoning",
+            value: "xhigh"
+          },
+        ]
+      }
+    ]
+  },
+
   // GPT-5 Series - Frontier models
   {
     type: "llm_model",
