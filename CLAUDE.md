@@ -23,6 +23,14 @@ This is an Enconvo Extension that provides LLM (Large Language Model) providers 
 
 **IMPORTANT**: Always run `npm run lint` and `npm run format:check` before committing changes to ensure code quality standards are met.
 
+### Testing API Endpoints
+
+After building, test API endpoints via the local HTTP API (port 54535):
+```bash
+curl -X POST http://localhost:54535/api/llm/{endpoint} \
+    -H "Content-Type: application/json" -d '{}'
+```
+
 ## Architecture
 
 ### Core Structure

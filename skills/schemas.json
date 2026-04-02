@@ -1,5 +1,11 @@
 [
   {
+    "name": "enconvo_ai",
+    "title": "Enconvo Cloud Plan",
+    "description": "Chat using EnconvoAI which provide LLM service, , learn more : [docs](https://www.enconvo.com/cloud-plan)",
+    "routePath": "llm/enconvo_ai"
+  },
+  {
     "name": "models",
     "title": "models",
     "description": "",

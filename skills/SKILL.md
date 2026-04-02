@@ -11,9 +11,10 @@ metadata:
 
 Just use the `local_api` tool to request these APIs.
 
-To view full parameter details for a specific endpoint, run: `node skills/scripts/api_detail.cjs <endpoint-path>`
+**!Important**: To view full parameter details for a specific endpoint, run: `node skills/scripts/api_detail.cjs <endpoint-path>`
 
 | Endpoint | Description |
 |----------|-------------|
+| `llm/enconvo_ai` | Chat using EnconvoAI which provide LLM service, , learn more : [docs](https://www.enconvo.com/cloud-plan) |
 | `llm/models` |  |
 

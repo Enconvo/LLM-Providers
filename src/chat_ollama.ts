@@ -110,7 +110,7 @@ export class OllamaProvider extends LLMProvider {
       params.tools = OllamaUtil.convertAIToolsToOllamaTools(content.tools);
     }
 
-    // console.log("ollama params", JSON.stringify(params, null, 2));
+    console.log("ollama params", JSON.stringify(params, null, 2));
     return params;
   }
 }

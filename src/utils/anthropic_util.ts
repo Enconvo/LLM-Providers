@@ -11,9 +11,6 @@ import {
   Stream,
   ChatMessageContentListItem,
   AttachmentUtils,
-  NativeAPI,
-  ContextItem,
-  CacheUtils,
   ContextUtils,
 } from "@enconvo/api";
 import path from "path";
@@ -594,6 +591,7 @@ export const convertMessagesToAnthropicMessages = async (
   }
 
   if (
+    newMessages.length > 0 &&
     newMessages[0].role === "user" &&
     newMessages[0].content &&
     Array.isArray(newMessages[0].content) &&
