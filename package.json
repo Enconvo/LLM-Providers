@@ -2005,71 +2005,6 @@
       "private": true
     },
     {
-      "name": "302_ai",
-      "title": "302.AI",
-      "description": "Chat with 302.ai, learn more : [302.ai](https://share.302.ai/jMFReu)",
-      "icon": "302.png",
-      "mode": "no-view",
-      "commandType": "provider",
-      "provider_category": "llm",
-      "preferences": [
-        {
-          "name": "credentials",
-          "description": "The key management provider to use",
-          "type": "extension",
-          "required": false,
-          "default": "302_ai",
-          "extensionType": "credentials-provider",
-          "extensionFilter": {
-            "targetCommands": [
-              "credentials|302_ai"
-            ]
-          },
-          "title": "Credential Provider"
-        },
-        {
-          "name": "modelName",
-          "description": "The model to generate the completion.",
-          "type": "dropdown",
-          "required": false,
-          "title": "Model Name",
-          "default": "qwen2.5-3b-instruct",
-          "dataProxy": "llm|302_ai_models"
-        },
-        {
-          "name": "temperature",
-          "description": "What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.",
-          "type": "dropdown",
-          "required": false,
-          "title": "Temperature",
-          "default": 1,
-          "data": [
-            {
-              "title": "none",
-              "value": 0
-            },
-            {
-              "title": "low",
-              "value": 0.5
-            },
-            {
-              "title": "medium",
-              "value": 1
-            },
-            {
-              "title": "high",
-              "value": 1.5
-            },
-            {
-              "title": "maximum",
-              "value": 2
-            }
-          ]
-        }
-      ],
-      "private": true
-    },
-    {
       "name": "ollama_models",
       "title": "Ollama Models",
       "commandType": "function_command",
@@ -2461,32 +2396,6 @@
           "extensionFilter": {
             "targetCommands": [
               "credentials|fireworks"
-            ]
-          },
-          "title": "Credential Provider"
-        }
-      ],
-      "private": true
-    },
-    {
-      "name": "302_ai_models",
-      "title": "302 AI Models",
-      "commandType": "function_command",
-      "description": "get 302 AI model list",
-      "icon": "302.png",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "credentials",
-          "description": "The key management provider to use",
-          "type": "extension",
-          "required": false,
-          "default": "302_ai",
-          "extensionType": "credentials-provider",
-          "extensionFilter": {
-            "targetCommands": [
-              "credentials|302_ai"
             ]
           },
           "title": "Credential Provider"

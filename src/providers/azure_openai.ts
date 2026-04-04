@@ -6,7 +6,7 @@ import {
   UserMessage,
 } from "@enconvo/api";
 import { AzureOpenAI } from "openai";
-import { OpenAIUtil } from "./utils/openai_util.ts";
+import { OpenAIUtil } from "../utils/openai_util.ts";
 
 export default function main(options: any) {
   return new ChatOpenAIProvider(options);

@@ -19,7 +19,7 @@ import {
 import {
   convertMessagesToVercelFormat,
   streamFromVercel,
-} from "./utils/vercel_ai_gateway_util.ts";
+} from "../utils/vercel_ai_gateway_util.ts";
 import { createGateway, GatewayProvider } from "@ai-sdk/gateway";
 export default function main(options: any) {
   return new VercelAIGatewayProvider(options);

@@ -11,9 +11,9 @@ import {
   uuid,
 } from "@enconvo/api";
 import OpenAI from "openai";
-import { OpenAIUtil } from "./utils/openai_util.ts";
-import { codex_instructions } from "./utils/instructions.ts";
-import { saveBinaryFile } from "./utils/google_util.ts";
+import { OpenAIUtil } from "../utils/openai_util.ts";
+import { codex_instructions } from "../utils/instructions.ts";
+import { saveBinaryFile } from "../utils/google_util.ts";
 import path from "path";
 import { ReasoningEffort } from "openai/resources/index.mjs";
 

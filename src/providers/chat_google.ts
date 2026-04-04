@@ -15,7 +15,7 @@ import {
   saveBinaryFile,
   saveWaveFile,
   streamFromGoogle,
-} from "./utils/google_util.ts";
+} from "../utils/google_util.ts";
 import { env } from "process";
 import {
   FunctionCallingConfigMode,
@@ -26,10 +26,10 @@ import {
   Tool,
   ToolConfig,
 } from "@google/genai";
-import { getCodeAssistServer } from "./utils/gemini-cli/code_assist/codeAssist.ts";
-import { DEFAULT_GEMINI_FLASH_LITE_MODEL } from "./utils/gemini-cli/core/contentGenerator.ts";
-import { Config } from "./utils/gemini-cli/code_assist/oauth2.ts";
-import { CodeAssistServer } from "./utils/gemini-cli/code_assist/server.ts";
+import { getCodeAssistServer } from "../utils/gemini-cli/code_assist/codeAssist.ts";
+import { DEFAULT_GEMINI_FLASH_LITE_MODEL } from "../utils/gemini-cli/core/contentGenerator.ts";
+import { Config } from "../utils/gemini-cli/code_assist/oauth2.ts";
+import { CodeAssistServer } from "../utils/gemini-cli/code_assist/server.ts";
 import mime from "mime";
 import path from "path";
 

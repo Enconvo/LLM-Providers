@@ -11,7 +11,7 @@ import {
   AnthropicUtil,
   convertMessagesToAnthropicMessages,
   streamFromAnthropic,
-} from "./utils/anthropic_util.ts";
+} from "../utils/anthropic_util.ts";
 import { env } from "process";
 
 import {

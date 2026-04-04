@@ -6,7 +6,7 @@ import {
   Stream,
 } from "@enconvo/api";
 import { ChatRequest, Ollama } from "ollama";
-import { OllamaUtil } from "./utils/ollama_util.ts";
+import { OllamaUtil } from "../utils/ollama_util.ts";
 
 export default function main(options: any) {
   return new OllamaProvider(options);

@@ -6,7 +6,7 @@ import {
   Stream,
   uuid,
 } from "@enconvo/api";
-import { AimagicxUtil } from "./utils/aimagicx_util.ts";
+import { AimagicxUtil } from "../utils/aimagicx_util.ts";
 
 export default function main(options: any) {
   return new AimagicxProvider(options);
