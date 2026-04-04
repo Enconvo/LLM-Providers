@@ -1,9 +1,20 @@
 import { ListCache, RequestOptions } from "@enconvo/api";
-import {
-  openai_codex_models_data,
-  openai_models_data,
-} from "./utils/openai_models_data.ts";
+import { openai_codex_models_data } from "./utils/openai_models_data.ts";
+import { getModel, init as initRegistry } from "./utils/model_registry.ts";
+import { getReasoningEffortPreference } from "./utils/reasoning_effort_data.ts";
 import axios from "axios";
+
+const NON_CHAT_KEYWORDS = [
+  "embedding",
+  "dall",
+  "whisper",
+  "babbage",
+  "davinci",
+  "audio",
+  "realtime",
+  "omni-moderation",
+  "tts",
+];
 
 /**
  * Fetches models from the API and transforms them into ModelOutput format
@@ -27,6 +38,7 @@ async function fetchModels(
   if (!url || !credentials?.apiKey) {
     return [];
   }
+
   const resp = await axios.get(url, {
     headers: {
       Authorization: `Bearer ${credentials?.apiKey}`,
@@ -37,55 +49,42 @@ async function fetchModels(
     throw new Error(`API request failed with status ${resp.status}`);
   }
 
+  // Ensure registry is loaded before the loop (single init, all lookups are in-memory after this)
+  await initRegistry();
+
   const data = resp.data;
-  // console.log("data", data)
-  const result = data.data
-    .map((item: any) => {
-      if (item.value) {
-        return item;
-      }
+  const results = await Promise.all(
+    data.data
+      .filter((item: any) => {
+        const id = item.value || item.id || "";
+        return !NON_CHAT_KEYWORDS.some((kw) => id.includes(kw));
+      })
+      .map(async (item: any) => {
+        if (item.value) return item;
 
-      const model = openai_models_data.find(
-        (model: any) => model.value === (item.value || item.id),
-      );
+        const modelId = item.value || item.id;
+        const info = await getModel(modelId);
+        const reasoningPref = getReasoningEffortPreference(modelId);
 
-      const context = model?.context || 8000;
-      const toolUse = model?.toolUse || false;
-      const visionEnable = model?.visionEnable || false;
-      const modelName = model?.value || item.id;
+        return {
+          type: "llm_model",
+          title: item.id,
+          value: modelId,
+          context: info?.maxInputTokens ?? 8000,
+          maxTokens: info?.maxOutputTokens ?? undefined,
+          inputPrice: info?.inputPricePerMillion ?? 0,
+          outputPrice: info?.outputPricePerMillion ?? 0,
+          toolUse: info?.supportsToolUse ?? false,
+          visionEnable: info?.supportsVision ?? false,
+          audioEnable: info?.supportsAudioInput ?? false,
+          videoEnable: info?.supportsVideoInput ?? false,
+          systemMessageEnable: info?.supportsSystemMessages ?? true,
+          ...(reasoningPref ? { preferences: [reasoningPref] } : {}),
+        };
+      }),
+  );
 
-      const systemMessageEnable = !modelName.includes("o1-");
-
-      return {
-        ...model,
-        title: model?.title || item.id,
-        value: modelName,
-        context: context,
-        inputPrice: model?.inputPrice || 0,
-        outputPrice: model?.outputPrice || 0,
-        toolUse: toolUse,
-        visionEnable: visionEnable,
-        systemMessageEnable: systemMessageEnable,
-      };
-    })
-    .filter((item: any) => {
-      if (
-        item.value.includes("embedding") ||
-        item.value.includes("dall") ||
-        item.value.includes("whisper") ||
-        item.value.includes("babbage") ||
-        item.value.includes("davinci") ||
-        item.value.includes("audio") ||
-        item.value.includes("realtime") ||
-        item.value.includes("omni-moderation") ||
-        item.value.includes("tts")
-      ) {
-        return false;
-      }
-      return true;
-    });
-
-  return result;
+  return results;
 }
 
 /**
@@ -93,12 +92,13 @@ async function fetchModels(
  * @param req - Request object containing options
  * @returns Promise<string> - JSON string of model data
  */
-export default async function main(req: Request): Promise<string> {
+export default async function main(req: Request) {
   const options = await req.json();
 
   const modelCache = new ListCache(fetchModels);
 
   const models = await modelCache.getList(options);
+  // console.log('models', models)
 
-  return JSON.stringify(models);
+  return Response.json(models);
 }
