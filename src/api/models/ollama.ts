@@ -38,9 +38,24 @@ async function fetchModels(_options: RequestOptions) {
   });
 
 
+  const cloudModels = [
+    'minimax-m2.7:cloud',
+    'qwen3.5:cloud',
+    'kimi-k2.5:cloud',
+    'glm-5:cloud',
+    'gemma4:31b-cloud',
+    'ministral-3:3b-cloud',
+    'ministral-3:8b-cloud',
+    'ministral-3:14b-cloud',
+  ];
+
   let models: ListCache.ListItem[] = [];
   try {
-    await initRegistry();
+    await Promise.all([
+      initRegistry(),
+      ...cloudModels.map(m => ollama.pull({ model: m }).catch(() => { })),
+    ]);
+
     const list = await ollama.list();
     models = (await Promise.all(list.models
       .map(async (item) => {

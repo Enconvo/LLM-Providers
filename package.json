@@ -502,7 +502,7 @@
           "type": "dropdown",
           "required": false,
           "title": "Model Name",
-          "default": "llama2:latest",
+          "default": "ministral-3:3b-cloud",
           "dataProxy": "llm/models/ollama"
         },
         {
