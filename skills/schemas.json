@@ -6,17 +6,6 @@
     "routePath": "llm/enconvo_ai"
   },
   {
-    "name": "test",
-    "title": "test",
-    "description": "",
-    "routePath": "llm/test",
-    "parameters": {
-      "type": "object",
-      "properties": {},
-      "required": []
-    }
-  },
-  {
     "name": "models",
     "title": "models",
     "description": "Router for models",
@@ -163,10 +152,20 @@
       },
       {
         "name": "enconvo_ai",
-        "description": "Main handler function for the API endpoint",
+        "description": "Fetch and search Enconvo AI model list",
         "parameters": {
           "type": "object",
-          "properties": {},
+          "properties": {
+            "forceRefresh": {
+              "type": "boolean",
+              "description": "Force refresh the cached model list",
+              "default": false
+            },
+            "query": {
+              "type": "string",
+              "description": "Fuzzy search query to filter models by name"
+            }
+          },
           "required": []
         },
         "routePath": "llm/models/enconvo_ai"

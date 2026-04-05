@@ -40,7 +40,7 @@ async function fetchModels(_options: RequestOptions) {
     models = (await Promise.all(list.models
       .map(async (item) => {
         const modelInfo = await ollama.show({ model: item.name });
-        console.log("ollama modelInfo", JSON.stringify(modelInfo.capabilities, null, 2));
+        // console.log("ollama modelInfo", JSON.stringify(modelInfo.capabilities, null, 2));
         if (!modelInfo.capabilities.includes("completion")) {
           return null;
         }

@@ -11,33 +11,38 @@ export namespace OllamaUtil {
       return undefined;
     }
 
-    let newTools: Tool[] | undefined = tools?.map((tool) => {
-      if (
-        tool.parameters === undefined ||
-        tool.parameters?.type === undefined ||
-        tool.parameters?.properties === undefined
-      ) {
-        tool.parameters = {
-          type: "object",
-          properties: {},
-          required: [],
-        };
-      }
+    return tools.map((tool) => {
+      const parameters = (
+        tool.parameters?.type !== undefined &&
+        tool.parameters?.properties !== undefined
+      )
+        ? tool.parameters
+        : { type: "object" as const, properties: {}, required: [] as string[] };
 
-      const newTool: Tool = {
+      return {
         type: "function",
         function: {
           name: tool.name,
           description: tool.description,
-          parameters: tool.parameters,
+          parameters,
         }
       };
-      return newTool;
     });
-
-    return newTools;
   };
 
+  /**
+   * Converts an Ollama `AbortableAsyncIterator<ChatResponse>` into the unified
+   * Anthropic-like `Stream<BaseChatMessageChunk>` format consumed by the
+   * LLMProvider stream handler in enconvo.nodejs.
+   *
+   * Stream format contract (matches Anthropic SSE):
+   *   content_block_start → content_block_delta* → content_block_stop
+   *   (repeated per block: thinking, text, tool_use)
+   *   usage (once, from the final done chunk)
+   *
+   * The consumer (`LLMProvider.handleAgentMessages`) processes one tool at a
+   * time in an agent loop, so only the first tool_call per chunk is emitted.
+   */
   export const streamFromOllama = (
     response: AbortableAsyncIterator<ChatResponse>,
   ): Stream<BaseChatMessageChunk> => {
@@ -55,15 +60,27 @@ export namespace OllamaUtil {
       }
       consumed = true;
       let done = false;
+      let doneReason: string | undefined;
       let runningContentBlockType: BaseChatMessageChunk.ContentBlock['type'] | undefined;
+
+      function* stopCurrentBlock(finishReason?: BaseChatMessageChunk.ContentBlockStop['finish_reason']) {
+        if (runningContentBlockType !== undefined) {
+          yield {
+            type: 'content_block_stop' as const,
+            ...(finishReason ? { finish_reason: finishReason } : {}),
+          };
+          runningContentBlockType = undefined;
+        }
+      }
+
       try {
         for await (const chunk of response) {
-          // console.log("ollama chunk", JSON.stringify(chunk, null, 2));
+          console.log('chunk', done, chunk)
           if (done) continue;
 
           if (chunk.done) {
             done = true;
-            // Capture usage from Ollama's final chunk
+            doneReason = chunk.done_reason;
             const ollamaChunk = chunk as any;
             const promptEvalCount = ollamaChunk.prompt_eval_count || 0;
             const evalCount = ollamaChunk.eval_count || 0;
@@ -79,19 +96,13 @@ export namespace OllamaUtil {
             }
             continue;
           }
+
+          // Handle tool calls (first call only — consumer processes one tool per agent step)
           if (chunk.message.tool_calls && chunk.message.tool_calls.length > 0) {
+            yield* stopCurrentBlock();
+            runningContentBlockType = 'tool_use';
 
-            if (runningContentBlockType !== 'tool_use') {
-              if (runningContentBlockType !== undefined) {
-                yield {
-                  type: 'content_block_stop',
-                }
-              }
-              runningContentBlockType = 'tool_use';
-            }
-
-            const toolCall = chunk.message.tool_calls[0];
-            const toolFunction = toolCall.function;
+            const toolFunction = chunk.message.tool_calls[0].function;
             yield {
               type: 'content_block_start',
               content_block: {
@@ -100,17 +111,14 @@ export namespace OllamaUtil {
                 input: toolFunction.arguments || {},
                 id: ''
               }
-            }
-          } else if (chunk.message.content && chunk.message.content !== '') {
+            };
+            continue;
+          }
 
-            if (chunk.message.content === "<think>") {
-              if (runningContentBlockType !== 'thinking') {
-                if (runningContentBlockType !== undefined) {
-                  yield {
-                    type: 'content_block_stop',
-                  }
-                }
-              }
+          // Handle native thinking field (Ollama SDK >=0.6, uses message.thinking)
+          if (chunk.message.thinking) {
+            if (runningContentBlockType !== 'thinking') {
+              yield* stopCurrentBlock();
               runningContentBlockType = 'thinking';
               yield {
                 type: 'content_block_start',
@@ -118,60 +126,39 @@ export namespace OllamaUtil {
                   type: 'thinking',
                   thinking: '',
                 }
-              }
-
-            } else if (chunk.message.content === "</think>") {
-              runningContentBlockType = undefined;
-              yield {
-                type: 'content_block_stop',
-              }
-            } else {
-              if (runningContentBlockType === 'thinking') {
-                yield {
-                  type: 'content_block_delta',
-                  delta: {
-                    type: 'thinking_delta',
-                    thinking: chunk.message.content,
-                  }
-                }
-              } else {
-                if (runningContentBlockType !== 'text') {
-                  if (runningContentBlockType !== undefined) {
-                    yield {
-                      type: 'content_block_stop',
-                    }
-                  }
-                  runningContentBlockType = 'text';
-                  yield {
-                    type: 'content_block_start',
-                    content_block: {
-                      type: 'text',
-                      text: '',
-                    }
-                  }
-                  yield {
-                    type: 'content_block_delta',
-                    delta: {
-                      type: 'text_delta',
-                      text: chunk.message.content,
-                    }
-                  }
-                } else {
-                  yield {
-                    type: 'content_block_delta',
-                    delta: {
-                      type: 'text_delta',
-                      text: chunk.message.content,
-                    }
-                  }
-                }
-
-              }
-
+              };
             }
+            yield {
+              type: 'content_block_delta',
+              delta: {
+                type: 'thinking_delta',
+                thinking: chunk.message.thinking,
+              }
+            };
+            continue;
+          }
 
-
-
+          // Handle content (with fallback <think> tag parsing for older Ollama versions)
+          if (chunk.message.content && chunk.message.content !== '') {
+            console.log('runningContentBlockType', runningContentBlockType, (runningContentBlockType !== 'text'))
+            if (runningContentBlockType !== 'text') {
+              yield* stopCurrentBlock();
+              runningContentBlockType = 'text';
+              yield {
+                type: 'content_block_start',
+                content_block: {
+                  type: 'text',
+                  text: '',
+                }
+              };
+            }
+            yield {
+              type: 'content_block_delta',
+              delta: {
+                type: 'text_delta',
+                text: chunk.message.content,
+              }
+            };
           }
         }
         done = true;
@@ -179,11 +166,10 @@ export namespace OllamaUtil {
         if (e instanceof Error && e.name === "AbortError") return;
         throw e;
       } finally {
-        if (runningContentBlockType !== undefined) {
-          yield {
-            type: 'content_block_stop',
-          }
-        }
+        // Map Ollama done_reason "length" → finish_reason "max_tokens"
+        // so the consumer's continuation loop can request more output.
+        const finishReason = doneReason === 'length' ? 'max_tokens' : undefined;
+        yield* stopCurrentBlock(finishReason);
         if (!done) response.abort();
       }
     }
@@ -294,11 +280,26 @@ export namespace OllamaUtil {
 
       const text = textParts.join("\n");
 
+      // Extract thinking content from assistant messages for multi-turn context
+      let thinkingContent: string | undefined;
+      if (message.role === 'assistant') {
+        const thinkingParts = message.content
+          .filter((item): item is { type: 'thinking'; thinkingContent: string } => item.type === 'thinking')
+          .map((item) => item.thinkingContent)
+          .filter(Boolean);
+        if (thinkingParts.length > 0) {
+          thinkingContent = thinkingParts.join("\n");
+        }
+      }
+
       const messages: Message[] = [];
       const newMessage: Message = {
         role: message.role,
         content: text,
-        images: images
+        ...(thinkingContent ? { thinking: thinkingContent } : {}),
+      }
+      if (images && images.length > 0) {
+        newMessage.images = images
       }
 
 

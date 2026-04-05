@@ -90,10 +90,42 @@ Each provider follows this structure:
 - **Model Fetching**: Each provider's `api/models/*.ts` fetches from the provider API (or uses static lists), then enriches with registry data and reasoning effort preferences.
 - Models are cached using `ListCache` from Enconvo API
 
-### Streaming Implementation
-- Each provider implements custom streaming logic
-- Uses `Stream<BaseChatMessageChunk>` from Enconvo API
-- Supports abort controllers for cancellation
+### Unified Streaming Architecture
+
+All providers convert their native stream format into an **Anthropic-like `Stream<BaseChatMessageChunk>`** format. The unified consumer in `enconvo.nodejs` (`LLMProvider.handleAgentMessages()`) then processes these normalized chunks identically, regardless of which provider produced them.
+
+```
+Provider SDK stream (native format)
+    ↓  each provider's _stream() + util
+Stream<BaseChatMessageChunk>  (Anthropic SSE format)
+    ↓  consumed by LLMProvider.handleAgentMessages()
+UI updates (res.write) + agent loop (tool execution → next turn)
+```
+
+**Stream format contract** — each content block follows this sequence:
+1. `content_block_start` — opens a block (`text`, `thinking`, `tool_use`, `server_tool_use`, `server_tool_use_result`, `message_content`)
+2. `content_block_delta` (0..N) — incremental updates:
+   - `text_delta` — text content
+   - `thinking_delta` — reasoning trace
+   - `signature_delta` — thinking block signature (Anthropic)
+   - `input_json_delta` — streamed tool call arguments (partial JSON)
+3. `content_block_stop` — closes the block; may include `finish_reason: 'max_tokens'` to trigger continuation
+4. `usage` — token counts (once per stream, from the final chunk)
+
+**Consumer behavior** (`handleAgentMessages`):
+- Tracks one `runningContentBlockType` and one `toBeRunTool` at a time
+- On `content_block_stop` for `tool_use`: parses accumulated `arguments_delta`, executes the tool, appends result to messages, and loops for the next agent step
+- On `finish_reason: 'max_tokens'`: appends a "continue" user message and loops
+- Accumulates `thinking_delta` into `ChatMessageContentThinking` with timing
+- Each provider util must emit the correct block sequence for the consumer to work
+
+**Provider implementation guide** — each `*_util.ts` must:
+- Map native thinking → `content_block_start(thinking)` + `content_block_delta(thinking_delta)` + `content_block_stop`
+- Map native text → `content_block_start(text)` + `content_block_delta(text_delta)` + `content_block_stop`
+- Map native tool calls → `content_block_start(tool_use, {name, input, id})` + optional `content_block_delta(input_json_delta)` + `content_block_stop`
+- Map native token usage → `usage` chunk
+- Map max-tokens stop → `content_block_stop` with `finish_reason: 'max_tokens'`
+- Handle abort signals and yield proper cleanup in `finally` blocks
 
 ## TypeScript Configuration
 
