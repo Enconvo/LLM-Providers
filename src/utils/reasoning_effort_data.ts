@@ -139,10 +139,13 @@ const profiles = {
 
   /** Ollama: simple on/off toggle */
   ollama_toggle: {
-    default: "disabled",
+    default: "none",
     data: [
-      { title: "None", value: "disabled", description: "Disabled" },
-      { title: "Thinking", value: "enabled", description: "Enabled" },
+      { title: "None", value: "none", description: "Model does not think" },
+      { title: "Minimal", value: "1024", description: "Thinking budget tokens: 1024" },
+      { title: "Low", value: "2048", description: "Thinking budget tokens: 2048" },
+      { title: "Medium", value: "5120", description: "Thinking budget tokens: 5120" },
+      { title: "High", value: "10240", description: "Thinking budget tokens: 10240" },
     ],
   },
 } as const satisfies Record<string, ReasoningEffortProfile>;
@@ -165,39 +168,39 @@ interface ModelMapping {
 const modelMappings: ModelMapping[] = [
   // ── OpenAI ──────────────────────────────────────────────────────────
   // GPT-5.4 series
-  { prefix: "gpt-5.4",          profile: "openai_5_levels" },
-  { prefix: "gpt-5.3",          profile: "openai_5_levels" },
+  { prefix: "gpt-5.4", profile: "openai_5_levels" },
+  { prefix: "gpt-5.3", profile: "openai_5_levels" },
   // GPT-5.2 / 5.1 series (with minimal + xhigh)
-  { prefix: "gpt-5.2",          profile: "openai_6_levels" },
-  { prefix: "gpt-5.1",          profile: "openai_6_levels" },
+  { prefix: "gpt-5.2", profile: "openai_6_levels" },
+  { prefix: "gpt-5.1", profile: "openai_6_levels" },
   // GPT-5 base series (must come after 5.x)
-  { prefix: "gpt-5",            profile: "openai_4_levels" },
+  { prefix: "gpt-5", profile: "openai_4_levels" },
   // o-series reasoning models
-  { prefix: "o3",               profile: "openai_4_levels" },
-  { prefix: "o4",               profile: "openai_4_levels" },
-  { prefix: "o1",               profile: "openai_4_levels" },
+  { prefix: "o3", profile: "openai_4_levels" },
+  { prefix: "o4", profile: "openai_4_levels" },
+  { prefix: "o1", profile: "openai_4_levels" },
 
   // ── Anthropic ───────────────────────────────────────────────────────
-  { prefix: "claude-",          profile: "anthropic_budget" },
+  { prefix: "claude-", profile: "anthropic_budget" },
 
   // ── Google Gemini ───────────────────────────────────────────────────
   // Most specific first
   { prefix: "gemini-3.1-flash-lite", profile: "gemini_4_levels" },
-  { prefix: "gemini-3.1-pro",       profile: "gemini_3_levels" },
-  { prefix: "gemini-3-pro-image",   profile: "gemini_2_levels" },  // image variant
-  { prefix: "gemini-3-pro",         profile: "gemini_3_levels" },
-  { prefix: "gemini-3-flash",       profile: "gemini_2_levels" },
-  { prefix: "gemini-2.5-pro",       profile: "gemini_25_pro_budget" },
-  { prefix: "gemini-2.5-flash",     profile: "gemini_25_flash_budget" },
+  { prefix: "gemini-3.1-pro", profile: "gemini_3_levels" },
+  { prefix: "gemini-3-pro-image", profile: "gemini_2_levels" },  // image variant
+  { prefix: "gemini-3-pro", profile: "gemini_3_levels" },
+  { prefix: "gemini-3-flash", profile: "gemini_2_levels" },
+  { prefix: "gemini-2.5-pro", profile: "gemini_25_pro_budget" },
+  { prefix: "gemini-2.5-flash", profile: "gemini_25_flash_budget" },
   // Fallback for future gemini models
-  { prefix: "gemini-",              profile: "gemini_4_levels" },
+  { prefix: "gemini-", profile: "gemini_4_levels" },
 
   // ── DeepSeek ────────────────────────────────────────────────────────
-  { prefix: "deepseek-r1",      profile: "standard_3_levels" },
+  { prefix: "deepseek-r1", profile: "standard_3_levels" },
   { prefix: "deepseek-reasoner", profile: "standard_3_levels" },
 
   // ── Groq (GPT-OSS) ─────────────────────────────────────────────────
-  { prefix: "openai/gpt-oss",   profile: "standard_3_levels" },
+  { prefix: "openai/gpt-oss", profile: "standard_3_levels" },
 
   // ── Ollama (all thinking-capable models) ────────────────────────────
   // Ollama models are handled differently — see getReasoningEffortPreference

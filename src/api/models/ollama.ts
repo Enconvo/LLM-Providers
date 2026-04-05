@@ -3,6 +3,9 @@ import fuzzysort from "fuzzysort";
 import { Ollama } from "ollama";
 import { getReasoningEffortPreference } from "../../utils/reasoning_effort_data.ts";
 
+import { getModel, init as initRegistry } from "../../utils/model_registry.ts";
+
+
 async function fetchModels(_options: RequestOptions) {
   const config = await CommandManageUtils.loadCommandConfig({
     commandKey: "llm|ollama",
@@ -34,16 +37,25 @@ async function fetchModels(_options: RequestOptions) {
     },
   });
 
+
   let models: ListCache.ListItem[] = [];
   try {
+    await initRegistry();
     const list = await ollama.list();
     models = (await Promise.all(list.models
       .map(async (item) => {
         const modelInfo = await ollama.show({ model: item.name });
-        // console.log("ollama modelInfo", JSON.stringify(modelInfo.capabilities, null, 2));
+        // console.log("ollama modelInfo", JSON.stringify(modelInfo.model_info, null, 2));
+
         if (!modelInfo.capabilities.includes("completion")) {
           return null;
         }
+
+        // Extract context_length from model_info (e.g. "qwen3.context_length": 40960)
+        const contextLength = Object.entries(modelInfo.model_info || {})
+          .find(([key]) => key.endsWith('.context_length'))?.[1] as number | undefined;
+
+        const newModelInfo = await getModel(item.name)
 
         const model: Preference.LLMModel = {
           title: item.name,
@@ -52,8 +64,8 @@ async function fetchModels(_options: RequestOptions) {
           providerName: item.details.family,
           toolUse: modelInfo.capabilities.includes("tools"),
           thinking: modelInfo.capabilities.includes("thinking"),
-          context: 8000,
-          maxTokens: 1024,
+          context: contextLength || newModelInfo?.maxInputTokens || 32000,
+          maxTokens: newModelInfo?.maxOutputTokens || 64000,
           visionEnable: modelInfo.capabilities.includes("vision"),
           systemMessageEnable: true,
         };

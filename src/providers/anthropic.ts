@@ -67,7 +67,6 @@ export class AnthropicProvider extends LLMProvider {
         "interleaved-thinking-2025-05-14,fine-grained-tool-streaming-2025-05-14";
     }
 
-
     const params: ClientOptions = {
       apiKey:
         credentialsType === "apiKey" ? credentials?.anthropicApiKey || credentials?.apiKey : undefined,
@@ -76,7 +75,7 @@ export class AnthropicProvider extends LLMProvider {
       baseURL: credentials?.anthropicApiUrl || credentials?.baseUrl,
       defaultHeaders: headers,
     }
-    // console.log("Anthropic client options", params);
+    console.log("Anthropic client options", params);
     const anthropic = new Anthropic(params);
 
     this.anthropic = anthropic;
@@ -200,17 +199,6 @@ export class AnthropicProvider extends LLMProvider {
       tools.push(...newTools);
     }
 
-    if (content.searchToolEnabled === 'auto') {
-      if (this.options.modelName.searchToolSupported === true) {
-        tools.push({
-          type: "web_search_20250305",
-          name: "web_search",
-          max_uses: 5
-        });
-        tools = tools.filter(tool => tool.name !== "google_web_search") || [];
-      }
-    }
-
     if (tools.length > 0) {
       params.tools = tools;
       if (content.tool_choice && typeof content.tool_choice !== "string") {
@@ -227,7 +215,7 @@ export class AnthropicProvider extends LLMProvider {
       }
     }
 
-    // console.log("anthropic params", JSON.stringify(params, null, 2));
+    // console.log("anthropic params", JSON.stringify(params.thinking, null, 2));
 
     return params;
   }
