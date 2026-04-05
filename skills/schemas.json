@@ -6,14 +6,486 @@
     "routePath": "llm/enconvo_ai"
   },
   {
-    "name": "models",
-    "title": "models",
+    "name": "test",
+    "title": "test",
     "description": "",
-    "routePath": "llm/models",
+    "routePath": "llm/test",
     "parameters": {
       "type": "object",
       "properties": {},
       "required": []
     }
+  },
+  {
+    "name": "models",
+    "title": "models",
+    "description": "Router for models",
+    "routes": [
+      {
+        "name": "1minai",
+        "description": "Fetch and search 1min AI model list",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "forceRefresh": {
+              "type": "boolean",
+              "description": "Force refresh the cached model list",
+              "default": false
+            },
+            "query": {
+              "type": "string",
+              "description": "Fuzzy search query to filter models by name"
+            }
+          },
+          "required": []
+        },
+        "routePath": "llm/models/1minai"
+      },
+      {
+        "name": "aimagicx",
+        "description": "Fetch and search Aimagicx model list",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "forceRefresh": {
+              "type": "boolean",
+              "description": "Force refresh the cached model list",
+              "default": false
+            },
+            "query": {
+              "type": "string",
+              "description": "Fuzzy search query to filter models by name"
+            }
+          },
+          "required": []
+        },
+        "routePath": "llm/models/aimagicx"
+      },
+      {
+        "name": "anthropic",
+        "description": "Fetch and search Anthropic model list",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "forceRefresh": {
+              "type": "boolean",
+              "description": "Force refresh the cached model list",
+              "default": false
+            },
+            "query": {
+              "type": "string",
+              "description": "Fuzzy search query to filter models by name"
+            }
+          },
+          "required": []
+        },
+        "routePath": "llm/models/anthropic"
+      },
+      {
+        "name": "azure",
+        "description": "Fetch and search Azure OpenAI model list",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "forceRefresh": {
+              "type": "boolean",
+              "description": "Force refresh the cached model list",
+              "default": false
+            },
+            "query": {
+              "type": "string",
+              "description": "Fuzzy search query to filter models by name"
+            }
+          },
+          "required": []
+        },
+        "routePath": "llm/models/azure"
+      },
+      {
+        "name": "cerebras",
+        "description": "Fetch and search Cerebras model list",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "forceRefresh": {
+              "type": "boolean",
+              "description": "Force refresh the cached model list",
+              "default": false
+            },
+            "query": {
+              "type": "string",
+              "description": "Fuzzy search query to filter models by name"
+            }
+          },
+          "required": []
+        },
+        "routePath": "llm/models/cerebras"
+      },
+      {
+        "name": "dashscope",
+        "description": "Fetch and search DashScope model list",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "forceRefresh": {
+              "type": "boolean",
+              "description": "Force refresh the cached model list",
+              "default": false
+            },
+            "query": {
+              "type": "string",
+              "description": "Fuzzy search query to filter models by name"
+            }
+          },
+          "required": []
+        },
+        "routePath": "llm/models/dashscope"
+      },
+      {
+        "name": "deepseek",
+        "description": "Fetch and search DeepSeek model list",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "forceRefresh": {
+              "type": "boolean",
+              "description": "Force refresh the cached model list",
+              "default": false
+            },
+            "query": {
+              "type": "string",
+              "description": "Fuzzy search query to filter models by name"
+            }
+          },
+          "required": []
+        },
+        "routePath": "llm/models/deepseek"
+      },
+      {
+        "name": "enconvo_ai",
+        "description": "Main handler function for the API endpoint",
+        "parameters": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        },
+        "routePath": "llm/models/enconvo_ai"
+      },
+      {
+        "name": "fetch",
+        "description": "Fetch and search model list from a generic OpenAI-compatible endpoint",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "url": {
+              "type": "string",
+              "description": "API endpoint URL"
+            },
+            "api_key": {
+              "type": "string",
+              "description": "API authentication key"
+            },
+            "type": {
+              "type": "string",
+              "description": "Model type filter"
+            },
+            "forceRefresh": {
+              "type": "boolean",
+              "description": "Force refresh the cached model list",
+              "default": false
+            },
+            "query": {
+              "type": "string",
+              "description": "Fuzzy search query to filter models by name"
+            }
+          },
+          "required": [
+            "url",
+            "api_key"
+          ]
+        },
+        "routePath": "llm/models/fetch"
+      },
+      {
+        "name": "fireworks",
+        "description": "Fetch and search Fireworks model list",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "forceRefresh": {
+              "type": "boolean",
+              "description": "Force refresh the cached model list",
+              "default": false
+            },
+            "query": {
+              "type": "string",
+              "description": "Fuzzy search query to filter models by name"
+            }
+          },
+          "required": []
+        },
+        "routePath": "llm/models/fireworks"
+      },
+      {
+        "name": "gemini",
+        "description": "Fetch and search Gemini model list",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "forceRefresh": {
+              "type": "boolean",
+              "description": "Force refresh the cached model list",
+              "default": false
+            },
+            "query": {
+              "type": "string",
+              "description": "Fuzzy search query to filter models by name"
+            }
+          },
+          "required": []
+        },
+        "routePath": "llm/models/gemini"
+      },
+      {
+        "name": "groq",
+        "description": "Fetch and search Groq model list",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "forceRefresh": {
+              "type": "boolean",
+              "description": "Force refresh the cached model list",
+              "default": false
+            },
+            "query": {
+              "type": "string",
+              "description": "Fuzzy search query to filter models by name"
+            }
+          },
+          "required": []
+        },
+        "routePath": "llm/models/groq"
+      },
+      {
+        "name": "mistral",
+        "description": "Fetch and search Mistral model list",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "forceRefresh": {
+              "type": "boolean",
+              "description": "Force refresh the cached model list",
+              "default": false
+            },
+            "query": {
+              "type": "string",
+              "description": "Fuzzy search query to filter models by name"
+            }
+          },
+          "required": []
+        },
+        "routePath": "llm/models/mistral"
+      },
+      {
+        "name": "moonshot",
+        "description": "Fetch and search Moonshot model list",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "forceRefresh": {
+              "type": "boolean",
+              "description": "Force refresh the cached model list",
+              "default": false
+            },
+            "query": {
+              "type": "string",
+              "description": "Fuzzy search query to filter models by name"
+            }
+          },
+          "required": []
+        },
+        "routePath": "llm/models/moonshot"
+      },
+      {
+        "name": "ollama",
+        "description": "Fetch and search Ollama model list",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "forceRefresh": {
+              "type": "boolean",
+              "description": "Force refresh the cached model list",
+              "default": false
+            },
+            "query": {
+              "type": "string",
+              "description": "Fuzzy search query to filter models by name"
+            }
+          },
+          "required": []
+        },
+        "routePath": "llm/models/ollama"
+      },
+      {
+        "name": "openai",
+        "description": "Fetch and search OpenAI-compatible model list",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "forceRefresh": {
+              "type": "boolean",
+              "description": "Force refresh the cached model list",
+              "default": false
+            },
+            "query": {
+              "type": "string",
+              "description": "Fuzzy search query to filter models by name"
+            }
+          },
+          "required": []
+        },
+        "routePath": "llm/models/openai"
+      },
+      {
+        "name": "openrouter",
+        "description": "Fetch and search OpenRouter model list",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "forceRefresh": {
+              "type": "boolean",
+              "description": "Force refresh the cached model list",
+              "default": false
+            },
+            "query": {
+              "type": "string",
+              "description": "Fuzzy search query to filter models by name"
+            }
+          },
+          "required": []
+        },
+        "routePath": "llm/models/openrouter"
+      },
+      {
+        "name": "poe",
+        "description": "Fetch and search Poe model list",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "forceRefresh": {
+              "type": "boolean",
+              "description": "Force refresh the cached model list",
+              "default": false
+            },
+            "query": {
+              "type": "string",
+              "description": "Fuzzy search query to filter models by name"
+            }
+          },
+          "required": []
+        },
+        "routePath": "llm/models/poe"
+      },
+      {
+        "name": "qwen",
+        "description": "Fetch and search Qwen model list",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "forceRefresh": {
+              "type": "boolean",
+              "description": "Force refresh the cached model list",
+              "default": false
+            },
+            "query": {
+              "type": "string",
+              "description": "Fuzzy search query to filter models by name"
+            }
+          },
+          "required": []
+        },
+        "routePath": "llm/models/qwen"
+      },
+      {
+        "name": "sambanova",
+        "description": "Fetch and search SambaNova model list",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "forceRefresh": {
+              "type": "boolean",
+              "description": "Force refresh the cached model list",
+              "default": false
+            },
+            "query": {
+              "type": "string",
+              "description": "Fuzzy search query to filter models by name"
+            }
+          },
+          "required": []
+        },
+        "routePath": "llm/models/sambanova"
+      },
+      {
+        "name": "straico",
+        "description": "Fetch and search Straico model list",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "forceRefresh": {
+              "type": "boolean",
+              "description": "Force refresh the cached model list",
+              "default": false
+            },
+            "query": {
+              "type": "string",
+              "description": "Fuzzy search query to filter models by name"
+            }
+          },
+          "required": []
+        },
+        "routePath": "llm/models/straico"
+      },
+      {
+        "name": "vercel_ai_gateway",
+        "description": "Fetch and search Vercel AI Gateway model list",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "forceRefresh": {
+              "type": "boolean",
+              "description": "Force refresh the cached model list",
+              "default": false
+            },
+            "query": {
+              "type": "string",
+              "description": "Fuzzy search query to filter models by name"
+            }
+          },
+          "required": []
+        },
+        "routePath": "llm/models/vercel_ai_gateway"
+      },
+      {
+        "name": "x_ai",
+        "description": "Fetch and search xAI model list",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "forceRefresh": {
+              "type": "boolean",
+              "description": "Force refresh the cached model list",
+              "default": false
+            },
+            "query": {
+              "type": "string",
+              "description": "Fuzzy search query to filter models by name"
+            }
+          },
+          "required": []
+        },
+        "routePath": "llm/models/x_ai"
+      }
+    ]
   }
 ]

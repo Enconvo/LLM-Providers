@@ -72,7 +72,7 @@ const profiles = {
     ],
   },
 
-  /** Gemini: minimal → high */
+  /** Gemini 3.1 Flash-Lite: minimal → high */
   gemini_4_levels: {
     default: "minimal",
     data: [
@@ -80,6 +80,50 @@ const profiles = {
       { title: "Low", value: "low", description: "Low thinking level" },
       { title: "Medium", value: "medium", description: "Medium thinking level" },
       { title: "High", value: "high", description: "High thinking level" },
+    ],
+  },
+
+  /** Gemini 3.1 Pro / 3 Pro: low → high (3 levels) */
+  gemini_3_levels: {
+    default: "low",
+    data: [
+      { title: "Low", value: "low", description: "Low thinking level" },
+      { title: "Medium", value: "medium", description: "Medium thinking level" },
+      { title: "High", value: "high", description: "High thinking level" },
+    ],
+  },
+
+  /** Gemini 3 Flash / 3 Flash-Lite: low + high only */
+  gemini_2_levels: {
+    default: "low",
+    data: [
+      { title: "Low", value: "low", description: "Low thinking level" },
+      { title: "High", value: "high", description: "High thinking level" },
+    ],
+  },
+
+  /** Gemini 2.5 Pro: auto + token budgets 128-30000 */
+  gemini_25_pro_budget: {
+    default: "auto",
+    data: [
+      { title: "Auto", value: "auto", description: "Model decides when and how much to think" },
+      { title: "Minimal", value: "128", description: "Thinking budgets: 128" },
+      { title: "Low", value: "1024", description: "Thinking budgets: 1024" },
+      { title: "Medium", value: "10000", description: "Thinking budgets: 10000" },
+      { title: "High", value: "30000", description: "Thinking budgets: 30000" },
+    ],
+  },
+
+  /** Gemini 2.5 Flash: none + auto + token budgets 512-20000 */
+  gemini_25_flash_budget: {
+    default: "none",
+    data: [
+      { title: "None", value: "none", description: "Model does not think" },
+      { title: "Auto", value: "auto", description: "Model decides when and how much to think" },
+      { title: "Minimal", value: "512", description: "Thinking budgets: 512" },
+      { title: "Low", value: "1024", description: "Thinking budgets: 1024" },
+      { title: "Medium", value: "10000", description: "Thinking budgets: 10000" },
+      { title: "High", value: "20000", description: "Thinking budgets: 20000" },
     ],
   },
 
@@ -137,7 +181,16 @@ const modelMappings: ModelMapping[] = [
   { prefix: "claude-",          profile: "anthropic_budget" },
 
   // ── Google Gemini ───────────────────────────────────────────────────
-  { prefix: "gemini-",          profile: "gemini_4_levels" },
+  // Most specific first
+  { prefix: "gemini-3.1-flash-lite", profile: "gemini_4_levels" },
+  { prefix: "gemini-3.1-pro",       profile: "gemini_3_levels" },
+  { prefix: "gemini-3-pro-image",   profile: "gemini_2_levels" },  // image variant
+  { prefix: "gemini-3-pro",         profile: "gemini_3_levels" },
+  { prefix: "gemini-3-flash",       profile: "gemini_2_levels" },
+  { prefix: "gemini-2.5-pro",       profile: "gemini_25_pro_budget" },
+  { prefix: "gemini-2.5-flash",     profile: "gemini_25_flash_budget" },
+  // Fallback for future gemini models
+  { prefix: "gemini-",              profile: "gemini_4_levels" },
 
   // ── DeepSeek ────────────────────────────────────────────────────────
   { prefix: "deepseek-r1",      profile: "standard_3_levels" },

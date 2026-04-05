@@ -41,13 +41,15 @@ curl -X POST http://localhost:54535/api/llm/{endpoint} \
 
 ### Key Directories
 - `src/` - Main source code
-  - `chat_*.ts` - Individual provider implementations (e.g., `chat_anthropic.ts`, `chat_open_ai.ts`)
-  - `*_models.ts` - Model list fetchers for each provider
-  - `utils/` - Shared utilities for providers
-    - `anthropic_util.ts` - Anthropic-specific utilities
+  - `api/models/` - Model list fetchers for each provider (e.g., `openai.ts`, `anthropic.ts`)
+  - `providers/` - Chat provider implementations (e.g., `chat_open_ai.ts`, `chat_anthropic.ts`)
+  - `utils/` - Shared utilities
+    - `model_registry.ts` - **Central model data registry** backed by litellm's 2600+ model database with stale-while-revalidate caching
+    - `reasoning_effort_data.ts` - **Centralized reasoning effort profiles** per model/provider
     - `openai_util.ts` - OpenAI-specific utilities
-    - `langchain_util.ts` - LangChain integration utilities
-    - `openai_models_data.ts` - Static model data
+    - `anthropic_util.ts` - Anthropic-specific utilities
+    - `google_util.ts` - Google-specific utilities
+    - `openai_models_data.ts` - Static OpenAI codex model data (oauth2 fallback)
 - `assets/` - Provider icons and images
 
 ### Provider Implementation Pattern
@@ -78,10 +80,15 @@ Each provider follows this structure:
 - **Ollama**: Local model support with custom base URL
 - **LM Studio**: Local OpenAI-compatible API
 
-### Model Fetching
-- Most providers use dynamic model fetching via `fetch_models.ts`
-- Some use static model lists (e.g., MoonShot, Yi)
-- Models are cached using `DropdownListCache` from Enconvo API
+### Model Data Architecture
+- **Model Registry** (`utils/model_registry.ts`): All model files use a centralized registry backed by [litellm/model_prices_and_context_window.json](https://github.com/BerriAI/litellm). Provides context window, pricing, capabilities (vision, tool use, audio, video, reasoning, etc.) for 2600+ models.
+  - **Caching**: Disk cache at `~/.cache/enconvo/llm-registry/` with stale-while-revalidate (24h stale, 7d expire, ETag/If-Modified-Since conditional requests).
+  - **Usage**: `await initRegistry()` once, then `await getModel(modelId)` for O(1) lookups.
+- **Reasoning Effort** (`utils/reasoning_effort_data.ts`): Centralized reasoning effort preference profiles. Different models support different reasoning controls (e.g., OpenAI uses low/medium/high, Anthropic uses token budgets, Gemini 2.5 uses auto/budget tokens).
+  - **Usage**: `getReasoningEffortPreference(modelId, provider?)` returns the correct dropdown preference or `undefined`.
+  - **Adding models**: Add a `prefix → profile` entry in `modelMappings`, or add a new profile in `profiles`.
+- **Model Fetching**: Each provider's `api/models/*.ts` fetches from the provider API (or uses static lists), then enriches with registry data and reasoning effort preferences.
+- Models are cached using `ListCache` from Enconvo API
 
 ### Streaming Implementation
 - Each provider implements custom streaming logic
@@ -100,8 +107,8 @@ Each provider follows this structure:
 
 When adding a new AI provider, follow this established pattern:
 
-1. **Main Provider File**: Create `src/chat_[provider].ts` extending `LLMProvider`
-2. **Model Fetcher**: Create `src/[provider]_models.ts` for dynamic model lists
+1. **Main Provider File**: Create `src/providers/chat_[provider].ts` extending `LLMProvider`
+2. **Model Fetcher**: Create `src/api/models/[provider].ts` for dynamic model lists — use `model_registry.ts` for data enrichment and `reasoning_effort_data.ts` for reasoning preferences
 3. **Utility Functions**: Add provider-specific utilities in `src/utils/[provider]_util.ts` if needed
 4. **Package.json Command**: Add command configuration in `package.json` commands array
 5. **Icon**: Add provider icon to `assets/` directory
@@ -122,8 +129,10 @@ Each provider must implement:
 ## Development Guidelines
 
 - Use `pnpm install` for package management (not npm)
-- Follow existing naming conventions: `chat_[provider].ts` for providers
-- Model files follow pattern: `[provider]_models.ts`
+- Follow existing naming conventions: `src/providers/chat_[provider].ts` for providers
+- Model files follow pattern: `src/api/models/[provider].ts`
+- Use `model_registry.ts` for model data enrichment — never hardcode pricing, context windows, or capabilities
+- Use `reasoning_effort_data.ts` for reasoning preferences — add new profiles/mappings there, not inline
 - All providers must handle both streaming and non-streaming requests
 - Implement proper credential management through Enconvo's credential system
 - Test providers with both text and multimodal inputs where supported

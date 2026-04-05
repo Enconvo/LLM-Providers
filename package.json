@@ -44,7 +44,7 @@
           "required": false,
           "title": "Model Name",
           "default": "anthropic/claude-haiku-4-5-20251001",
-          "dataProxy": "llm|enconvo_models"
+          "dataProxy": "llm/models/enconvo_ai"
         },
         {
           "name": "temperature",
@@ -75,71 +75,11 @@
               "value": 2
             }
           ]
-        },
-        {
-          "name": "google_search",
-          "description": "Grounding with Google Search connects the Gemini model to real-time web content and works with all available languages. This allows Gemini to provide more accurate answers and cite verifiable sources beyond its knowledge cutoff.",
-          "type": "checkbox",
-          "required": false,
-          "title": "Google Search Tool",
-          "default": false,
-          "showOnlyWhen": {
-            "modelName": {
-              "operator": "or",
-              "conditions": [
-                {
-                  "condition": "eq",
-                  "value": "google/gemini-2.5-flash",
-                  "operator": "or"
-                },
-                {
-                  "condition": "eq",
-                  "value": "google/gemini-2.5-flash-lite",
-                  "operator": "or"
-                },
-                {
-                  "condition": "eq",
-                  "value": "google/gemini-2.5-pro",
-                  "operator": "or"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "url_context",
-          "description": "The URL context tool lets you provide additional context to the models in the form of URLs. By including URLs in your request, the model will access the content from those pages (as long as it's not a URL type listed in the limitations section) to inform and enhance its response.",
-          "type": "checkbox",
-          "required": false,
-          "title": "URL Context Tool",
-          "default": false,
-          "showOnlyWhen": {
-            "modelName": {
-              "operator": "or",
-              "conditions": [
-                {
-                  "condition": "eq",
-                  "value": "google/gemini-2.5-flash",
-                  "operator": "or"
-                },
-                {
-                  "condition": "eq",
-                  "value": "google/gemini-2.5-flash-lite",
-                  "operator": "or"
-                },
-                {
-                  "condition": "eq",
-                  "value": "google/gemini-2.5-pro",
-                  "operator": "or"
-                }
-              ]
-            }
-          }
         }
       ]
     },
     {
-      "name": "chat_open_ai",
+      "name": "open_ai",
       "title": "OpenAI",
       "description": "Chat with OpenAI , learn more : [openai developers](https://platform.openai.com/docs/overview)",
       "icon": "openai.png",
@@ -168,7 +108,7 @@
           "required": false,
           "title": "Model Name",
           "default": "gpt-5.4",
-          "dataProxy": "llm|openai_models",
+          "dataProxy": "llm/models/openai",
           "dataCustomTitle": "Add Custom Model"
         },
         {
@@ -205,7 +145,7 @@
       "private": true
     },
     {
-      "name": "chat_anthropic",
+      "name": "anthropic",
       "title": "Anthropic",
       "description": "Chat with Anthropic Claude, learn more : [anthropic.com](https://www.anthropic.com/)",
       "mode": "no-view",
@@ -234,7 +174,7 @@
           "required": false,
           "title": "Model Name",
           "default": "claude-sonnet-4-6",
-          "dataProxy": "llm|anthropic_models"
+          "dataProxy": "llm/models/anthropic"
         },
         {
           "name": "temperature",
@@ -262,7 +202,7 @@
       "private": true
     },
     {
-      "name": "chat_minimax",
+      "name": "minimax",
       "title": "Minimax AI",
       "description": "Chat with Minimax AI, learn more : [minimax.com](https://www.minimax.com/)",
       "mode": "no-view",
@@ -369,7 +309,7 @@
       "private": true
     },
     {
-      "name": "chat_google",
+      "name": "gemini",
       "title": "Google Gemini AI",
       "description": "Chat with Google Gemini AI, learn more : [Google AI](https://ai.google.dev/)",
       "icon": "google.jpg",
@@ -398,7 +338,7 @@
           "required": false,
           "title": "Model Name",
           "default": "gemini-3-pro-preview",
-          "dataProxy": "llm|gemini_models"
+          "dataProxy": "llm/models/gemini"
         },
         {
           "name": "temperature",
@@ -534,7 +474,7 @@
       "private": true
     },
     {
-      "name": "chat_ollama",
+      "name": "ollama",
       "title": "Ollama",
       "description": "Chat with Ollama, learn more : [ollama.ai](https://ollama.ai/)",
       "icon": "ollama.png",
@@ -563,7 +503,7 @@
           "required": false,
           "title": "Model Name",
           "default": "llama2:latest",
-          "dataProxy": "llm|ollama_models"
+          "dataProxy": "llm/models/ollama"
         },
         {
           "name": "temperature",
@@ -628,7 +568,7 @@
           "required": false,
           "title": "Model Name",
           "default": "deepseek-chat",
-          "dataProxy": "llm|deepseek_models"
+          "dataProxy": "llm/models/deepseek"
         },
         {
           "name": "temperature",
@@ -664,7 +604,7 @@
       "private": true
     },
     {
-      "name": "chat_groq",
+      "name": "groq",
       "title": "Groq AI",
       "description": "Chat with Groq ai, learn more : [groq.com/](https://groq.com/)",
       "icon": "groq.png",
@@ -693,7 +633,7 @@
           "required": false,
           "title": "Model Name",
           "default": "gemma2-9b-it",
-          "dataProxy": "llm|groq_models"
+          "dataProxy": "llm/models/groq"
         },
         {
           "name": "temperature",
@@ -758,7 +698,7 @@
           "required": false,
           "title": "Azure OpenAI Api Deployment Name",
           "default": "gpt-5-mini",
-          "dataProxy": "llm|azureai_models"
+          "dataProxy": "llm/models/openai"
         },
         {
           "name": "temperature",
@@ -804,7 +744,7 @@
       "private": true
     },
     {
-      "name": "chat_x_ai",
+      "name": "x_ai",
       "title": "X.AI-GROK",
       "description": "Chat with Grok AI, learn more : [x.ai](https://x.ai/)",
       "icon": "x.png",
@@ -833,7 +773,7 @@
           "required": false,
           "title": "Model Name",
           "default": "grok-4-0709",
-          "dataProxy": "llm|x_ai_models"
+          "dataProxy": "llm/models/x_ai"
         },
         {
           "name": "temperature",
@@ -869,7 +809,7 @@
       "private": true
     },
     {
-      "name": "chat_mistral",
+      "name": "mistral",
       "title": "Mistral AI",
       "description": "Chat with Mistral AI, learn more : [mistral.ai](https://mistral.ai/)",
       "icon": "mistral.jpg",
@@ -898,7 +838,7 @@
           "required": false,
           "title": "Model Name",
           "default": "mistral-small-latest",
-          "dataProxy": "llm|mistral_models"
+          "dataProxy": "llm/models/mistral"
         },
         {
           "name": "temperature",
@@ -934,7 +874,7 @@
       "private": true
     },
     {
-      "name": "chat_qwen",
+      "name": "qwen",
       "title": "Qwen",
       "description": "Chat with Qwen , learn more : [qwen developers](https://www.alibabacloud.com/help/en/model-studio/use-qwen-by-calling-api)",
       "icon": "qwen.png",
@@ -963,7 +903,7 @@
           "required": false,
           "title": "Model Name",
           "default": "qwen3-coder-plus",
-          "dataProxy": "llm|qwen_models",
+          "dataProxy": "llm/models/qwen",
           "dataCustomTitle": "Add Custom Model"
         },
         {
@@ -1000,33 +940,7 @@
       "private": true
     },
     {
-      "name": "anthropic_models",
-      "title": "Anthropic Models",
-      "description": "get anthropic model list",
-      "commandType": "function_command",
-      "icon": "anthropic.png",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "credentials",
-          "description": "The key management provider to use",
-          "type": "extension",
-          "required": false,
-          "default": "anthropic",
-          "extensionType": "credentials-provider",
-          "extensionFilter": {
-            "targetCommands": [
-              "credentials|anthropic"
-            ]
-          },
-          "title": "Credential Provider"
-        }
-      ],
-      "private": true
-    },
-    {
-      "name": "chat_cohere",
+      "name": "cohere",
       "title": "Cohere AI",
       "description": "Chat using [Cohere](cohere.com), get [API KEY](https://dashboard.cohere.com/)",
       "icon": "cohere.jpg",
@@ -1055,7 +969,7 @@
           "required": false,
           "title": "Model Name",
           "default": "command-r",
-          "dataProxy": "llm|cohere_models"
+          "dataProxy": "llm/models/fetch"
         },
         {
           "name": "temperature",
@@ -1091,14 +1005,14 @@
       "private": true
     },
     {
-      "name": "chat_perplexity",
+      "name": "perplexity",
       "title": "Perplexity",
       "description": "Chat with Perplexity, learn more: [perplexity.ai](https://www.perplexity.ai/settings/api)",
       "icon": "perplexity.png",
       "mode": "no-view",
       "commandType": "provider",
       "provider_category": "llm",
-      "targetCommand": "llm|chat_open_ai",
+      "targetCommand": "llm|open_ai",
       "preferences": [
         {
           "name": "credentials",
@@ -1121,7 +1035,7 @@
           "required": false,
           "title": "Model Name",
           "default": "sonar",
-          "dataProxy": "llm|perplexity_models"
+          "dataProxy": "llm/models/openai"
         },
         {
           "name": "temperature",
@@ -1195,7 +1109,7 @@
           "required": false,
           "title": "Model Name",
           "default": "Qwen/Qwen2-7B-Instruct",
-          "dataProxy": "llm|silliconflow_models"
+          "dataProxy": "llm/models/openai"
         },
         {
           "name": "temperature",
@@ -1231,7 +1145,7 @@
       "private": true
     },
     {
-      "name": "chat_lm_studio",
+      "name": "lm_studio",
       "title": "LM Studio",
       "description": "Chat with LM Studio, learn more : [lmstudio.ai](https://lmstudio.ai/)",
       "icon": "lm_studio.png",
@@ -1258,7 +1172,7 @@
           "description": "The model to generate the completion.",
           "type": "dropdown",
           "title": "Model Name",
-          "dataProxy": "llm|lmstudio_models"
+          "dataProxy": "llm/models/openai"
         },
         {
           "name": "temperature",
@@ -1294,7 +1208,7 @@
       "private": true
     },
     {
-      "name": "chat_openrouter",
+      "name": "openrouter",
       "title": "OpenRouter",
       "description": "Chat with OpenRouter, learn more: [openrouter.ai](https://openrouter.ai/)",
       "icon": "openrouter.png",
@@ -1323,7 +1237,7 @@
           "required": false,
           "title": "Model Name",
           "default": "anthropic/claude-3.5-sonnet",
-          "dataProxy": "llm|openrouter_models"
+          "dataProxy": "llm/models/openrouter"
         },
         {
           "name": "temperature",
@@ -1419,7 +1333,7 @@
       "private": true
     },
     {
-      "name": "chat_fireworks",
+      "name": "fireworks",
       "title": "Fireworks",
       "description": "Chat with Fireworks, learn more : [fireworks.ai](https://fireworks.ai), get all models from [fireworks models](https://fireworks.ai/models/fireworks/mixtral-8x7b-instruct)",
       "icon": "fireworks.jpg",
@@ -1448,7 +1362,7 @@
           "required": false,
           "title": "Model Name",
           "default": "accounts/fireworks/models/deepseek-v3-0324",
-          "dataProxy": "llm|fireworks_models",
+          "dataProxy": "llm/models/fireworks",
           "dataCustomTitle": "Add Custom Model"
         },
         {
@@ -1485,7 +1399,7 @@
       "private": true
     },
     {
-      "name": "chat_together_ai",
+      "name": "together_ai",
       "title": "Together AI",
       "description": "Chat with together.ai, learn more : [together.ai](https://docs.together.ai/docs/quickstart), get chat models from [together models](https://docs.together.ai/docs/inference-models)",
       "icon": "together.png",
@@ -1514,7 +1428,7 @@
           "required": false,
           "title": "Model Name",
           "default": "meta-llama/Llama-3.2-3B-Instruct-Turbo",
-          "dataProxy": "llm|together_models"
+          "dataProxy": "llm/models/fetch"
         },
         {
           "name": "temperature",
@@ -1550,7 +1464,7 @@
       "private": true
     },
     {
-      "name": "chat_poe",
+      "name": "poe",
       "title": "Poe",
       "description": "Chat with Poe, learn more : [poe.com](https://poe.com)",
       "icon": "poe.png",
@@ -1579,7 +1493,7 @@
           "required": false,
           "title": "Model Name",
           "default": "claude-3.5-sonnet",
-          "dataProxy": "llm|poe_models"
+          "dataProxy": "llm/models/poe"
         },
         {
           "name": "temperature",
@@ -1615,7 +1529,7 @@
       "private": true
     },
     {
-      "name": "chat_moonshot_ai",
+      "name": "moonshot_ai",
       "title": "MoonShot AI",
       "description": "Chat with moonshot ai, learn more : [moonshot.cn](https://www.moonshot.cn/)",
       "icon": "moonshot.png",
@@ -1644,7 +1558,7 @@
           "required": false,
           "title": "Model Name",
           "default": "kimi-k2-0711-preview",
-          "dataProxy": "llm|moonshot_models"
+          "dataProxy": "llm/models/moonshot"
         },
         {
           "name": "temperature",
@@ -1680,7 +1594,7 @@
       "private": true
     },
     {
-      "name": "chat_dashscope",
+      "name": "dashscope",
       "title": "DashScope",
       "description": "Chat with 阿里云百炼 , learn more : [阿里云百炼](https://bailian.console.aliyun.com/#/home)",
       "icon": "dashscope.png",
@@ -1709,7 +1623,7 @@
           "required": false,
           "title": "Model Name",
           "default": "qwen-max-latest",
-          "dataProxy": "llm|dashscope_models"
+          "dataProxy": "llm/models/dashscope"
         },
         {
           "name": "temperature",
@@ -1745,7 +1659,7 @@
       "private": true
     },
     {
-      "name": "chat_sambanova",
+      "name": "sambanova",
       "title": "Sambanova AI",
       "description": "Chat with sambanova.ai, learn more : [sambanova.ai](https://cloud.sambanova.ai/pricing)",
       "icon": "sambanova.png",
@@ -1774,7 +1688,7 @@
           "required": false,
           "title": "Model Name",
           "default": "Meta-Llama-3.2-3B-Instruct",
-          "dataProxy": "llm|sambanova_models"
+          "dataProxy": "llm/models/sambanova"
         },
         {
           "name": "temperature",
@@ -1810,7 +1724,7 @@
       "private": true
     },
     {
-      "name": "chat_cerebras",
+      "name": "cerebras",
       "title": "Cerebras AI",
       "description": "Chat with cerebras.ai, learn more : [cerebras.ai](https://cerebras.ai/)",
       "icon": "cerebras.png",
@@ -1839,7 +1753,7 @@
           "required": false,
           "title": "Model Name",
           "default": "llama3.1-8b",
-          "dataProxy": "llm|cerebras_models"
+          "dataProxy": "llm/models/cerebras"
         },
         {
           "name": "temperature",
@@ -1875,7 +1789,7 @@
       "private": true
     },
     {
-      "name": "chat_arli",
+      "name": "arli",
       "title": "Arli AI",
       "description": "Chat with arli.ai, learn more : [arliai.com](https://arliai.com/)",
       "icon": "arli.png",
@@ -1904,7 +1818,7 @@
           "required": false,
           "title": "Model Name",
           "default": "(TRIAL) Llama-3.1-70B-ArliAI-RPMax-v1.1",
-          "dataProxy": "llm|arli_models"
+          "dataProxy": "llm/models/openai"
         },
         {
           "name": "temperature",
@@ -1940,7 +1854,7 @@
       "private": true
     },
     {
-      "name": "chat_straico",
+      "name": "straico",
       "title": "Straico AI",
       "description": "Chat with straico.com, learn more : [straico.com](https://straico.com/)",
       "icon": "straico.png",
@@ -1969,7 +1883,7 @@
           "required": false,
           "title": "Model Name",
           "default": "openai/gpt-4o-mini",
-          "dataProxy": "llm|straico_models"
+          "dataProxy": "llm/models/straico"
         },
         {
           "name": "temperature",
@@ -2005,626 +1919,7 @@
       "private": true
     },
     {
-      "name": "ollama_models",
-      "title": "Ollama Models",
-      "commandType": "function_command",
-      "description": "get ollama model list",
-      "icon": "ollama.png",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "credentials",
-          "description": "The key management provider to use",
-          "type": "extension",
-          "required": false,
-          "default": "ollama",
-          "extensionType": "credentials-provider",
-          "extensionFilter": {
-            "targetCommands": [
-              "credentials|ollama"
-            ]
-          },
-          "title": "Credential Provider"
-        }
-      ],
-      "private": true
-    },
-    {
-      "name": "openrouter_models",
-      "commandType": "function_command",
-      "title": "openrouter Models",
-      "description": "get openrouter model list",
-      "icon": "openrouter.png",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "private": true
-    },
-    {
-      "name": "perplexity_models",
-      "targetCommand": "llm|fetch_models",
-      "commandType": "function_command",
-      "title": "perplexity Models",
-      "description": "get perplexity model list",
-      "icon": "perplexity.png",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "url",
-          "title": "Url",
-          "description": "perplexity api url",
-          "type": "textfield",
-          "required": false,
-          "default": "https://file.enconvo.com/modles/perplexity.json"
-        }
-      ],
-      "private": true
-    },
-    {
-      "name": "groq_models",
-      "title": "groq Models",
-      "commandType": "function_command",
-      "description": "get groq model list",
-      "icon": "groq.png",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "credentials",
-          "description": "The key management provider to use",
-          "type": "extension",
-          "required": false,
-          "default": "groq",
-          "extensionType": "credentials-provider",
-          "extensionFilter": {
-            "targetCommands": [
-              "credentials|groq"
-            ]
-          },
-          "title": "Credential Provider"
-        }
-      ],
-      "private": true
-    },
-    {
-      "name": "x_ai_models",
-      "title": "X.AI Models",
-      "description": "get X.AI model list",
-      "commandType": "function_command",
-      "icon": "x_ai.png",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "credentials",
-          "description": "The key management provider to use",
-          "type": "extension",
-          "required": false,
-          "default": "x_ai",
-          "extensionType": "credentials-provider",
-          "extensionFilter": {
-            "targetCommands": [
-              "credentials|x_ai"
-            ]
-          },
-          "title": "Credential Provider"
-        }
-      ],
-      "private": true
-    },
-    {
-      "name": "moonshot_models",
-      "title": "Moonshot Models",
-      "description": "get Moonshot model list",
-      "commandType": "function_command",
-      "icon": "moonshot.png",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "credentials",
-          "description": "The key management provider to use",
-          "type": "extension",
-          "required": false,
-          "default": "moonshot_ai",
-          "extensionType": "credentials-provider",
-          "extensionFilter": {
-            "targetCommands": [
-              "credentials|moonshot_ai"
-            ]
-          },
-          "title": "Credential Provider"
-        }
-      ],
-      "private": true
-    },
-    {
-      "name": "straico_models",
-      "title": "Straico Models",
-      "description": "get Straico model list",
-      "commandType": "function_command",
-      "icon": "straico.png",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "credentials",
-          "description": "The key management provider to use",
-          "type": "extension",
-          "required": false,
-          "default": "straico",
-          "defaultProxy": "llm|chat_straico",
-          "extensionType": "credentials-provider",
-          "extensionFilter": {
-            "targetCommands": [
-              "credentials|straico"
-            ]
-          },
-          "title": "Credential Provider"
-        },
-        {
-          "name": "type",
-          "description": "How to get api key? [🔑here](https://straico.com/)",
-          "type": "textfield",
-          "required": false,
-          "title": "Type",
-          "default": "chat"
-        }
-      ],
-      "private": true
-    },
-    {
-      "name": "gemini_models",
-      "title": "Gemini Models",
-      "description": "get Gemini model list",
-      "commandType": "function_command",
-      "icon": "gemini.png",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "credentials",
-          "description": "The key management provider to use",
-          "type": "extension",
-          "required": false,
-          "default": "gemini",
-          "extensionType": "credentials-provider",
-          "defaultProxy": "llm|chat_google",
-          "extensionFilter": {
-            "targetCommands": [
-              "credentials|gemini"
-            ]
-          },
-          "title": "Credential Provider"
-        }
-      ],
-      "private": true
-    },
-    {
-      "name": "deepseek_models",
-      "title": "DeepSeek Models",
-      "description": "get DeepSeek model list",
-      "commandType": "function_command",
-      "icon": "deepseek.png",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [],
-      "private": true
-    },
-    {
-      "name": "dashscope_models",
-      "title": "DashScope Models",
-      "description": "get DashScope model list",
-      "commandType": "function_command",
-      "icon": "dashscope.png",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "apiKey",
-          "description": "How to get api key? [🔑here](https://bailian.console.aliyun.com/#/home)",
-          "type": "password",
-          "required": false,
-          "title": "API Key",
-          "default": "",
-          "defaultProxy": "credentials|dashscope",
-          "placeholder": "sk-********"
-        },
-        {
-          "name": "baseUrl",
-          "description": "DashScope api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "OpenAI Api Base Url",
-          "default": "https://dashscope.aliyuncs.com/compatible-mode/v1",
-          "placeholder": "OpenAI Api Base Url",
-          "visibility": "hidden"
-        }
-      ],
-      "private": true
-    },
-    {
-      "name": "sambanova_models",
-      "title": "Sambanova Models",
-      "description": "get Sambanova model list",
-      "commandType": "function_command",
-      "icon": "sambanova.png",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "credentials",
-          "description": "The key management provider to use",
-          "type": "extension",
-          "required": false,
-          "default": "sambanova",
-          "defaultProxy": "llm|chat_sambanova",
-          "extensionType": "credentials-provider",
-          "extensionFilter": {
-            "targetCommands": [
-              "credentials|sambanova"
-            ]
-          },
-          "title": "Credential Provider"
-        }
-      ],
-      "private": true
-    },
-    {
-      "name": "cerebras_models",
-      "title": "Cerebras Models",
-      "description": "get Cerebras model list",
-      "commandType": "function_command",
-      "icon": "cerebras.png",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "credentials",
-          "description": "The key management provider to use",
-          "type": "extension",
-          "required": false,
-          "default": "cerebras",
-          "defaultProxy": "llm|chat_cerebras",
-          "extensionType": "credentials-provider",
-          "extensionFilter": {
-            "targetCommands": [
-              "credentials|cerebras"
-            ]
-          },
-          "title": "Credential Provider"
-        }
-      ],
-      "private": true
-    },
-    {
-      "name": "mistral_models",
-      "title": "Mistral Models",
-      "description": "get Mistral model list",
-      "commandType": "function_command",
-      "icon": "mistral.png",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "apiKey",
-          "description": "How to get api key? [🔑here](https://console.mistral.ai/api-keys/)",
-          "type": "password",
-          "required": false,
-          "title": "API Key",
-          "default": "",
-          "defaultProxy": "credentials|mistral",
-          "placeholder": "Mistral AI Api Key"
-        },
-        {
-          "name": "baseUrl",
-          "description": "Mixtral api base url",
-          "type": "textfield",
-          "required": false,
-          "title": "BaseUrl",
-          "default": "https://api.mistral.ai/v1",
-          "defaultProxy": "credentials|mistral",
-          "placeholder": "Mixtral Api Base Url"
-        }
-      ],
-      "private": true
-    },
-    {
-      "name": "poe_models",
-      "title": "Poe Models",
-      "description": "get Poe model list",
-      "commandType": "function_command",
-      "icon": "poe.png",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "credentials",
-          "description": "The key management provider to use",
-          "type": "extension",
-          "required": false,
-          "default": "poe",
-          "extensionType": "credentials-provider",
-          "extensionFilter": {
-            "targetCommands": [
-              "credentials|poe"
-            ]
-          },
-          "title": "Credential Provider"
-        }
-      ],
-      "private": true
-    },
-    {
-      "name": "together_models",
-      "targetCommand": "llm|fetch_models",
-      "title": "together Models",
-      "commandType": "function_command",
-      "description": "get together model list",
-      "icon": "together.png",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
-        {
-          "title": "Url",
-          "name": "url",
-          "description": "together api url",
-          "type": "textfield",
-          "required": false,
-          "default": "https://api-v.enconvo.com/together/v1/models"
-        }
-      ],
-      "private": true
-    },
-    {
-      "name": "fireworks_models",
-      "title": "fireworks Models",
-      "commandType": "function_command",
-      "description": "get fireworks model list",
-      "icon": "fireworks.png",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "credentials",
-          "description": "The key management provider to use",
-          "type": "extension",
-          "required": false,
-          "default": "fireworks",
-          "extensionType": "credentials-provider",
-          "extensionFilter": {
-            "targetCommands": [
-              "credentials|fireworks"
-            ]
-          },
-          "title": "Credential Provider"
-        }
-      ],
-      "private": true
-    },
-    {
-      "name": "fetch_models",
-      "title": "fetch Models",
-      "description": "get models list",
-      "icon": "together.png",
-      "commandType": "function_command",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "private": true
-    },
-    {
-      "name": "enconvo_models",
-      "targetCommand": "llm|fetch_models",
-      "title": "enconvo Models",
-      "commandType": "function_command",
-      "description": "get enconvo model list",
-      "icon": "enconvo.png",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "url",
-          "description": "enconvo api url",
-          "type": "textfield",
-          "required": false,
-          "default": "https://file.enconvo.com/modles/enconvo.json"
-        }
-      ],
-      "private": true
-    },
-    {
-      "name": "qwen_models",
-      "title": "qwen Models",
-      "description": "get qwen model list",
-      "icon": "qwen.png",
-      "showInCommandList": false,
-      "commandType": "function_command",
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "credentials",
-          "description": "The key management provider to use",
-          "type": "extension",
-          "required": false,
-          "default": "qwen",
-          "extensionType": "credentials-provider",
-          "extensionFilter": {
-            "targetCommands": [
-              "credentials|qwen"
-            ]
-          },
-          "title": "Credential Provider",
-          "defaultProxy": "llm|chat_qwen"
-        }
-      ],
-      "private": true
-    },
-    {
-      "name": "vercel_ai_gateway_models",
-      "title": "vercel_ai_gateway Models",
-      "description": "get vercel_ai_gateway model list",
-      "icon": "vercel.png",
-      "showInCommandList": false,
-      "commandType": "function_command",
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "credentials",
-          "description": "The key management provider to use",
-          "type": "extension",
-          "required": false,
-          "default": "vercel_ai_gateway",
-          "extensionType": "credentials-provider",
-          "extensionFilter": {
-            "targetCommands": [
-              "credentials|vercel_ai_gateway"
-            ]
-          },
-          "title": "Credential Provider",
-          "defaultProxy": "llm|chat_vercel_ai_gateway"
-        }
-      ],
-      "private": true
-    },
-    {
-      "name": "openai_models",
-      "title": "openai Models",
-      "description": "get openai model list",
-      "icon": "openai.png",
-      "showInCommandList": false,
-      "commandType": "function_command",
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "credentials",
-          "description": "The key management provider to use",
-          "type": "extension",
-          "required": false,
-          "default": "open_ai",
-          "extensionType": "credentials-provider",
-          "extensionFilter": {
-            "targetCommands": [
-              "credentials|open_ai"
-            ]
-          },
-          "title": "Credential Provider",
-          "defaultProxy": "llm|chat_open_ai"
-        }
-      ],
-      "private": true
-    },
-    {
-      "name": "lmstudio_models",
-      "title": "lmstudio Models",
-      "description": "get lmstudio model list",
-      "icon": "lmstudio.png",
-      "showInCommandList": false,
-      "commandType": "function_command",
-      "targetCommand": "llm|openai_models",
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "credentials",
-          "description": "The key management provider to use",
-          "type": "extension",
-          "required": false,
-          "default": "lm_studio",
-          "defaultProxy": "llm|chat_lm_studio",
-          "extensionType": "credentials-provider",
-          "extensionFilter": {
-            "targetCommands": [
-              "credentials|lm_studio"
-            ]
-          },
-          "title": "Credential Provider"
-        }
-      ],
-      "private": true
-    },
-    {
-      "name": "azureai_models",
-      "title": "azureai Models",
-      "targetCommand": "llm|fetch_models",
-      "description": "get azureai model list",
-      "icon": "azureai.png",
-      "showInCommandList": false,
-      "commandType": "function_command",
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "url",
-          "description": "openai api url",
-          "type": "textfield",
-          "required": false,
-          "default": "https://file.enconvo.com/modles/openai.json"
-        }
-      ],
-      "private": true
-    },
-    {
-      "name": "cloudflare_models",
-      "title": "cloudflare Models",
-      "targetCommand": "llm|fetch_models",
-      "description": "get cloudflare model list",
-      "icon": "cloudflare.png",
-      "commandType": "function_command",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "url",
-          "description": "cloudflare api url",
-          "type": "textfield",
-          "required": false,
-          "default": "https://api-v.enconvo.com/cloudflare/v1/models"
-        }
-      ],
-      "private": true
-    },
-    {
-      "name": "cohere_models",
-      "title": "cohere Models",
-      "targetCommand": "llm|fetch_models",
-      "description": "get cohere model list",
-      "icon": "cohere.jpg",
-      "commandType": "function_command",
-      "showInCommandList": false,
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "url",
-          "title": "Url",
-          "description": "cohere api url",
-          "type": "textfield",
-          "required": false,
-          "default": "https://api-v.enconvo.com/cohere/v1/models"
-        }
-      ],
-      "private": true
-    },
-    {
-      "name": "silliconflow_models",
-      "title": "silliconflow_models",
-      "targetCommand": "llm|fetch_models",
-      "description": "get silliconflow model list",
-      "icon": "openrouter.png",
-      "showInCommandList": false,
-      "commandType": "function_command",
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "url",
-          "description": "silliconflow api url",
-          "type": "textfield",
-          "required": false,
-          "default": "https://api-v.enconvo.com/siliconflow/v1/models"
-        }
-      ],
-      "private": true
-    },
-    {
-      "name": "chat_aimagicx",
+      "name": "aimagicx",
       "title": "AIMagicX",
       "description": "Chat with AIMagicX, learn more : [aimagicx.com](https://aimagicx.com/)",
       "icon": "aimagicx.png",
@@ -2653,7 +1948,7 @@
           "required": false,
           "title": "Model Name",
           "default": "4o-mini",
-          "dataProxy": "llm|aimagicx_models"
+          "dataProxy": "llm/models/aimagicx"
         },
         {
           "name": "temperature",
@@ -2693,35 +1988,7 @@
       "private": true
     },
     {
-      "name": "aimagicx_models",
-      "title": "aimagicx_models",
-      "targetCommand": "llm|aimagicx_models",
-      "description": "get AIMagicX model list",
-      "icon": "openrouter.png",
-      "showInCommandList": false,
-      "commandType": "function_command",
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "credentials",
-          "description": "The key management provider to use",
-          "type": "extension",
-          "required": false,
-          "default": "aimagicx",
-          "extensionType": "credentials-provider",
-          "defaultProxy": "llm|chat_aimagicx",
-          "extensionFilter": {
-            "targetCommands": [
-              "credentials|aimagicx"
-            ]
-          },
-          "title": "Credential Provider"
-        }
-      ],
-      "private": true
-    },
-    {
-      "name": "chat_1minai",
+      "name": "1minai",
       "title": "1min AI",
       "description": "Chat with 1min AI, learn more : [1min.ai](https://1min.ai/)",
       "icon": "1minai.png",
@@ -2750,7 +2017,7 @@
           "required": false,
           "title": "Model Name",
           "default": "gpt-4o-mini",
-          "dataProxy": "llm|1minai_models"
+          "dataProxy": "llm/models/1minai"
         },
         {
           "name": "temperature",
@@ -2790,63 +2057,7 @@
       "private": true
     },
     {
-      "name": "1minai_models",
-      "title": "1minai_models",
-      "targetCommand": "llm|1minai_models",
-      "description": "get 1min AI model list",
-      "icon": "openrouter.png",
-      "showInCommandList": false,
-      "commandType": "function_command",
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "credentials",
-          "description": "The key management provider to use",
-          "type": "extension",
-          "required": false,
-          "default": "1minai",
-          "extensionType": "credentials-provider",
-          "defaultProxy": "llm|chat_1minai",
-          "extensionFilter": {
-            "targetCommands": [
-              "credentials|1minai"
-            ]
-          },
-          "title": "Credential Provider"
-        }
-      ],
-      "private": true
-    },
-    {
-      "name": "arli_models",
-      "title": "arli_models",
-      "targetCommand": "llm|fetch_models",
-      "description": "get arli model list",
-      "icon": "openrouter.png",
-      "showInCommandList": false,
-      "commandType": "function_command",
-      "mode": "no-view",
-      "preferences": [
-        {
-          "name": "credentials",
-          "description": "The key management provider to use",
-          "type": "extension",
-          "required": false,
-          "default": "arli",
-          "extensionType": "credentials-provider",
-          "defaultProxy": "llm|chat_arli",
-          "extensionFilter": {
-            "targetCommands": [
-              "credentials|arli"
-            ]
-          },
-          "title": "Credential Provider"
-        }
-      ],
-      "private": true
-    },
-    {
-      "name": "chat_vercel_ai_gateway",
+      "name": "vercel_ai_gateway",
       "title": "Vercel AI Gateway",
       "description": "Chat using Vercel AI Gateway with support for multiple AI providers, learn more: [vercel.com/ai-gateway](https://vercel.com/ai-gateway)",
       "icon": "vercel.png",
@@ -2875,7 +2086,7 @@
           "required": false,
           "title": "Model Name",
           "default": "openai/gpt-5",
-          "dataProxy": "llm|vercel_ai_gateway_models"
+          "dataProxy": "llm/models/vercel_ai_gateway"
         },
         {
           "name": "temperature",
@@ -2982,6 +2193,7 @@
     "axios": "^1.14.0",
     "flat-cache": "^6.1.22",
     "form-data": "^4.0.5",
+    "fuzzysort": "^3.1.0",
     "google-auth-library": "^10.6.2",
     "jsonrepair": "^3.13.3",
     "mime": "^4.1.0",

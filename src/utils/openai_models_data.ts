@@ -442,6 +442,57 @@ export const openai_models_data: Preference.LLMModel[] = [
   // GPT-5.4 Series
   {
     type: "llm_model",
+    title: "GPT-5.4",
+    value: "gpt-5.4",
+    context: 1050000,
+    maxTokens: 128000,
+    inputPrice: 2.5,
+    outputPrice: 15,
+    systemMessageEnable: true,
+    speed: 3,
+    reasoning: 5,
+    toolUse: true,
+    visionEnable: true,
+    preferences: [
+      {
+        name: "reasoning_effort",
+        description: "Applicable to reasoning models only, this option controls the reasoning token length.",
+        type: "dropdown",
+        required: false,
+        title: "Reasoning Effort",
+        default: "none",
+        data: [
+          {
+            title: "None",
+            description: "No reasoning",
+            value: "none"
+          },
+          {
+            title: "Low",
+            description: "Basic reasoning",
+            value: "low"
+          },
+          {
+            title: "Medium",
+            description: "Medium reasoning",
+            value: "medium"
+          },
+          {
+            title: "High",
+            description: "High reasoning",
+            value: "high"
+          },
+          {
+            title: "X-High",
+            description: "Extra high reasoning",
+            value: "xhigh"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    type: "llm_model",
     title: "GPT-5.4-mini",
     value: "gpt-5.4-mini",
     context: 400000,

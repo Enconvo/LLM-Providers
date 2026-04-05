@@ -19,19 +19,19 @@ async function initLLMProvider(options: LLMProvider.LLMOptions) {
 
   switch (modelProvider) {
     case "anthropic":
-      options.commandName = "chat_anthropic";
+      options.commandName = "anthropic";
       options.credentials!.anthropicApiUrl = anthropicApiUrl;
       break;
     case "minimax":
-      options.commandName = "chat_minimax";
+      options.commandName = "minimax";
       options.credentials!.anthropicApiUrl = anthropicApiUrl;
       break;
     case "google":
-      options.commandName = "chat_google";
+      options.commandName = "gemini";
       options.credentials!.baseUrl = googleApiUrl;
       break;
     default:
-      options.commandName = "chat_open_ai";
+      options.commandName = "open_ai";
       options.credentials!.baseUrl = openAIBaseUrl;
       break;
   }
