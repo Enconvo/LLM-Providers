@@ -204,7 +204,7 @@
     {
       "name": "minimax",
       "title": "Minimax AI",
-      "description": "Chat with Minimax AI, learn more : [minimax.com](https://www.minimax.com/)",
+      "description": "Chat with MiniMax AI, learn more: [MiniMax](https://www.minimax.io/) | [API Reference](https://platform.minimax.io/docs/api-reference/api-overview)",
       "mode": "no-view",
       "commandType": "provider",
       "provider_category": "llm",
@@ -215,11 +215,11 @@
           "description": "The key management provider to use",
           "type": "extension",
           "required": false,
-          "default": "minimax_coding_plan",
+          "default": "minimax",
           "extensionType": "credentials-provider",
           "extensionFilter": {
             "targetCommands": [
-              "credentials|minimax_coding_plan"
+              "credentials|minimax"
             ]
           },
           "title": "Credential Provider"
@@ -231,57 +231,7 @@
           "required": false,
           "title": "Model Name",
           "default": "MiniMax-M2.5",
-          "data": [
-            {
-              "title": "MiniMax-M2.5",
-              "value": "MiniMax-M2.5",
-              "description": "Optimized for code generation and refactoring",
-              "context": 204800,
-              "perRequestPrice": 0,
-              "providerName": "minimax",
-              "toolUse": true,
-              "visionEnable": true,
-              "searchToolSupported": true,
-              "maxTokens": 64000,
-              "preferences": [
-                {
-                  "name": "reasoning_effort",
-                  "description": "Applicable to reasoning models only, this option controls the reasoning token length.",
-                  "type": "dropdown",
-                  "required": false,
-                  "title": "Reasoning Effort",
-                  "default": "none",
-                  "data": [
-                    {
-                      "title": "None",
-                      "value": "none",
-                      "description": "Model does not think"
-                    },
-                    {
-                      "title": "Minimal",
-                      "value": "1024",
-                      "description": "Thinking budget tokens: 1024"
-                    },
-                    {
-                      "title": "Low",
-                      "value": "2048",
-                      "description": "Thinking budget tokens: 2048"
-                    },
-                    {
-                      "title": "Medium",
-                      "value": "5120",
-                      "description": "Thinking budget tokens: 5120"
-                    },
-                    {
-                      "title": "High",
-                      "value": "10240",
-                      "description": "Thinking budget tokens: 10240"
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+          "dataProxy": "llm/models/minimax"
         },
         {
           "name": "temperature",

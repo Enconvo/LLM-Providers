@@ -202,6 +202,9 @@ const modelMappings: ModelMapping[] = [
   // ── Groq (GPT-OSS) ─────────────────────────────────────────────────
   { prefix: "openai/gpt-oss", profile: "standard_3_levels" },
 
+  // ── MiniMax ──────────────────────────────────────────────────────────
+  { prefix: "MiniMax-", profile: "anthropic_budget" },
+
   // ── Ollama (all thinking-capable models) ────────────────────────────
   // Ollama models are handled differently — see getReasoningEffortPreference
   // with the provider parameter.

@@ -42,6 +42,7 @@ Just use the `local_api` tool to request these APIs.
 | `llm/models/fireworks` | Fetch and search Fireworks model list. Params: `forceRefresh` (boolean, default: false), `query` (string) |
 | `llm/models/gemini` | Fetch and search Gemini model list. Params: `forceRefresh` (boolean, default: false), `query` (string) |
 | `llm/models/groq` | Fetch and search Groq model list. Params: `forceRefresh` (boolean, default: false), `query` (string) |
+| `llm/models/minimax` | Fetch and search Minimax model list. Params: `forceRefresh` (boolean, default: false), `query` (string) |
 | `llm/models/mistral` | Fetch and search Mistral model list. Params: `forceRefresh` (boolean, default: false), `query` (string) |
 | `llm/models/moonshot` | Fetch and search Moonshot model list. Params: `forceRefresh` (boolean, default: false), `query` (string) |
 | `llm/models/ollama` | Fetch and search Ollama model list. Params: `forceRefresh` (boolean, default: false), `query` (string) |

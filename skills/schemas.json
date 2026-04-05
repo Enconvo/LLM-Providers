@@ -266,6 +266,26 @@
         "routePath": "llm/models/groq"
       },
       {
+        "name": "minimax",
+        "description": "Fetch and search Minimax model list",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "forceRefresh": {
+              "type": "boolean",
+              "description": "Force refresh the cached model list",
+              "default": false
+            },
+            "query": {
+              "type": "string",
+              "description": "Fuzzy search query to filter models by name"
+            }
+          },
+          "required": []
+        },
+        "routePath": "llm/models/minimax"
+      },
+      {
         "name": "mistral",
         "description": "Fetch and search Mistral model list",
         "parameters": {

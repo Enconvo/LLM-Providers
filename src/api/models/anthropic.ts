@@ -54,14 +54,14 @@ async function fetchModels(
     return [];
   }
 
-  if (credentialsType === "apiKey" && !credentials?.anthropicApiKey) {
+  if (credentialsType === "apiKey" && !credentials?.anthropicApiKey && !credentials?.apiKey) {
     return [];
   }
 
   const anthropic = new Anthropic({
-    apiKey: credentials?.anthropicApiKey,
+    apiKey: credentials?.anthropicApiKey || credentials?.apiKey,
     authToken: credentials?.access_token,
-    baseURL: credentials?.anthropicApiUrl,
+    baseURL: credentials?.anthropicApiUrl || credentials?.baseUrl,
     defaultHeaders:
       credentialsType === "oauth2"
         ? {
