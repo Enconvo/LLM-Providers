@@ -346,7 +346,7 @@
         "routePath": "llm/models/ollama"
       },
       {
-        "name": "openai",
+        "name": "open_ai",
         "description": "Fetch and search OpenAI-compatible model list",
         "parameters": {
           "type": "object",
@@ -363,7 +363,7 @@
           },
           "required": []
         },
-        "routePath": "llm/models/openai"
+        "routePath": "llm/models/open_ai"
       },
       {
         "name": "openrouter",
