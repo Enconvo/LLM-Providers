@@ -1,60 +1,46 @@
-import { CommandManageUtils, ListCache, Preference, RequestOptions } from "@enconvo/api";
+import { ListCache, Preference, RequestOptions } from "@enconvo/api";
 import fuzzysort from "fuzzysort";
-import { getModel, init as initRegistry } from "../../utils/model_registry.ts";
 import { getReasoningEffortPreference } from "../../utils/reasoning_effort_data.ts";
-import Anthropic from "@anthropic-ai/sdk";
+
+interface MiniMaxModelDef {
+  id: string;
+  title: string;
+  context: number;
+  description: string;
+}
+
+const MINIMAX_MODELS: MiniMaxModelDef[] = [
+  { id: "MiniMax-M2.7", title: "MiniMax-M2.7", context: 204800, description: "Beginning the journey of recursive self-improvement (~60 tps)" },
+  { id: "MiniMax-M2.7-highspeed", title: "MiniMax-M2.7-highspeed", context: 204800, description: "M2.7 highspeed: Same performance, faster and more agile (~100 tps)" },
+  { id: "MiniMax-M2.5", title: "MiniMax-M2.5", context: 204800, description: "Peak Performance. Ultimate Value. Master the Complex (~60 tps)" },
+  { id: "MiniMax-M2.5-highspeed", title: "MiniMax-M2.5-highspeed", context: 204800, description: "M2.5 highspeed: Same performance, faster and more agile (~100 tps)" },
+  { id: "MiniMax-M2.1", title: "MiniMax-M2.1", context: 204800, description: "Powerful Multi-Language Programming with Enhanced Experience (~60 tps)" },
+  { id: "MiniMax-M2.1-highspeed", title: "MiniMax-M2.1-highspeed", context: 204800, description: "Faster and More Agile (~100 tps)" },
+  { id: "MiniMax-M2", title: "MiniMax-M2", context: 204800, description: "Agentic capabilities, Advanced reasoning" },
+];
 
 async function fetchModels(
   _options: RequestOptions,
 ): Promise<ListCache.ListItem[]> {
-  const config = await CommandManageUtils.loadCommandConfig({
-    commandKey: "llm|minimax",
-    includes: ['credentials'],
-    useAsRunParams: true
+  return MINIMAX_MODELS.map((m) => {
+    const reasoningPref = getReasoningEffortPreference(m.id, "minimax");
+
+    const model: Preference.LLMModel = {
+      type: "llm_model",
+      title: m.title,
+      value: m.id,
+      providerName: "minimax",
+      context: m.context,
+      maxTokens: 64000,
+      inputPrice: 1,
+      outputPrice: 1,
+      toolUse: true,
+      visionEnable: true,
+      searchToolSupported: true,
+      ...(reasoningPref ? { preferences: [reasoningPref] } : {}),
+    };
+    return model;
   });
-  const credentials = config.credentials;
-
-  if (!credentials?.apiKey) {
-    return [];
-  }
-
-  const anthropic = new Anthropic({
-    apiKey: credentials?.apiKey,
-    baseURL: credentials?.baseUrl,
-  });
-
-  await initRegistry();
-
-  const models = await anthropic.models.list();
-
-  let result: Preference.ListItem[] = [];
-  for await (const page of models.iterPages()) {
-    const items = await Promise.all(
-      page.data.map(async (item) => {
-        const info = await getModel(item.id);
-        const reasoningPref = getReasoningEffortPreference(item.id, "minimax");
-
-        const model: Preference.LLMModel = {
-          type: "llm_model",
-          title: item.display_name,
-          value: item.id,
-          providerName: "minimax",
-          context: info?.maxInputTokens ?? 204800,
-          maxTokens: info?.maxOutputTokens ?? 64000,
-          inputPrice: info?.inputPricePerMillion ?? 1,
-          outputPrice: info?.outputPricePerMillion ?? 1,
-          toolUse: info?.supportsToolUse ?? true,
-          visionEnable: info?.supportsVision ?? true,
-          searchToolSupported: true,
-          ...(reasoningPref ? { preferences: [reasoningPref] } : {}),
-        };
-        return model;
-      }),
-    );
-    result.push(...items);
-  }
-
-  return result;
 }
 
 /** Minimax models list request params */

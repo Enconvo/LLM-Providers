@@ -54,4 +54,5 @@ Just use the `local_api` tool to request these APIs.
 | `llm/models/straico` | Fetch and search Straico model list. Params: `forceRefresh` (boolean, default: false), `query` (string) |
 | `llm/models/vercel_ai_gateway` | Fetch and search Vercel AI Gateway model list. Params: `forceRefresh` (boolean, default: false), `query` (string) |
 | `llm/models/x_ai` | Fetch and search xAI model list. Params: `forceRefresh` (boolean, default: false), `query` (string) |
+| `llm/models/z_ai` | Fetch and search Z.AI model list. Params: `forceRefresh` (boolean, default: false), `query` (string) |
 

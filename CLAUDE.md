@@ -154,9 +154,66 @@ Each provider must implement:
 
 ### Provider Categories
 - **OpenAI-Compatible**: OpenAI, Azure OpenAI, LM Studio, OpenRouter, Perplexity, SiliconFlow
+- **Anthropic-Compatible**: Anthropic, MiniMax, Z.AI (wrap `AnthropicProvider`)
 - **LangChain-Based**: Cohere, Cloudflare Workers AI  
-- **Direct SDK**: Anthropic, Google Gemini, X.AI
+- **Direct SDK**: Google Gemini, X.AI
 - **Custom Implementation**: Enconvo Cloud, Ollama, DeepSeek, others
+
+### Adding a Provider to Enconvo Cloud
+
+Enconvo Cloud (`enconvo_ai`) is a proxy that routes requests through Enconvo's API gateway. Adding a model to the cloud plan requires changes across **3 repos**:
+
+#### Step 1: Model list — `distribution/modles/enconvo.json`
+
+Add the model entry with `providerName` matching the routing key. Points pricing: `$price / $0.00002 per point`.
+
+```jsonc
+{
+  "title": "GLM-5",
+  "value": "z_ai/glm-5",           // format: {providerKey}/{modelId}
+  "providerName": "z_ai",           // must match the switch case in enconvo_ai.ts
+  "context": 128000,
+  "perRequestPrice": 50000,          // input: $1/1M tokens ÷ $0.00002 = 50,000 points
+  "perRequestUnit": "1M input tokens , 160,000 points / 1M output tokens",
+  "toolUse": true,
+  "visionEnable": true,
+  "searchToolSupported": true
+}
+```
+
+After editing, run `sh upload-r2.sh` in the `distribution/` repo to sync to R2.
+
+#### Step 2: Provider routing — `llm/src/providers/enconvo_ai.ts`
+
+Add a `case` in the `switch (modelProvider)` block to route the provider key to the correct command and set the appropriate API URL:
+
+```typescript
+case "z_ai":
+  options.commandName = "z_ai";
+  options.credentials!.anthropicApiUrl = workerAnthropicApiUrl;
+  break;
+```
+
+URL mapping:
+- `workerAnthropicApiUrl` (`https://api.enconvo.com/`) — for Anthropic-compatible providers (Anthropic, MiniMax, Z.AI)
+- `openAIBaseUrl` (`https://api.enconvo.com/v1/`) — for OpenAI-compatible providers
+- `googleApiUrl` (`https://api.enconvo.com`) — for Google Gemini
+- `anthropicApiUrl` (`https://api-v.enconvo.com/claude/`) — for direct Anthropic routing
+
+#### Step 3: API gateway — `enconvo-api-workers/src/controller/ai/OpenAIController.ts`
+
+Three changes needed:
+
+1. **Token pricing** — add model to `tokenPointsMap` (prices in $/1M tokens):
+   ```typescript
+   'glm-5': { input_price: 1, output_price: 3.2, cache_input_price: 0.2, cache_output_price: 0 },
+   ```
+
+2. **Request routing** — add `else if (modelProvider === 'z_ai')` block with the upstream API URL, auth headers, and model name extraction. Follow existing patterns (Anthropic-compatible uses `X-Api-Key` + `Anthropic-Version`; OpenAI-compatible uses `Authorization: Bearer`).
+
+3. **Usage tracking** — ensure `handleStreamUsage` parses token usage for the new provider. Anthropic-compatible providers can be added to the existing `anthropic` branch condition.
+
+4. **Env type** — add the API key to the `Env` interface in `enconvo-api-workers/index.ts` and set it as a Cloudflare Workers secret.
 
 ## Development Guidelines
 

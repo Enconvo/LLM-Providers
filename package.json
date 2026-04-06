@@ -230,7 +230,7 @@
           "type": "dropdown",
           "required": false,
           "title": "Model Name",
-          "default": "MiniMax-M2.5",
+          "default": "MiniMax-M2.7",
           "dataProxy": "llm/models/minimax"
         },
         {
@@ -724,6 +724,71 @@
           "title": "Model Name",
           "default": "grok-4-0709",
           "dataProxy": "llm/models/x_ai"
+        },
+        {
+          "name": "temperature",
+          "description": "What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Temperature",
+          "default": 1,
+          "data": [
+            {
+              "title": "none",
+              "value": 0
+            },
+            {
+              "title": "low",
+              "value": 0.5
+            },
+            {
+              "title": "medium",
+              "value": 1
+            },
+            {
+              "title": "high",
+              "value": 1.5
+            },
+            {
+              "title": "maximum",
+              "value": 2
+            }
+          ]
+        }
+      ],
+      "private": true
+    },
+    {
+      "name": "z_ai",
+      "title": "Z.AI",
+      "description": "Chat with Z.AI, learn more : [z.ai](https://docs.z.ai/)",
+      "icon": "z.png",
+      "mode": "no-view",
+      "commandType": "provider",
+      "provider_category": "llm",
+      "preferences": [
+        {
+          "name": "credentials",
+          "description": "The key management provider to use",
+          "type": "extension",
+          "required": false,
+          "default": "z_ai",
+          "extensionType": "credentials-provider",
+          "extensionFilter": {
+            "targetCommands": [
+              "credentials|z_ai"
+            ]
+          },
+          "title": "Credential Provider"
+        },
+        {
+          "name": "modelName",
+          "description": "The model to generate the completion.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Model Name",
+          "default": "glm-5",
+          "dataProxy": "llm/models/z_ai"
         },
         {
           "name": "temperature",

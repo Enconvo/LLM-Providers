@@ -8,7 +8,7 @@ async function initLLMProvider(options: LLMProvider.LLMOptions) {
   const newLLMArr = options.modelName.value.split("/");
   const modelProvider = newLLMArr[0];
 
-  // const anthropicApiUrl = "https://api.enconvo.com/";
+  const workerAnthropicApiUrl = "https://api.enconvo.com/";
   const openAIBaseUrl = "https://api.enconvo.com/v1/";
   const googleApiUrl = "https://api.enconvo.com";
   const anthropicApiUrl = "https://api-v.enconvo.com/claude/"
@@ -24,7 +24,11 @@ async function initLLMProvider(options: LLMProvider.LLMOptions) {
       break;
     case "minimax":
       options.commandName = "minimax";
-      options.credentials!.anthropicApiUrl = anthropicApiUrl;
+      options.credentials!.anthropicApiUrl = workerAnthropicApiUrl;
+      break;
+    case "z_ai":
+      options.commandName = "z_ai";
+      options.credentials!.anthropicApiUrl = workerAnthropicApiUrl;
       break;
     case "google":
       options.commandName = "gemini";
