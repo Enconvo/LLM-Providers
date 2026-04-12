@@ -13,9 +13,9 @@ import {
   Stream,
   ChatMessageContentListItem,
   AttachmentUtils,
-  ContextUtils,
   environment,
 } from "@enconvo/api";
+import { convertContextTypeMessageContent } from "./context_item_util.js";
 import OpenAI from "openai";
 import {
   EasyInputMessage,
@@ -185,40 +185,6 @@ export namespace OpenAIUtil {
               const description = `[Context Item] This is a screenshot, url is ${contextItem.url}`;
               const newMessageContents = await handleImageContentItem(contextItem.url, description);
               messageContents.push(...newMessageContents);
-            } else if (
-              contextItem.type === "text" ||
-              contextItem.type === "selectionText"
-            ) {
-              const textContent = `[Context Item] ${JSON.stringify(contextItem)}`;
-              if (role === "user" || role === "system") {
-                messageContents.push({
-                  type: "input_text",
-                  text: textContent,
-                });
-              } else if (role === "assistant") {
-                messageContents.push({
-                  type: "output_text",
-                  text: textContent,
-                  annotations: [],
-                });
-              }
-            } else if (
-              contextItem.type === "browserTab" ||
-              contextItem.type === "window"
-            ) {
-              const textContent = `[Context Item] ${JSON.stringify(contextItem)}`;
-              if (role === "user" || role === "system") {
-                messageContents.push({
-                  type: "input_text",
-                  text: textContent,
-                });
-              } else if (role === "assistant") {
-                messageContents.push({
-                  type: "output_text",
-                  text: textContent,
-                  annotations: [],
-                });
-              }
             } else if (contextItem.type === "file") {
               const url = contextItem.url.replace("file://", "");
               if (FileUtil.isImageFile(url)) {
@@ -226,54 +192,23 @@ export namespace OpenAIUtil {
                 const newMessageContents = await handleImageContentItem(url, description);
                 messageContents.push(...newMessageContents);
               } else {
-                const readableContent = isAgentMode
-                  ? []
-                  : await AttachmentUtils.getAttachmentsReadableContent({
-                    files: [url],
-                    loading: true,
-                  });
-
-                const textContent = (() => {
-                  if (readableContent.length > 0) {
-                    const text = readableContent[0].contents
-                      .map((item) => item.text)
-                      .join("\n");
-                    const newItem = {
-                      ...contextItem,
-                      content: text,
-                    };
-                    return `[Context Item] ${JSON.stringify(newItem)}`;
+                const textContent = await convertContextTypeMessageContent(contextItem, isAgentMode);
+                if (textContent) {
+                  if (role === "user" || role === "system") {
+                    messageContents.push({ type: "input_text", text: textContent });
+                  } else if (role === "assistant") {
+                    messageContents.push({ type: "output_text", text: textContent, annotations: [] });
                   }
-                  return `[Context Item] ${JSON.stringify(contextItem)}`;
-                })();
-
-                if (role === "user" || role === "system") {
-                  messageContents.push({
-                    type: "input_text",
-                    text: textContent,
-                  });
-                } else if (role === "assistant") {
-                  messageContents.push({
-                    type: "output_text",
-                    text: textContent,
-                    annotations: [],
-                  });
                 }
               }
-            } else if (contextItem.type === "transcript") {
-              const newContextItem = await ContextUtils.syncUnloadedContextItem(contextItem);
-              const textContent = `[Context Item] ${JSON.stringify(newContextItem)}`;
-              if (role === "user" || role === "system") {
-                messageContents.push({
-                  type: "input_text",
-                  text: textContent,
-                });
-              } else if (role === "assistant") {
-                messageContents.push({
-                  type: "output_text",
-                  text: textContent,
-                  annotations: [],
-                });
+            } else {
+              const textContent = await convertContextTypeMessageContent(contextItem, isAgentMode);
+              if (textContent) {
+                if (role === "user" || role === "system") {
+                  messageContents.push({ type: "input_text", text: textContent });
+                } else if (role === "assistant") {
+                  messageContents.push({ type: "output_text", text: textContent, annotations: [] });
+                }
               }
             }
           }
@@ -551,22 +486,6 @@ export namespace OpenAIUtil {
                 description,
               );
               messageContents.push(...newMessageContents);
-            } else if (
-              contextItem.type === "text" ||
-              contextItem.type === "selectionText"
-            ) {
-              messageContents.push({
-                type: "text",
-                text: `[Context Item] ${JSON.stringify(contextItem)}`,
-              });
-            } else if (
-              contextItem.type === "browserTab" ||
-              contextItem.type === "window"
-            ) {
-              messageContents.push({
-                type: "text",
-                text: `[Context Item] ${JSON.stringify(contextItem)}`,
-              });
             } else if (contextItem.type === "file") {
               const url = contextItem.url.replace("file://", "");
               if (FileUtil.isImageFile(url)) {
@@ -577,31 +496,15 @@ export namespace OpenAIUtil {
                 );
                 messageContents.push(...newMessageContents);
               } else {
-                const readableContent = isAgentMode
-                  ? []
-                  : await AttachmentUtils.getAttachmentsReadableContent({
-                    files: [url],
-                    loading: true,
-                  });
-
-                if (readableContent.length > 0) {
-                  const text = readableContent[0].contents
-                    .map((item) => item.text)
-                    .join("\n");
-                  const newItem = {
-                    ...contextItem,
-                    content: text,
-                  };
-                  messageContents.push({
-                    type: "text",
-                    text: `[Context Item] ${JSON.stringify(newItem)}`,
-                  });
-                } else {
-                  messageContents.push({
-                    type: "text",
-                    text: `[Context Item] ${JSON.stringify(contextItem)}`,
-                  });
+                const textContent = await convertContextTypeMessageContent(contextItem, isAgentMode);
+                if (textContent) {
+                  messageContents.push({ type: "text", text: textContent });
                 }
+              }
+            } else {
+              const textContent = await convertContextTypeMessageContent(contextItem, isAgentMode);
+              if (textContent) {
+                messageContents.push({ type: "text", text: textContent });
               }
             }
           }

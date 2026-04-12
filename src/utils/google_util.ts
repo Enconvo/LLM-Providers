@@ -13,9 +13,9 @@ import {
   uuid,
   ChatMessageContentListItem,
   AttachmentUtils,
-  ContextUtils,
   CacheUtils
 } from "@enconvo/api";
+import { convertContextTypeMessageContent } from "./context_item_util.js";
 import path from "path";
 import { writeFile } from "fs/promises";
 import wav from "wav";
@@ -215,22 +215,6 @@ export const convertMessageToGoogleMessage = async (
             const description = `[Context Item] This is a screenshot, url is ${contextItem.url}`;
             const newParts = await handleImageContentItem({ url: contextItem.url, description });
             parts.push(...newParts);
-          } else if (
-            contextItem.type === "text" ||
-            contextItem.type === "selectionText"
-          ) {
-            const textPart: Part = {
-              text: `[Context Item] ${JSON.stringify(contextItem)}`,
-            };
-            parts.push(textPart);
-          } else if (
-            contextItem.type === "browserTab" ||
-            contextItem.type === "window"
-          ) {
-            const textPart: Part = {
-              text: `[Context Item] ${JSON.stringify(contextItem)}`,
-            };
-            parts.push(textPart);
           } else if (contextItem.type === "file") {
             const url = contextItem.url.replace("file://", "");
             if (FileUtil.isImageFile(url)) {
@@ -238,35 +222,16 @@ export const convertMessageToGoogleMessage = async (
               const newParts = await handleImageContentItem({ url, description });
               parts.push(...newParts);
             } else {
-              const readableContent = isAgentMode
-                ? []
-                : await AttachmentUtils.getAttachmentsReadableContent({
-                  files: [url],
-                  loading: true,
-                });
-
-              if (readableContent.length > 0) {
-                const text = readableContent[0].contents
-                  .map((item) => item.text)
-                  .join("\n");
-                const newItem = {
-                  ...contextItem,
-                  content: text,
-                };
-                parts.push({
-                  text: `[Context Item] ${JSON.stringify(newItem)}`,
-                });
-              } else {
-                parts.push({
-                  text: `[Context Item] ${JSON.stringify(contextItem)}`,
-                });
+              const textContent = await convertContextTypeMessageContent(contextItem, isAgentMode);
+              if (textContent) {
+                parts.push({ text: textContent });
               }
             }
-          } else if (contextItem.type === "transcript") {
-            const newContextItem = await ContextUtils.syncUnloadedContextItem(contextItem);
-            parts.push({
-              text: `[Context Item] ${JSON.stringify(newContextItem)}`,
-            });
+          } else {
+            const textContent = await convertContextTypeMessageContent(contextItem, isAgentMode);
+            if (textContent) {
+              parts.push({ text: textContent });
+            }
           }
         }
       } else if (item.type === "image_url") {

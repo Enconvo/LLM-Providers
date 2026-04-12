@@ -11,8 +11,8 @@ import {
   Stream,
   ChatMessageContentListItem,
   AttachmentUtils,
-  ContextUtils,
 } from "@enconvo/api";
+import { convertContextTypeMessageContent } from "./context_item_util.js";
 import path from "path";
 import mime from "mime";
 import { MessageUtils } from "./message_utils.ts";
@@ -285,39 +285,6 @@ export const convertMessageToAnthropicMessage = async (
             const description = `[Context Item] This is a screenshot, url is ${contextItem.url}`;
             const newParts = await handleImageContentItem(contextItem.url, description);
             parts.push(...newParts);
-          } else if (contextItem.type === 'text' || contextItem.type === 'selectionText') {
-            parts.push({
-              type: "text",
-              text: `[Context Item] ${JSON.stringify(contextItem)}`,
-            });
-          } else if (contextItem.type === 'browserTab') {
-            parts.push({
-              type: "text",
-              text: `[Context Item] ${JSON.stringify(contextItem)}`,
-            });
-          } else if (contextItem.type === 'window') {
-            parts.push({
-              type: "text",
-              text: `[Context Item] ${JSON.stringify(contextItem)}`,
-            });
-          } else if (contextItem.type === 'im_message') {
-            // Fire-and-forget: don't await, let agent process independently
-            const headerParts = [
-              `channel_provider: ${contextItem.channel_provider}`,
-              `sender: ${contextItem.author}`,
-              `channel_id: ${contextItem.channel_id}`,
-            ];
-            if (contextItem.user_id) headerParts.push(`user_id: ${contextItem.user_id}`);
-            // In DMs, skip message_id so agent sends a plain message instead of a reply
-            if (contextItem.message_id && !contextItem.is_dm) headerParts.push(`message_id: ${contextItem.message_id}`);
-            if (contextItem.is_dm != null) headerParts.push(`is_dm: ${contextItem.is_dm}`);
-
-            `[IM message from ${headerParts.join(", ")}]\n${contextItem.text}`
-
-            parts.push({
-              type: "text",
-              text: `[Context Item] ${JSON.stringify(contextItem)}`,
-            });
           } else if (contextItem.type === 'file') {
             const url = contextItem.url.replace("file://", "");
             if (FileUtil.isImageFile(url)) {
@@ -325,40 +292,16 @@ export const convertMessageToAnthropicMessage = async (
               const newParts = await handleImageContentItem(url, description);
               parts.push(...newParts);
             } else {
-              const readableContent = isAgentMode
-                ? []
-                : await AttachmentUtils.getAttachmentsReadableContent({
-                  files: [url],
-                  loading: true,
-                });
-
-              if (readableContent.length > 0) {
-                const text = readableContent[0].contents
-                  .map((item) => item.text)
-                  .join("\n");
-                const newItem = {
-                  ...contextItem,
-                  content: text
-                }
-                parts.push({
-                  type: "text",
-                  text: `[Context Item] ${JSON.stringify(newItem)}`,
-                });
-              } else {
-                parts.push({
-                  type: "text",
-                  text: `[Context Item] ${JSON.stringify(contextItem)}`,
-                });
+              const text = await convertContextTypeMessageContent(contextItem, isAgentMode);
+              if (text) {
+                parts.push({ type: "text", text });
               }
             }
-          } else if (contextItem.type === 'transcript') {
-            const newContextItem = await ContextUtils.syncUnloadedContextItem(contextItem)
-
-            parts.push({
-              type: "text",
-              text: `[Context Item] ${JSON.stringify(newContextItem)}`,
-            });
-
+          } else {
+            const text = await convertContextTypeMessageContent(contextItem, isAgentMode);
+            if (text) {
+              parts.push({ type: "text", text });
+            }
           }
         }
       } else if (item.type === "image_url") {
@@ -619,10 +562,19 @@ export const convertMessagesToAnthropicMessages = async (
     newMessages = newMessages.slice(1);
   }
 
-  console.log("anthropic newMessages", JSON.stringify(newMessages, null, 2));
+  // console.log("anthropic newMessages", JSON.stringify(newMessages, null, 2));
 
   return newMessages;
 };
+
+function getPartialTagMatchLength(str: string, tag: string): number {
+  for (let i = Math.min(tag.length - 1, str.length); i >= 1; i--) {
+    if (str.endsWith(tag.substring(0, i))) {
+      return i;
+    }
+  }
+  return 0;
+}
 
 export function streamFromAnthropic(
   response: AsyncIterable<Anthropic.Messages.MessageStreamEvent>,
@@ -648,6 +600,10 @@ export function streamFromAnthropic(
     let accumulatedCacheReadTokens = 0;
     // Track whether the stream completed normally (received message_stop or message_delta with stop_reason)
     let streamCompleted = false;
+    // State for <think>/<\/think> tag detection in text deltas
+    let isInsideThinkTag = false;
+    let thinkBuffer = "";
+    let currentSourceBlockType: string | null = null;
 
     try {
       for await (const chunk of response) {
@@ -680,6 +636,7 @@ export function streamFromAnthropic(
         }
 
         if (chunk.type === "content_block_start") {
+          currentSourceBlockType = chunk.content_block.type;
           if (chunk.content_block.type === "text") {
             yield {
               type: 'content_block_start',
@@ -743,15 +700,84 @@ export function streamFromAnthropic(
             }
           }
         } else if (chunk.type === "content_block_stop") {
+          // Flush remaining think tag buffer
+          if (thinkBuffer.length > 0) {
+            if (isInsideThinkTag) {
+              yield { type: 'content_block_delta', delta: { type: 'thinking_delta', thinking: thinkBuffer } };
+            } else {
+              yield { type: 'content_block_delta', delta: { type: 'text_delta', text: thinkBuffer } };
+            }
+            thinkBuffer = "";
+          }
+          isInsideThinkTag = false;
+          currentSourceBlockType = null;
           yield {
             type: 'content_block_stop',
           }
         } else if (chunk.type === "content_block_delta") {
 
           if (chunk.delta.type === "text_delta") {
-            yield {
-              type: 'content_block_delta',
-              delta: chunk.delta
+            if (currentSourceBlockType === "text") {
+              // Buffer text and detect <think>/<\/think> tag transitions
+              thinkBuffer += chunk.delta.text;
+
+              while (thinkBuffer.length > 0) {
+                if (!isInsideThinkTag) {
+                  const openIdx = thinkBuffer.indexOf("<think>");
+                  if (openIdx !== -1) {
+                    const before = thinkBuffer.substring(0, openIdx);
+                    if (before.length > 0) {
+                      yield { type: 'content_block_delta', delta: { type: 'text_delta', text: before } };
+                    }
+                    // Close text block, open thinking block
+                    yield { type: 'content_block_stop' };
+                    yield { type: 'content_block_start', content_block: { type: 'thinking', thinking: '' } };
+                    isInsideThinkTag = true;
+                    thinkBuffer = thinkBuffer.substring(openIdx + 7);
+                  } else {
+                    const partialLen = getPartialTagMatchLength(thinkBuffer, "<think>");
+                    if (partialLen > 0) {
+                      const safeText = thinkBuffer.substring(0, thinkBuffer.length - partialLen);
+                      if (safeText.length > 0) {
+                        yield { type: 'content_block_delta', delta: { type: 'text_delta', text: safeText } };
+                      }
+                      thinkBuffer = thinkBuffer.substring(thinkBuffer.length - partialLen);
+                    } else {
+                      yield { type: 'content_block_delta', delta: { type: 'text_delta', text: thinkBuffer } };
+                      thinkBuffer = "";
+                    }
+                    break;
+                  }
+                } else {
+                  const closeIdx = thinkBuffer.indexOf("</think>");
+                  if (closeIdx !== -1) {
+                    const before = thinkBuffer.substring(0, closeIdx);
+                    if (before.length > 0) {
+                      yield { type: 'content_block_delta', delta: { type: 'thinking_delta', thinking: before } };
+                    }
+                    // Close thinking block, open text block
+                    yield { type: 'content_block_stop' };
+                    yield { type: 'content_block_start', content_block: { type: 'text', text: '' } };
+                    isInsideThinkTag = false;
+                    thinkBuffer = thinkBuffer.substring(closeIdx + 8);
+                  } else {
+                    const partialLen = getPartialTagMatchLength(thinkBuffer, "</think>");
+                    if (partialLen > 0) {
+                      const safeText = thinkBuffer.substring(0, thinkBuffer.length - partialLen);
+                      if (safeText.length > 0) {
+                        yield { type: 'content_block_delta', delta: { type: 'thinking_delta', thinking: safeText } };
+                      }
+                      thinkBuffer = thinkBuffer.substring(thinkBuffer.length - partialLen);
+                    } else {
+                      yield { type: 'content_block_delta', delta: { type: 'thinking_delta', thinking: thinkBuffer } };
+                      thinkBuffer = "";
+                    }
+                    break;
+                  }
+                }
+              }
+            } else {
+              yield { type: 'content_block_delta', delta: chunk.delta };
             }
           } else if (chunk.delta.type === "thinking_delta") {
             yield {

@@ -10,8 +10,8 @@ import {
   Stream,
   SystemMessage,
   ToolMessage,
-  ContextUtils,
 } from "@enconvo/api";
+import { convertContextTypeMessageContent } from "./context_item_util.js";
 import mime from "mime";
 
 import {
@@ -189,26 +189,6 @@ export const convertMessageToVercelFormat = async (
             const newParts = await handleImageContentItem(contextItem.url, description);
             //@ts-ignore
             parts.push(...newParts);
-          } else if (
-            contextItem.type === "text" ||
-            contextItem.type === "selectionText"
-          ) {
-            const textPart: TextPart = {
-              type: "text",
-              text: `[Context Item] ${JSON.stringify(contextItem)}`,
-            };
-            //@ts-ignore
-            parts.push(textPart);
-          } else if (
-            contextItem.type === "browserTab" ||
-            contextItem.type === "window"
-          ) {
-            const textPart: TextPart = {
-              type: "text",
-              text: `[Context Item] ${JSON.stringify(contextItem)}`,
-            };
-            //@ts-ignore
-            parts.push(textPart);
           } else if (contextItem.type === "file") {
             const url = contextItem.url.replace("file://", "");
             if (FileUtil.isImageFile(url)) {
@@ -217,44 +197,18 @@ export const convertMessageToVercelFormat = async (
               //@ts-ignore
               parts.push(...newParts);
             } else {
-              const readableContent = isAgentMode
-                ? []
-                : await AttachmentUtils.getAttachmentsReadableContent({
-                  files: [url],
-                  loading: true,
-                });
-
-              if (readableContent.length > 0) {
-                const text = readableContent[0].contents
-                  .map((item) => item.text)
-                  .join("\n");
-                const newItem = {
-                  ...contextItem,
-                  content: text,
-                };
-                const textPart: TextPart = {
-                  type: "text",
-                  text: `[Context Item] ${JSON.stringify(newItem)}`,
-                };
+              const textContent = await convertContextTypeMessageContent(contextItem, isAgentMode);
+              if (textContent) {
                 //@ts-ignore
-                parts.push(textPart);
-              } else {
-                const textPart: TextPart = {
-                  type: "text",
-                  text: `[Context Item] ${JSON.stringify(contextItem)}`,
-                };
-                //@ts-ignore
-                parts.push(textPart);
+                parts.push({ type: "text", text: textContent } as TextPart);
               }
             }
-          } else if (contextItem.type === "transcript") {
-            const newContextItem = await ContextUtils.syncUnloadedContextItem(contextItem);
-            const textPart: TextPart = {
-              type: "text",
-              text: `[Context Item] ${JSON.stringify(newContextItem)}`,
-            };
-            //@ts-ignore
-            parts.push(textPart);
+          } else {
+            const textContent = await convertContextTypeMessageContent(contextItem, isAgentMode);
+            if (textContent) {
+              //@ts-ignore
+              parts.push({ type: "text", text: textContent } as TextPart);
+            }
           }
         }
       } else if (item.type === "image_url") {
