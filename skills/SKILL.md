@@ -4,7 +4,7 @@ description: >
   LLM provider integrations for 20+ services including OpenAI, Anthropic, Google, Ollama, Groq, Mistral, and more, with unified streaming chat completion and model management APIs.
 metadata:
   author: ysnows
-  version: "1.3.342"
+  version: "1.3.344"
 ---
 
 ## Architecture

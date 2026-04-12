@@ -300,6 +300,24 @@ export const convertMessageToAnthropicMessage = async (
               type: "text",
               text: `[Context Item] ${JSON.stringify(contextItem)}`,
             });
+          } else if (contextItem.type === 'im_message') {
+            // Fire-and-forget: don't await, let agent process independently
+            const headerParts = [
+              `channel_provider: ${contextItem.channel_provider}`,
+              `sender: ${contextItem.author}`,
+              `channel_id: ${contextItem.channel_id}`,
+            ];
+            if (contextItem.user_id) headerParts.push(`user_id: ${contextItem.user_id}`);
+            // In DMs, skip message_id so agent sends a plain message instead of a reply
+            if (contextItem.message_id && !contextItem.is_dm) headerParts.push(`message_id: ${contextItem.message_id}`);
+            if (contextItem.is_dm != null) headerParts.push(`is_dm: ${contextItem.is_dm}`);
+
+            `[IM message from ${headerParts.join(", ")}]\n${contextItem.text}`
+
+            parts.push({
+              type: "text",
+              text: `[Context Item] ${JSON.stringify(contextItem)}`,
+            });
           } else if (contextItem.type === 'file') {
             const url = contextItem.url.replace("file://", "");
             if (FileUtil.isImageFile(url)) {
@@ -601,7 +619,7 @@ export const convertMessagesToAnthropicMessages = async (
     newMessages = newMessages.slice(1);
   }
 
-  // console.log("anthropic newMessages", JSON.stringify(newMessages, null, 2));
+  console.log("anthropic newMessages", JSON.stringify(newMessages, null, 2));
 
   return newMessages;
 };

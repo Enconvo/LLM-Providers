@@ -215,7 +215,7 @@ export class AnthropicProvider extends LLMProvider {
       }
     }
 
-    // console.log("anthropic params", JSON.stringify(params.thinking, null, 2));
+    // console.log("anthropic params", JSON.stringify(params, null, 2));
 
     return params;
   }

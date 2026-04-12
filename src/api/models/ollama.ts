@@ -39,6 +39,7 @@ async function fetchModels(_options: RequestOptions) {
 
 
   const cloudModels = [
+    'glm-5.1:cloud',
     'minimax-m2.7:cloud',
     'qwen3.5:cloud',
     'kimi-k2.5:cloud',

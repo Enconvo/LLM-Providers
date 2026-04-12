@@ -17,14 +17,14 @@ interface ModelTraits {
 
 /** First matching prefix wins — order from most-specific to least-specific. */
 const traitRules: { prefix: string; traits: ModelTraits }[] = [
-  { prefix: "claude-opus-4-1",  traits: { speed: 3, intelligence: 5, searchToolSupported: true } },
-  { prefix: "claude-opus-4",    traits: { speed: 3, intelligence: 5, searchToolSupported: true } },
-  { prefix: "claude-sonnet-4",  traits: { speed: 4, intelligence: 4, searchToolSupported: true } },
-  { prefix: "claude-3-7-sonnet",traits: { speed: 4, intelligence: 4, searchToolSupported: true } },
-  { prefix: "claude-3-5-sonnet",traits: { speed: 4, intelligence: 4, searchToolSupported: true } },
+  { prefix: "claude-opus-4-1", traits: { speed: 3, intelligence: 5, searchToolSupported: true } },
+  { prefix: "claude-opus-4", traits: { speed: 3, intelligence: 5, searchToolSupported: true } },
+  { prefix: "claude-sonnet-4", traits: { speed: 4, intelligence: 4, searchToolSupported: true } },
+  { prefix: "claude-3-7-sonnet", traits: { speed: 4, intelligence: 4, searchToolSupported: true } },
+  { prefix: "claude-3-5-sonnet", traits: { speed: 4, intelligence: 4, searchToolSupported: true } },
   { prefix: "claude-3-5-haiku", traits: { speed: 5, intelligence: 3, searchToolSupported: true } },
-  { prefix: "claude-3-opus",    traits: { speed: 3, intelligence: 4, searchToolSupported: false } },
-  { prefix: "claude-3-haiku",   traits: { speed: 4, intelligence: 2, searchToolSupported: false } },
+  { prefix: "claude-3-opus", traits: { speed: 3, intelligence: 4, searchToolSupported: false } },
+  { prefix: "claude-3-haiku", traits: { speed: 4, intelligence: 2, searchToolSupported: false } },
 ];
 
 function getTraits(modelId: string): ModelTraits {
