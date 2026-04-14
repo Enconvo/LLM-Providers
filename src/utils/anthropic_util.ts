@@ -800,7 +800,7 @@ export function streamFromAnthropic(
         }
       }
     } catch (e) {
-      console.log('anthropic stream e', e)
+      // console.log('anthropic stream e', e)
       if (e instanceof Error && e.name === "AbortError") return;
       throw e;
     }

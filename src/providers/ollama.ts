@@ -8,4 +8,3 @@ export default function main(options: any) {
 
   return new AnthropicProvider(options);
 }
-

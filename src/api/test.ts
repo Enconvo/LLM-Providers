@@ -1,4 +1,4 @@
-import { LLMProvider } from '@enconvo/api';
+import { NativeAPI } from '@enconvo/api';
 
 /**
  * @param req 
@@ -12,9 +12,27 @@ export default async function main(req: Request) {
 
     // console.log("loaded anthropic credentials", authProvider);
 
+    const controller = new AbortController()
 
-    const llm = await LLMProvider.fromEnv()
-    console.log('llm', llm.getOptions())
+    setTimeout(() => {
+        console.log('aborted')
+        controller.abort()
+    }, 2000);
+
+    const resp = await NativeAPI.localApi('agent/main', {
+        input_text: "hello who are you ?"
+    }, {
+        signal: controller.signal
+    })
+
+
+
+
+    console.log('resp', await resp.json())
+    // const command = await CommandManageUtils.getCommandInfo('agent|SYwM4lYNlGqCsXl3lBUU', { loadPreferences: true })
+    // console.log('command', command)
+    // const llm = await LLMProvider.fromEnv()
+    // console.log('llm', llm.getOptions())
 
 
 
