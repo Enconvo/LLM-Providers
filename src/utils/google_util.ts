@@ -207,6 +207,12 @@ export const convertMessageToGoogleMessage = async (
       return newParts;
     }
 
+    if (message.additional?.contentType === 'additional') {
+      parts.push({
+        text: '<supplementary-message description="This is a supplementary message from the user, appended while prior tasks may still be in progress. Consider it in the context of all previous messages and adjust your actions accordingly.">',
+      });
+    }
+
     for (const item of message.content) {
       if (item.type === "context") {
         const contextItems = item.items;
@@ -436,6 +442,12 @@ export const convertMessageToGoogleMessage = async (
         };
         contents.push(text);
       }
+    }
+
+    if (message.additional?.contentType === 'additional') {
+      parts.push({
+        text: '</supplementary-message>',
+      });
     }
 
     if (parts.length > 0) {

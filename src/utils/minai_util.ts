@@ -24,6 +24,10 @@ export namespace MinaiUtil {
         content = textContent;
       }
 
+      if (message.additional?.contentType === 'additional') {
+        content = '<supplementary-message description="This is a supplementary message from the user, appended while prior tasks may still be in progress. Consider it in the context of all previous messages and adjust your actions accordingly.">\n' + content + '\n</supplementary-message>';
+      }
+
       return {
         role: role,
         content: content,

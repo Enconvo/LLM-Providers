@@ -177,6 +177,21 @@ export namespace OpenAIUtil {
       }
 
 
+      if (message.additional?.contentType === 'additional') {
+        if (role === "user" || role === "system") {
+          messageContents.push({
+            type: "input_text",
+            text: '<supplementary-message description="This is a supplementary message from the user, appended while prior tasks may still be in progress. Consider it in the context of all previous messages and adjust your actions accordingly.">',
+          });
+        } else if (role === "assistant") {
+          messageContents.push({
+            type: "output_text",
+            text: '<supplementary-message description="This is a supplementary message from the user, appended while prior tasks may still be in progress. Consider it in the context of all previous messages and adjust your actions accordingly.">',
+            annotations: [],
+          });
+        }
+      }
+
       for (const item of message.content) {
         if (item.type === "context") {
           const contextItems = item.items;
@@ -386,6 +401,21 @@ export namespace OpenAIUtil {
         }
       }
 
+      if (message.additional?.contentType === 'additional') {
+        if (role === "user" || role === "system") {
+          messageContents.push({
+            type: "input_text",
+            text: '</supplementary-message>',
+          });
+        } else if (role === "assistant") {
+          messageContents.push({
+            type: "output_text",
+            text: '</supplementary-message>',
+            annotations: [],
+          });
+        }
+      }
+
       handleMessageContent();
 
       return newMessages;
@@ -472,6 +502,13 @@ export namespace OpenAIUtil {
           });
         }
         return newMessageContents;
+      }
+
+      if (message.additional?.contentType === 'additional') {
+        messageContents.push({
+          type: "text",
+          text: '<supplementary-message description="This is a supplementary message from the user, appended while prior tasks may still be in progress. Consider it in the context of all previous messages and adjust your actions accordingly.">',
+        });
       }
 
       for (const item of message.content) {
@@ -664,6 +701,13 @@ export namespace OpenAIUtil {
             text: JSON.stringify(item),
           });
         }
+      }
+
+      if (message.additional?.contentType === 'additional') {
+        messageContents.push({
+          type: "text",
+          text: '</supplementary-message>',
+        });
       }
 
       if (messageContents.length > 0) {

@@ -14,6 +14,8 @@ import {
 } from "@enconvo/api";
 import { convertContextTypeMessageContent } from "./context_item_util.js";
 import path from "path";
+import os from "os";
+import fs from "fs";
 import mime from "mime";
 import { MessageUtils } from "./message_utils.ts";
 
@@ -277,6 +279,13 @@ export const convertMessageToAnthropicMessage = async (
 
     message.content = await MessageUtils.preHandleMessageContent(message.content);
 
+    if (message.additional?.contentType === 'additional') {
+      parts.push({
+        type: "text",
+        text: '<supplementary-message description="This is a supplementary message from the user, appended while prior tasks may still be in progress. Consider it in the context of all previous messages and adjust your actions accordingly.">',
+      });
+    }
+
     for (const item of message.content) {
       if (item.type === 'context') {
         const contextItems = item.items
@@ -459,6 +468,13 @@ export const convertMessageToAnthropicMessage = async (
       }
     }
 
+    if (message.additional?.contentType === 'additional') {
+      parts.push({
+        type: "text",
+        text: '</supplementary-message>',
+      });
+    }
+
     if (parts.length > 0) {
       contents.push({
         role: role,
@@ -562,7 +578,17 @@ export const convertMessagesToAnthropicMessages = async (
     newMessages = newMessages.slice(1);
   }
 
-  // console.log("anthropic newMessages", JSON.stringify(newMessages, null, 2));
+  try {
+    const _logDir = path.join(os.homedir(), '.enconvo', 'cache', 'development');
+    const _logFile = path.join(_logDir, 'anthropic_testmessge.jsonl');
+    if (!fs.existsSync(_logDir)) fs.mkdirSync(_logDir, { recursive: true });
+    const _stats = fs.existsSync(_logFile) ? fs.statSync(_logFile) : null;
+    if (_stats && _stats.size > 10 * 1024 * 1024) {
+      fs.writeFileSync(_logFile, JSON.stringify(newMessages) + '\n');
+    } else {
+      fs.appendFileSync(_logFile, JSON.stringify(newMessages) + '\n');
+    }
+  } catch { }
 
   return newMessages;
 };
@@ -800,8 +826,7 @@ export function streamFromAnthropic(
         }
       }
     } catch (e) {
-      // console.log('anthropic stream e', e)
-      if (e instanceof Error && e.name === "AbortError") return;
+      console.log('anthropic stream e', e)
       throw e;
     }
 

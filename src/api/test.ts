@@ -1,52 +1,49 @@
-import { NativeAPI } from '@enconvo/api';
+import { AudioPlayer, CommandManageUtils, StreamAudioPlayer } from '@enconvo/api';
 
 /**
- * @param req 
+ * @param req
  * @private
- * @returns 
+ * @returns
  */
 export default async function main(req: Request) {
 
-    // const authProvider = await CredentialsProvider.create("anthropic");
-    // let oauthCredentials = await authProvider.load();
+    const body = await req.json()
 
-    // console.log("loaded anthropic credentials", authProvider);
+    const config = await CommandManageUtils.loadCommandConfig({
+        commandKey: 'agent|main',
+        includes: ["llm", "auto_audio_play",'title'],
+        useAsRunParams:true
+    }) as any;
 
-    const controller = new AbortController()
+    console.log('config', JSON.stringify(config, null, 2))
+    return config
 
-    setTimeout(() => {
-        console.log('aborted')
-        controller.abort()
-    }, 2000);
-
-    const resp = await NativeAPI.localApi('agent/main', {
-        input_text: "hello who are you ?"
-    }, {
-        signal: controller.signal
-    })
-
-
-
-
-    console.log('resp', await resp.json())
-    // const command = await CommandManageUtils.getCommandInfo('agent|SYwM4lYNlGqCsXl3lBUU', { loadPreferences: true })
-    // console.log('command', command)
-    // const llm = await LLMProvider.fromEnv()
-    // console.log('llm', llm.getOptions())
-
-
-
-    // console.log("loaded anthropic credentials", oauthCredentials, authProvider);
-    // let providerOptions = await CommandManageUtils.getProviderOptions("image_create", true)
-    // const imageGenerateProvider: ImageCreateProvider = ServiceProvider.load(providerOptions)
-
-    // let json = ``
-
-    // json = jsonrepair.jsonrepair(json)
-    // const providerOptions = JSON.parse(json)
-    // console.log("config1", providerOptions)
-
-    return {
+    if (body.type === 'stop') {
+        await StreamAudioPlayer.stop();
+        return "stoped"
     }
-}
 
+    // await AudioPlayer.play('/Users/ysnows/.enconvo/workspace/Stream-play-texts/53c4315e520032e67102b2f515d3ab67/50c3ef48-ad30-42f1-90c6-a41bb6dc61b3.mp3')
+    // return ''
+
+    // Simulate LLM streaming with fixed chunks
+    await StreamAudioPlayer.start();
+
+    const chunks = [
+        'I', '\u2019m', ' M', 'avis', ' \u2014', ' not', ' from', ' a', ' place',
+        ',', ' really', '.', ' I', '\u2019m', ' part', ' of', ' your', ' En',
+        'con', 'vo', ' setup', ' on', ' this', ' Mac', ',', ' so', ' the',
+        ' honest', ' answer', ' is', ':', ' here', '.',
+    ];
+
+    console.log('new chuncks')
+
+    for (const chunk of chunks) {
+        await StreamAudioPlayer.delta(chunk);
+    }
+
+    await StreamAudioPlayer.done();
+    // console.log('[test] stream done');
+
+    return {};
+}
