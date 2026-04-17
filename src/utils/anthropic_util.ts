@@ -578,17 +578,17 @@ export const convertMessagesToAnthropicMessages = async (
     newMessages = newMessages.slice(1);
   }
 
-  try {
-    const _logDir = path.join(os.homedir(), '.enconvo', 'cache', 'development');
-    const _logFile = path.join(_logDir, 'anthropic_testmessge.jsonl');
-    if (!fs.existsSync(_logDir)) fs.mkdirSync(_logDir, { recursive: true });
-    const _stats = fs.existsSync(_logFile) ? fs.statSync(_logFile) : null;
-    if (_stats && _stats.size > 10 * 1024 * 1024) {
-      fs.writeFileSync(_logFile, JSON.stringify(newMessages) + '\n');
-    } else {
-      fs.appendFileSync(_logFile, JSON.stringify(newMessages) + '\n');
-    }
-  } catch { }
+  // try {
+  //   const _logDir = path.join(os.homedir(), '.enconvo', 'cache', 'development');
+  //   const _logFile = path.join(_logDir, 'anthropic_testmessge.jsonl');
+  //   if (!fs.existsSync(_logDir)) fs.mkdirSync(_logDir, { recursive: true });
+  //   const _stats = fs.existsSync(_logFile) ? fs.statSync(_logFile) : null;
+  //   if (_stats && _stats.size > 10 * 1024 * 1024) {
+  //     fs.writeFileSync(_logFile, JSON.stringify(newMessages) + '\n');
+  //   } else {
+  //     fs.appendFileSync(_logFile, JSON.stringify(newMessages) + '\n');
+  //   }
+  // } catch { }
 
   return newMessages;
 };

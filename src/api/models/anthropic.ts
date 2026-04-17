@@ -84,6 +84,9 @@ async function fetchModels(
         const info = await getModel(item.id);
         const traits = getTraits(item.id);
         const reasoningPref = getReasoningEffortPreference(item.id);
+        // if (item.id === 'claude-opus-4-7') {
+        //   console.log("reasoningPref", reasoningPref)
+        // }
 
         const model: Preference.LLMModel = {
           type: "llm_model",

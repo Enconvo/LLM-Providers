@@ -181,18 +181,31 @@ export class AnthropicProvider extends LLMProvider {
 
     const modelNameConfig: { reasoning_effort: string } = this.options?.modelName_preferences?.[params.model || '']
     let reasoning_effort = modelNameConfig?.reasoning_effort
-    if (reasoning_effort && reasoning_effort !== "disabled" && reasoning_effort !== "none") {
-      params.thinking = {
-        type: "enabled",
-        budget_tokens: parseInt(reasoning_effort),
-      };
-    } else {
-      params.thinking = {
-        type: "disabled",
+    if (reasoning_effort) {
+      if (reasoning_effort === "disabled" || reasoning_effort === "none") {
+        params.thinking = {
+          type: "disabled",
+        }
+      } else {
+        const budgetTokens = parseInt(reasoning_effort);
+        if (!Number.isNaN(budgetTokens) && String(budgetTokens) === reasoning_effort) {
+          params.thinking = {
+            type: "enabled",
+            budget_tokens: budgetTokens,
+          };
+        } else {
+          params.thinking = {
+            type: "adaptive",
+          };
+          params.output_config = {
+            ...(params.output_config ?? {}),
+            effort: reasoning_effort as "low" | "medium" | "high" | "xhigh" | "max",
+          };
+        }
       }
     }
 
-    // console.log("reasoning_effort anthropic", params.thinking);
+    console.log("reasoning_effort anthropic", params.thinking, params.output_config);
     let tools: Anthropic.ToolUnion[] = [];
     const newTools = AnthropicUtil.convertToolsToAnthropicTools(content.tools);
     if (newTools) {

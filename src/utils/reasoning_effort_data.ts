@@ -72,6 +72,31 @@ const profiles = {
     ],
   },
 
+  /** Claude Opus 4.7: full effort spectrum including xhigh + max */
+  claude_opus_4_7_effort: {
+    default: "high",
+    data: [
+      { title: "None", value: "none", description: "Model does not think" },
+      { title: "Low", value: "low", description: "Most efficient. Significant token savings with some capability reduction" },
+      { title: "Medium", value: "medium", description: "Balanced approach with moderate token savings" },
+      { title: "High", value: "high", description: "High capability. Equivalent to not setting the parameter" },
+      { title: "X-High", value: "xhigh", description: "Extended capability for long-horizon work (over 30 minutes)" },
+      { title: "Max", value: "max", description: "Absolute maximum capability with no constraints on token spending" },
+    ],
+  },
+
+  /** Claude Opus 4.6 / Sonnet 4.6: effort levels with max (no xhigh) */
+  claude_max_effort: {
+    default: "high",
+    data: [
+      { title: "None", value: "none", description: "Model does not think" },
+      { title: "Low", value: "low", description: "Most efficient. Significant token savings with some capability reduction" },
+      { title: "Medium", value: "medium", description: "Balanced approach with moderate token savings" },
+      { title: "High", value: "high", description: "High capability. Equivalent to not setting the parameter" },
+      { title: "Max", value: "max", description: "Absolute maximum capability with no constraints on token spending" },
+    ],
+  },
+
   /** Gemini 3.1 Flash-Lite: minimal → high */
   gemini_4_levels: {
     default: "minimal",
@@ -181,6 +206,11 @@ const modelMappings: ModelMapping[] = [
   { prefix: "o1", profile: "openai_4_levels" },
 
   // ── Anthropic ───────────────────────────────────────────────────────
+  // Newer effort-level models (most specific first)
+  { prefix: "claude-opus-4-7", profile: "claude_opus_4_7_effort" },
+  { prefix: "claude-opus-4-6", profile: "claude_max_effort" },
+  { prefix: "claude-sonnet-4-6", profile: "claude_max_effort" },
+  // Fallback for older Claude models (token budget)
   { prefix: "claude-", profile: "anthropic_budget" },
 
   // ── Google Gemini ───────────────────────────────────────────────────
