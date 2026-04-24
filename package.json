@@ -107,7 +107,7 @@
           "type": "dropdown",
           "required": false,
           "title": "Model Name",
-          "default": "gpt-5.4",
+          "default": "gpt-5.5",
           "dataProxy": "llm/models/open_ai",
           "dataCustomTitle": "Add Custom Model"
         },
@@ -517,7 +517,7 @@
           "type": "dropdown",
           "required": false,
           "title": "Model Name",
-          "default": "deepseek-chat",
+          "default": "deepseek-v4-flash",
           "dataProxy": "llm/models/deepseek"
         },
         {

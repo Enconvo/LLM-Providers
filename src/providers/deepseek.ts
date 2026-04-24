@@ -1,5 +1,5 @@
-import { ChatOpenAIProvider } from "./open_ai.ts";
+import { AnthropicProvider } from "./anthropic.ts";
 
 export default function main(options: any) {
-  return new ChatOpenAIProvider(options);
+  return new AnthropicProvider(options);
 }

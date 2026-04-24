@@ -74,7 +74,7 @@ const profiles = {
 
   /** Claude Opus 4.7: full effort spectrum including xhigh + max */
   claude_opus_4_7_effort: {
-    default: "high",
+    default: "none",
     data: [
       { title: "None", value: "none", description: "Model does not think" },
       { title: "Low", value: "low", description: "Most efficient. Significant token savings with some capability reduction" },
@@ -87,7 +87,7 @@ const profiles = {
 
   /** Claude Opus 4.6 / Sonnet 4.6: effort levels with max (no xhigh) */
   claude_max_effort: {
-    default: "high",
+    default: "none",
     data: [
       { title: "None", value: "none", description: "Model does not think" },
       { title: "Low", value: "low", description: "Most efficient. Significant token savings with some capability reduction" },
@@ -159,6 +159,17 @@ const profiles = {
       { title: "Low", value: "low", description: "Favors speed and economical token usage with basic reasoning" },
       { title: "Medium", value: "medium", description: "Balance between speed and reasoning accuracy (default)" },
       { title: "High", value: "high", description: "Favors more complete reasoning with higher token usage" },
+    ],
+  },
+
+  /** DeepSeek V4 (Anthropic format): disabled / high / max */
+  deepseek_v4_effort: {
+    default: "disabled",
+
+    data: [
+      { title: "Disabled", value: "disabled", description: "Thinking disabled" },
+      { title: "High", value: "high", description: "Standard thinking effort" },
+      { title: "Max", value: "max", description: "Maximum thinking effort for complex problems" },
     ],
   },
 
@@ -237,6 +248,8 @@ const modelMappings: ModelMapping[] = [
   // ── DeepSeek ────────────────────────────────────────────────────────
   { prefix: "deepseek-r1", profile: "standard_3_levels" },
   { prefix: "deepseek-reasoner", profile: "standard_3_levels" },
+  { prefix: "deepseek-v4-flash", profile: "deepseek_v4_effort" },
+  { prefix: "deepseek-v4-pro", profile: "deepseek_v4_effort" },
 
   // ── Groq (GPT-OSS) ─────────────────────────────────────────────────
   { prefix: "openai/gpt-oss", profile: "standard_3_levels" },
