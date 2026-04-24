@@ -30,6 +30,7 @@ export class ChatOpenAIProvider extends LLMProvider {
       return await this._call(content);
     }
 
+
     this.client = await this._createOpenaiClient(this.options);
     const credentialsType = this.options.credentials?.credentials_type?.value;
     const apiType = this.options.credentials?.api_type?.value || "completions";

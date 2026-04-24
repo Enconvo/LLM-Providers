@@ -1,4 +1,4 @@
-import { AudioPlayer, CommandManageUtils, StreamAudioPlayer } from '@enconvo/api';
+import { AudioPlayer, CommandManageUtils, NativeAPI, PanelCoordinator, StreamAudioPlayer } from '@enconvo/api';
 
 /**
  * @param req
@@ -6,13 +6,20 @@ import { AudioPlayer, CommandManageUtils, StreamAudioPlayer } from '@enconvo/api
  * @returns
  */
 export default async function main(req: Request) {
+    // await AudioPlayer.play('/Users/ysnows/.enconvo/workspace/Stream-play-texts/1a49634a3da4cd29f3080aecd6b90017/19f94b04-4a42-40ed-9d71-e90ca625702b.wav')
+    // NativeAPI.callCommand('voice_input|audio_record')
+    PanelCoordinator.openPanel({
+        panel:'guide'
+    })
+
+    return ''
 
     const body = await req.json()
 
     const config = await CommandManageUtils.loadCommandConfig({
         commandKey: 'agent|main',
-        includes: ["llm", "auto_audio_play",'title'],
-        useAsRunParams:true
+        includes: ["llm", "auto_audio_play", 'title'],
+        useAsRunParams: true
     }) as any;
 
     console.log('config', JSON.stringify(config, null, 2))

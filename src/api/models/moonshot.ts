@@ -10,13 +10,13 @@ async function fetchModels(
   _options: RequestOptions,
 ): Promise<ListCache.ListItem[]> {
   const config = await CommandManageUtils.loadCommandConfig({
-    commandKey: "llm|moonshot_ai",
+    commandKey: "llm|moonshot",
     includes: ['credentials'],
     useAsRunParams: true
   });
   const credentials = config.credentials;
 
-  const url = `${credentials.baseUrl}/models`;
+  const url = `https://api.moonshot.ai/v1/models`;
 
   // console.log("fetchModels", url, api_key, type)
   try {
@@ -37,6 +37,7 @@ async function fetchModels(
     }
 
     const data = await resp.json();
+    console.log("data", JSON.stringify(data, null, 2))
     const result = await Promise.all(data.data.map(async (item: any) => {
       const modelId = item.id;
       const info = await getModel(modelId);
@@ -45,7 +46,9 @@ async function fetchModels(
       let fallbackContext = 131072;
       let fallbackVision = false;
       let fallbackToolUse = true;
-      if (modelId.startsWith("kimi-k2-0711-preview")) {
+      if (modelId.startsWith("kimi-k2")) {
+        fallbackVision = true;
+        fallbackToolUse = true;
         // defaults are fine
       } else if (modelId.startsWith("kimi-thinking-preview")) {
         fallbackVision = true;
@@ -67,8 +70,8 @@ async function fetchModels(
       const model: any = {
         title: modelId,
         value: modelId,
-        context: info?.maxInputTokens || fallbackContext,
-        maxTokens: info?.maxOutputTokens || undefined,
+        context: item.context_length,
+        maxTokens: 32000,
         inputPrice: info?.inputPricePerMillion || 0,
         outputPrice: info?.outputPricePerMillion || 0,
         toolUse: info?.supportsToolUse ?? fallbackToolUse,

@@ -633,10 +633,10 @@ export function streamFromAnthropic(
 
     try {
       for await (const chunk of response) {
-        // console.log("chunk", JSON.stringify(chunk, null, 2))
+        console.log("chunk", JSON.stringify(chunk, null, 2))
         if (chunk.type === "message_start") {
           // Capture input token usage from message_start
-          const msgUsage = (chunk.message as any).usage;
+          const msgUsage = (chunk.message).usage;
           if (msgUsage) {
             accumulatedInputTokens += msgUsage.input_tokens || 0;
             accumulatedCacheCreationTokens += msgUsage.cache_creation_input_tokens || 0;
@@ -652,7 +652,7 @@ export function streamFromAnthropic(
           }
         } else if (chunk.type === "message_delta") {
           // Capture output token usage from message_delta
-          const deltaUsage = (chunk as any).usage;
+          const deltaUsage = (chunk).usage;
           if (deltaUsage) {
             accumulatedOutputTokens += deltaUsage.output_tokens || 0;
           }

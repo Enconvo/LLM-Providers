@@ -1,4 +1,4 @@
-import { ChatMessageContentText, ContextItem, ExtensionCommand, Skill } from "@enconvo/api";
+import { ChatMessageContent, ChatMessageContentText, ContextItem, ExtensionCommand, Skill } from "@enconvo/api";
 
 interface MentionObject {
     commandType: ExtensionCommand.CommandType;
@@ -48,6 +48,20 @@ export async function handleMention(msgContent: ChatMessageContentText) {
                 processedText = processedText.replace(originalMatch, `<inline_skill>\n<base_directory_for_this_skill>${skill.skillPath}</base_directory_for_this_skill>\n<command-name>${skill.name}</command-name>\n<description>${skill.description}</description>\n<content>${skill.content}</content>\n</inline_skill>`);
             }
 
+        } else if (obj.commandType === 'knowledge_base') {
+            const kb = msgContent.additional?.entities?.[obj.id]?.entity as ChatMessageContent.Additional.KnowledgeBase | undefined
+            if (kb) {
+                const title = kb.title ?? obj.title ?? ''
+                const description = kb.description ?? ''
+                processedText = processedText.replace(originalMatch, `<inline_knowledge_base>\n<id>${kb.id}</id>\n<title>${title}</title>\n<description>${description}</description>\n</inline_knowledge_base>`);
+            }
+        } else if (obj.commandType === 'recordings') {
+            const recording = msgContent.additional?.entities?.[obj.id]?.entity as ChatMessageContent.Additional.Recording | undefined
+            if (recording) {
+                const title = recording.title ?? obj.title ?? ''
+                const content = recording.content ?? ''
+                processedText = processedText.replace(originalMatch, `<inline_recording>\n<recording-id>${recording.attachment_id ?? ''}</recording-id>\n<title>${title}</title>\n<content>${content}</content>\n</inline_recording>`);
+            }
         } else {
             processedText = processedText.replace(originalMatch, `<inline_tool description="${obj.title}" name="${obj.id}"></inline_tool>`);
         }

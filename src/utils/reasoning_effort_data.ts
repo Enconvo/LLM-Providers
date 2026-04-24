@@ -162,6 +162,15 @@ const profiles = {
     ],
   },
 
+  /** Kimi K2.6: simple enable/disable thinking */
+  kimi_toggle: {
+    default: "disabled",
+    data: [
+      { title: "Disabled", value: "disabled", description: "Thinking disabled" },
+      { title: "Enabled", value: "enabled", description: "Thinking enabled" },
+    ],
+  },
+
   /** Ollama: simple on/off toggle */
   ollama_toggle: {
     default: "none",
@@ -231,6 +240,10 @@ const modelMappings: ModelMapping[] = [
 
   // ── Groq (GPT-OSS) ─────────────────────────────────────────────────
   { prefix: "openai/gpt-oss", profile: "standard_3_levels" },
+
+  // ── Kimi (Moonshot) ──────────────────────────────────────────────────
+  { prefix: "kimi-k2.6", profile: "kimi_toggle" },
+  { prefix: "kimi-k2.5", profile: "kimi_toggle" },
 
   // ── MiniMax ──────────────────────────────────────────────────────────
   { prefix: "MiniMax-", profile: "anthropic_budget" },
