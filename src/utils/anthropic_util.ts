@@ -633,7 +633,7 @@ export function streamFromAnthropic(
 
     try {
       for await (const chunk of response) {
-        console.log("chunk", JSON.stringify(chunk, null, 2))
+        // console.log("chunk", JSON.stringify(chunk, null, 2))
         if (chunk.type === "message_start") {
           // Capture input token usage from message_start
           const msgUsage = (chunk.message).usage;
