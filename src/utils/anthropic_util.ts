@@ -378,12 +378,14 @@ export const convertMessageToAnthropicMessage = async (
           type: "text",
           text: item.text,
         });
-      } else if (item.type === "thinking" && options.claude_thinking?.value && options.claude_thinking?.value !== 'disabled') {
-        parts.push({
-          type: "thinking",
-          thinking: item.thinkingContent,
-          signature: item.signature || "",
-        });
+      } else if (item.type === "thinking") {
+        if (item.signature) {
+          parts.push({
+            type: "thinking",
+            thinking: item.thinkingContent || "",
+            signature: item.signature,
+          });
+        }
       } else if (item.type === "audio") {
         const url = item.file_url.url.replace("file://", "");
         const readableContent = isAgentMode
