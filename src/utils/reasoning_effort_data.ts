@@ -173,7 +173,7 @@ const profiles = {
     ],
   },
 
-  /** Kimi K2.6: simple enable/disable thinking */
+  /** Kimi K2.6 / Xiaomi MiMo: simple enable/disable thinking */
   kimi_toggle: {
     default: "disabled",
     data: [
@@ -257,6 +257,12 @@ const modelMappings: ModelMapping[] = [
   // ── Kimi (Moonshot) ──────────────────────────────────────────────────
   { prefix: "kimi-k2.6", profile: "kimi_toggle" },
   { prefix: "kimi-k2.5", profile: "kimi_toggle" },
+
+  // ── Xiaomi MiMo ──────────────────────────────────────────────────────
+  { prefix: "mimo-v2.5", profile: "kimi_toggle" },
+  { prefix: "mimo-v2-pro", profile: "kimi_toggle" },
+  { prefix: "mimo-v2-omni", profile: "kimi_toggle" },
+  { prefix: "mimo-v2-flash", profile: "kimi_toggle" },
 
   // ── MiniMax ──────────────────────────────────────────────────────────
   { prefix: "MiniMax-", profile: "anthropic_budget" },

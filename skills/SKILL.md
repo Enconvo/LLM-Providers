@@ -4,7 +4,7 @@ description: >
   LLM provider integrations for 20+ services including OpenAI, Anthropic, Google, Ollama, Groq, Mistral, and more, with unified streaming chat completion and model management APIs.
 metadata:
   author: ysnows
-  version: "1.3.371"
+  version: "1.3.377"
 ---
 
 ## Architecture
@@ -54,5 +54,6 @@ Just use the `local_api` tool to request these APIs.
 | `llm/models/straico` | Fetch and search Straico model list. Params: `forceRefresh` (boolean, default: false), `query` (string) |
 | `llm/models/vercel_ai_gateway` | Fetch and search Vercel AI Gateway model list. Params: `forceRefresh` (boolean, default: false), `query` (string) |
 | `llm/models/x_ai` | Fetch and search xAI model list. Params: `forceRefresh` (boolean, default: false), `query` (string) |
+| `llm/models/xiaomi_mimo` | Fetch and search Xiaomi MiMo model list. Params: `forceRefresh` (boolean, default: false), `query` (string) |
 | `llm/models/z_ai` | Fetch and search Z.AI model list. Params: `forceRefresh` (boolean, default: false), `query` (string) |
 

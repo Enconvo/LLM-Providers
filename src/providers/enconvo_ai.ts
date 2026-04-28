@@ -34,6 +34,10 @@ async function initLLMProvider(options: LLMProvider.LLMOptions) {
       options.commandName = "z_ai";
       options.credentials!.anthropicApiUrl = workerAnthropicApiUrl;
       break;
+    case "xiaomi_mimo":
+      options.commandName = "xiaomi_mimo";
+      options.credentials!.anthropicApiUrl = workerAnthropicApiUrl;
+      break;
     case "deepseek":
       options.commandName = "deepseek";
       options.credentials!.anthropicApiUrl = workerAnthropicApiUrl;
