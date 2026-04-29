@@ -1288,6 +1288,43 @@
       "private": true
     },
     {
+      "name": "mlx",
+      "title": "MLX (mlx)",
+      "description": "Local on-device LLMs on Apple Silicon via [mlx-lm](https://github.com/ml-explore/mlx-lm) — runs entirely offline through the `mlx_manage` extension. Models are pulled from HuggingFace on first use.",
+      "icon": "mlx.png",
+      "mode": "no-view",
+      "commandType": "provider",
+      "provider_category": "llm",
+      "preferences": [
+        {
+          "name": "modelName",
+          "description": "Pick an MLX-LM variant. Smaller (3-8B) for speed, larger (17B+) for quality.",
+          "type": "dropdown",
+          "style": "mlx-llm",
+          "required": false,
+          "title": "Model",
+          "default": "mlx-community/Qwen3.5-4B-OptiQ-4bit",
+          "dataProxy": "llm/models/mlx"
+        },
+        {
+          "name": "temperature",
+          "description": "What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Temperature",
+          "default": 0.7,
+          "data": [
+            { "title": "none", "value": 0 },
+            { "title": "low", "value": 0.5 },
+            { "title": "medium", "value": 0.7 },
+            { "title": "high", "value": 1 },
+            { "title": "maximum", "value": 1.5 }
+          ]
+        }
+      ],
+      "private": true
+    },
+    {
       "name": "openrouter",
       "title": "OpenRouter",
       "description": "Chat with OpenRouter, learn more: [openrouter.ai](https://openrouter.ai/)",

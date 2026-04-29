@@ -230,7 +230,7 @@ export class ChatOpenAIProvider extends LLMProvider {
     return params;
   }
 
-  private async initParams(content: LLMProvider.ResolvedParams) {
+  protected async initParams(content: LLMProvider.ResolvedParams) {
     const credentials = this.options.credentials;
     const credentialsType = credentials?.credentials_type?.value || "apiKey";
     if (!credentials?.apiKey && credentialsType === "apiKey") {
@@ -297,7 +297,7 @@ export class ChatOpenAIProvider extends LLMProvider {
     return params;
   }
 
-  private async _createOpenaiClient(
+  protected async _createOpenaiClient(
     options: LLMProvider.LLMOptions,
   ): Promise<OpenAI> {
     let credentials = options.credentials || null;

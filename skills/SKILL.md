@@ -44,6 +44,7 @@ Just use the `local_api` tool to request these APIs.
 | `llm/models/groq` | Fetch and search Groq model list. Params: `forceRefresh` (boolean, default: false), `query` (string) |
 | `llm/models/minimax` | Fetch and search Minimax model list. Params: `forceRefresh` (boolean, default: false), `query` (string) |
 | `llm/models/mistral` | Fetch and search Mistral model list. Params: `forceRefresh` (boolean, default: false), `query` (string) |
+| `llm/models/mlx` | List MLX-LM models served by the local mlx_manage extension.. _No params_ |
 | `llm/models/moonshot` | Fetch and search Moonshot model list. Params: `forceRefresh` (boolean, default: false), `query` (string) |
 | `llm/models/ollama` | Fetch and search Ollama model list. Params: `forceRefresh` (boolean, default: false), `query` (string) |
 | `llm/models/open_ai` | Fetch and search OpenAI-compatible model list. Params: `forceRefresh` (boolean, default: false), `query` (string) |

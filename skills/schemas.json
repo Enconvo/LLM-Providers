@@ -306,6 +306,16 @@
         "routePath": "llm/models/mistral"
       },
       {
+        "name": "mlx",
+        "description": "List MLX-LM models served by the local mlx_manage extension.",
+        "parameters": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        },
+        "routePath": "llm/models/mlx"
+      },
+      {
         "name": "moonshot",
         "description": "Fetch and search Moonshot model list",
         "parameters": {
