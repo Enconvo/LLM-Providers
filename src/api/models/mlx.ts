@@ -1,7 +1,7 @@
 import { ListCache, Preference, RequestOptions } from "@enconvo/api";
 import fuzzysort from "fuzzysort";
 
-const MLX_BASE_URL = "http://127.0.0.1:54535/mlx_manage/mlx_lm";
+const MLX_BASE_URL = "http://127.0.0.1:54535/mlx_manage/model";
 
 interface MlxModelEntry {
   title: string;
@@ -14,6 +14,26 @@ interface MlxModelEntry {
 }
 
 const AVAILABLE_MODELS: MlxModelEntry[] = [
+  {
+    title: "Qwen3.5-9B (4bit)",
+    value: "mlx-community/Qwen3.5-9B-MLX-4bit",
+    description:
+      "Qwen3.5-9B MLX 4bit — strong reasoning and instruction-following, optimized for Apple Silicon",
+    size: "9B",
+    downloadSize: "5.0 GB",
+    context: 128000,
+    toolUse: true,
+  },
+  {
+    title: "Qwen3.5-27B Claude-4.6-Opus Distilled (4bit)",
+    value: "mlx-community/Qwen3.5-27B-Claude-4.6-Opus-Distilled-MLX-4bit",
+    description:
+      "Qwen3.5-27B distilled from Claude 4.6 Opus — strong reasoning and instruction-following, 4bit quantized for Apple Silicon",
+    size: "27B",
+    downloadSize: "15.2 GB",
+    context: 128000,
+    toolUse: true,
+  },
   {
     title: "Qwen3.6-27B (4bit)",
     value: "mlx-community/Qwen3.6-27B-4bit",
@@ -118,10 +138,10 @@ async function fetchModels(
   await Promise.all(
     AVAILABLE_MODELS.map(async (m) => {
       try {
-        const resp = await fetch(`${MLX_BASE_URL}/check_model_status`, {
+        const resp = await fetch(`${MLX_BASE_URL}/status`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ hf_model_id: m.value }),
+          body: JSON.stringify({ model_id: m.value }),
         });
         if (resp.ok) {
           const data = (await resp.json()) as {

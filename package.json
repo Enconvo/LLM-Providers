@@ -1300,7 +1300,7 @@
           "name": "modelName",
           "description": "Pick an MLX-LM variant. Smaller (3-8B) for speed, larger (17B+) for quality.",
           "type": "dropdown",
-          "style": "mlx-llm",
+          "style": "mlx",
           "required": false,
           "title": "Model",
           "default": "mlx-community/Qwen3.5-4B-OptiQ-4bit",

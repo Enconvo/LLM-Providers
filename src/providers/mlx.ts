@@ -1,30 +1,22 @@
 import { LLMProvider } from "@enconvo/api";
-import OpenAI from "openai";
 import { ChatOpenAIProvider } from "./open_ai.ts";
 
-const MLX_BASE_URL = "http://localhost:54535/mlx_manage/mlx_lm";
+const MLX_OPENAI_BASE_URL = "http://127.0.0.1:54536/v1";
 
 export default function main(options: any) {
   options.credentials = options.credentials || {};
+  options.credentials.baseUrl = options.credentials.baseUrl || MLX_OPENAI_BASE_URL;
   options.credentials.apiKey = options.credentials.apiKey || "mlx";
-  return new MLXProvider(options);
+  return new ChatMLXProvider(options);
 }
 
-export class MLXProvider extends ChatOpenAIProvider {
-  protected async _createOpenaiClient(
-    _options: LLMProvider.LLMOptions,
-  ): Promise<OpenAI> {
-    return new OpenAI({
-      apiKey: "mlx",
-      baseURL: MLX_BASE_URL,
-      fetch: async (url, init) => {
-        const urlStr = typeof url === "string" ? url : url.toString();
-        const rewritten = urlStr.replace(
-          /\/chat\/completions(\?|$)/,
-          "/stream_chat$1",
-        );
-        return globalThis.fetch(rewritten, init);
-      },
-    });
+export class ChatMLXProvider extends ChatOpenAIProvider {
+  protected async initParams(content: LLMProvider.ResolvedParams) {
+    const params = await super.initParams(content);
+    params.chat_template_kwargs = {
+      enable_thinking: false,
+      ...(params.chat_template_kwargs || {}),
+    };
+    return params;
   }
 }
