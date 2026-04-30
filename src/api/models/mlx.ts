@@ -141,7 +141,7 @@ async function fetchModels(
         const resp = await fetch(`${MLX_BASE_URL}/status`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ model_id: m.value }),
+          body: JSON.stringify({ model_id: m.value, category: "llm" }),
         });
         if (resp.ok) {
           const data = (await resp.json()) as {
