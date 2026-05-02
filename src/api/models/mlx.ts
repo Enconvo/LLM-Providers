@@ -4,16 +4,62 @@ import fuzzysort from "fuzzysort";
 const MLX_BASE_URL = "http://127.0.0.1:54535/mlx_manage/model";
 
 interface MlxModelEntry {
-  title: string;
-  value: string;
-  description: string;
   size: string;
-  downloadSize: string;
-  context: number;
-  toolUse?: boolean;
+  downloadSize: string
 }
 
-const AVAILABLE_MODELS: MlxModelEntry[] = [
+const AVAILABLE_MODELS: (MlxModelEntry & ListCache.ListItem)[] = [
+  {
+    title: "Qwen3.5-4B OptiQ (4bit)",
+    value: "mlx-community/Qwen3.5-4B-OptiQ-4bit",
+    description:
+      "Qwen3.5-4B with OptiQ optimized quantization — compact, fast, strong reasoning for the size",
+    size: "4B",
+    downloadSize: "2.4 GB",
+    context: 128000,
+    toolUse: true,
+  },
+  {
+    title: "Gemma 4 E2B IT",
+    value: "google/gemma-4-e2b-it",
+    description:
+      "Google Gemma 4 dense 2B — text + image + audio + thinking; lightweight multimodal",
+    size: "2B",
+    downloadSize: "5.0 GB",
+    context: 128000,
+    toolUse: true,
+    visionEnable: true
+  },
+  {
+    title: "Gemma 4 E4B IT",
+    value: "google/gemma-4-e4b-it",
+    description:
+      "Google Gemma 4 dense 4B — text + image + audio + thinking; balanced multimodal",
+    size: "4B",
+    downloadSize: "16.0 GB",
+    context: 128000,
+    toolUse: true,
+  },
+  {
+    title: "Gemma 4 26B-A4B IT (MoE)",
+    value: "google/gemma-4-26b-a4b-it",
+    description:
+      "Google Gemma 4 sparse MoE — 26B params, ~4B active per token; text + image + thinking",
+    size: "26B",
+    downloadSize: "52.0 GB",
+    context: 128000,
+    toolUse: true,
+  },
+  {
+    title: "Gemma 4 31B IT",
+    value: "google/gemma-4-31b-it",
+    description:
+      "Google Gemma 4 dense 31B — text + image + thinking; bandwidth-bound on consumer hardware",
+    size: "31B",
+    downloadSize: "63.0 GB",
+    context: 128000,
+    toolUse: true,
+  },
   {
     title: "Qwen3.5-9B (4bit)",
     value: "mlx-community/Qwen3.5-9B-MLX-4bit",

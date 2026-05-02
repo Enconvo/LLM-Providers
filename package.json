@@ -1300,7 +1300,7 @@
           "name": "modelName",
           "description": "Pick an MLX-LM variant. Smaller (3-8B) for speed, larger (17B+) for quality.",
           "type": "dropdown",
-          "style": "mlx",
+          "style": "mlx-llm",
           "required": false,
           "title": "Model",
           "default": "mlx-community/Qwen3.5-4B-OptiQ-4bit",
@@ -1319,6 +1319,20 @@
             { "title": "medium", "value": 0.7 },
             { "title": "high", "value": 1 },
             { "title": "maximum", "value": 1.5 }
+          ]
+        },
+        {
+          "name": "reasoning_effort",
+          "description": "Enable model thinking (Qwen / Gemma 4 / DeepSeek-style <think> traces). 'off' disables it; any other value turns it on. Only applies to models whose chat template gates thinking on `enable_thinking`.",
+          "type": "dropdown",
+          "required": false,
+          "title": "Reasoning Effort",
+          "default": "off",
+          "data": [
+            { "title": "off", "value": "off" },
+            { "title": "low", "value": "low" },
+            { "title": "medium", "value": "medium" },
+            { "title": "high", "value": "high" }
           ]
         }
       ],
@@ -2337,5 +2351,11 @@
     "build": "enconvo dev",
     "dev": "enconvo dev --dev"
   },
-  "minAppVersion": "1.8.8"
+  "minAppVersion": "1.8.8",
+  "lifecycle": {
+    "onAppStarted": {
+      "type": "api",
+      "path": "llm/on_app_started"
+    }
+  }
 }
