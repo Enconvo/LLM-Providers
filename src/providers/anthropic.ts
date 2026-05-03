@@ -33,9 +33,9 @@ export class AnthropicProvider extends LLMProvider {
 
   async initClient() {
 
-    if (this.anthropic) {
-      return;
-    }
+    // if (this.anthropic) {
+    //   return;
+    // }
 
     const options = this.options;
     let headers: Record<string, string> = {};

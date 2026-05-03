@@ -1,4 +1,3 @@
-import Anthropic, { ClientOptions } from "@anthropic-ai/sdk";
 import {
   AssistantMessage,
   BaseChatMessage,
@@ -9,11 +8,7 @@ import {
   NativeAPI,
   Stream,
 } from "@enconvo/api";
-import {
-  MessageStreamParams,
-  TextBlockParam,
-} from "@anthropic-ai/sdk/resources/index.js";
-import { AnthropicUtil, streamFromAnthropic } from "../utils/anthropic_util.ts";
+import OpenAI from "openai";
 import { OpenAIUtil } from "../utils/openai_util.ts";
 
 const MLX_LOCAL_BASE_URL =
@@ -102,11 +97,26 @@ export class ChatMLXProvider extends LLMProvider {
   ): Promise<Stream<BaseChatMessageChunk>> {
     const params = await this.initParams(content);
     const route = await this.routeFor(params.model);
-    const anthropic = this.createAnthropicClient(route);
-    const stream = anthropic.messages.stream(params, {
-      signal: content.signal as AbortSignal | undefined,
-    });
-    return streamFromAnthropic(stream, stream.controller);
+    const client = this.createOpenAIClient(route);
+    const chatCompletion = await client.chat.completions.create(
+      {
+        ...params,
+        stream: true,
+        stream_options: {
+          include_usage: true,
+        },
+      },
+      {
+        signal: content.signal as AbortSignal | undefined,
+      },
+    );
+
+    const ac = new AbortController();
+    return OpenAIUtil.streamFromOpenAI(
+      chatCompletion as AsyncIterable<OpenAI.Chat.ChatCompletionChunk>,
+      ac,
+      this.options,
+    );
   }
 
   protected async _call(
@@ -114,36 +124,56 @@ export class ChatMLXProvider extends LLMProvider {
   ): Promise<BaseChatMessage> {
     const params = await this.initParams(content);
     const route = await this.routeFor(params.model);
-    const anthropic = this.createAnthropicClient(route);
-    const message = await anthropic.messages.create(params as any, {
+    const client = this.createOpenAIClient(route);
+    const chatCompletion = await client.chat.completions.create(params, {
       signal: content.signal as AbortSignal | undefined,
     });
-    return this.messageFromAnthropic(message);
+    return this.messageFromOpenAI(chatCompletion.choices[0]?.message);
   }
 
-  private messageFromAnthropic(message: Anthropic.Message): BaseChatMessage {
+  private messageFromOpenAI(
+    message?: OpenAI.Chat.ChatCompletionMessage,
+  ): BaseChatMessage {
     const messageContents: ChatMessageContent[] = [];
+    const text = message?.content;
 
-    for (const block of message.content ?? []) {
-      if (block.type === "text" && block.text) {
-        messageContents.push({ type: "text", text: block.text });
-      } else if (block.type === "thinking" && block.thinking) {
-        messageContents.push(
-          ChatMessageContent.thinking({
-            content: block.thinking,
-            time: 0,
-            status: "success",
-          }),
-        );
-      } else if (block.type === "tool_use") {
-        messageContents.push(
-          new ChatMessageContentToolUse(
-            block.name,
-            block.input ?? {},
-            block.id,
-          ),
-        );
+    if (typeof text === "string" && text) {
+      messageContents.push({ type: "text", text });
+    } else if (Array.isArray(text)) {
+      for (const item of text as any[]) {
+        if (item?.type === "text" && item.text) {
+          messageContents.push({ type: "text", text: item.text });
+        }
       }
+    }
+
+    const reasoning =
+      (message as any)?.reasoning_content || (message as any)?.reasoning;
+    if (typeof reasoning === "string" && reasoning) {
+      messageContents.push(
+        ChatMessageContent.thinking({
+          content: reasoning,
+          time: 0,
+          status: "success",
+        }),
+      );
+    }
+
+    for (const toolCall of message?.tool_calls ?? []) {
+      const fn = (toolCall as any).function;
+      if (!fn?.name) continue;
+      let input: unknown = {};
+      try {
+        input =
+          typeof fn.arguments === "string"
+            ? JSON.parse(fn.arguments || "{}")
+            : fn.arguments || {};
+      } catch {
+        input = {};
+      }
+      messageContents.push(
+        new ChatMessageContentToolUse(fn.name, input, toolCall.id),
+      );
     }
 
     return new AssistantMessage({ content: messageContents });
@@ -152,12 +182,15 @@ export class ChatMLXProvider extends LLMProvider {
   private async routeFor(modelId: string): Promise<string> {
     const isVision = await this.detectVision(modelId);
     return isVision
-      ? "mlx_manage/mlx_vlm/anthropic_messages"
-      : "mlx_manage/mlx_lm/anthropic_messages";
+      ? "mlx_manage/mlx_vlm/openai_chat_completions"
+      : "mlx_manage/mlx_lm/openai_chat_completions";
   }
 
-  private createAnthropicClient(route: string): Anthropic {
-    const localFetch: ClientOptions["fetch"] = async (input, init) => {
+  private createOpenAIClient(route: string): OpenAI {
+    const localFetch = async (
+      input: RequestInfo | URL,
+      init?: RequestInit,
+    ): Promise<Response> => {
       const upstreamRequest =
         input instanceof Request ? input : new Request(input, init);
       const body =
@@ -182,17 +215,17 @@ export class ChatMLXProvider extends LLMProvider {
       return response;
     };
 
-    return new Anthropic({
+    return new OpenAI({
       apiKey: "mlx-local",
-      baseURL: "http://mlx.local",
+      baseURL: "http://mlx.local/v1",
       maxRetries: 0,
-      fetch: localFetch,
+      fetch: localFetch as any,
     });
   }
 
   protected async initParams(
     content: LLMProvider.ResolvedParams,
-  ): Promise<MessageStreamParams> {
+  ): Promise<OpenAI.Chat.ChatCompletionCreateParamsNonStreaming> {
     const modelOptions = this.options.modelName;
     const model = modelOptions?.value;
     if (!model) {
@@ -210,20 +243,13 @@ export class ChatMLXProvider extends LLMProvider {
       },
     } as LLMProvider.LLMOptions;
 
-    const openAIMessages = await OpenAIUtil.convertMessagesToOpenAIMessages(
+    const messages = await OpenAIUtil.convertMessagesToOpenAIMessages(
       effectiveOptions,
       content.messages,
       content,
     );
-    const { system, messages } = this.convertOpenAIToAnthropic(openAIMessages);
 
     let temperature = Number(this.options.temperature?.value);
-    try {
-      temperature =
-        typeof temperature === "string" ? parseFloat(temperature) : temperature;
-    } catch {
-      temperature = 0.5;
-    }
     if (Number.isNaN(temperature)) temperature = 0.7;
     temperature = Math.max(0, Math.min(temperature, 1));
 
@@ -236,179 +262,41 @@ export class ChatMLXProvider extends LLMProvider {
       modelOptions?.maxTokens || modelOptions?.max_tokens || 8192,
     );
 
-    const params: MessageStreamParams & {
+    const params: OpenAI.Chat.ChatCompletionCreateParamsNonStreaming & {
       chat_template_kwargs?: Record<string, unknown>;
     } = {
       model,
       temperature,
       max_tokens: Number.isFinite(maxTokens) ? maxTokens : 8192,
-      system,
       messages,
       chat_template_kwargs: { enable_thinking: enableThinking },
     };
 
-    if (enableThinking) {
-      params.thinking = {
-        type: "adaptive",
-      } as any;
-    } else {
-      params.thinking = {
-        type: "disabled",
-      };
-    }
-
-    const tools = AnthropicUtil.convertToolsToAnthropicTools(content.tools);
+    const tools = OpenAIUtil.convertToolsToOpenAITools(content.tools);
     if (tools && tools.length > 0 && modelOptions?.toolUse === true) {
       params.tools = tools;
-      if (content.tool_choice && typeof content.tool_choice !== "string") {
-        params.tool_choice = {
-          type: "tool",
-          name: content.tool_choice.function.name,
-          disable_parallel_tool_use: true,
-        } as any;
-      } else {
-        params.tool_choice = {
-          type: "auto",
-          disable_parallel_tool_use: true,
-        } as any;
-      }
+      params.tool_choice = this.normalizeToolChoice(content.tool_choice);
+      params.parallel_tool_calls = false;
     }
 
-    return params as MessageStreamParams;
+    return params;
   }
 
-  private convertOpenAIToAnthropic(messages: any[]): {
-    system: TextBlockParam[];
-    messages: Anthropic.MessageParam[];
-  } {
-    const system: TextBlockParam[] = [];
-    const conversation: Anthropic.MessageParam[] = [];
-
-    for (const message of messages) {
-      const role = message.role;
-      if (role === "system" || role === "developer") {
-        const text = this.openAIContentToText(message.content);
-        if (text) system.push({ type: "text", text });
-        continue;
-      }
-
-      if (role === "tool") {
-        conversation.push({
-          role: "user",
-          content: [
-            {
-              type: "tool_result",
-              tool_use_id: message.tool_call_id,
-              content: this.openAIContentToText(message.content),
-            },
-          ],
-        });
-        continue;
-      }
-
-      const content = this.openAIContentToAnthropicBlocks(message.content);
-      if (role === "assistant" && Array.isArray(message.tool_calls)) {
-        for (const toolCall of message.tool_calls) {
-          const fn = toolCall.function ?? {};
-          let input: unknown = {};
-          try {
-            input =
-              typeof fn.arguments === "string"
-                ? JSON.parse(fn.arguments || "{}")
-                : fn.arguments || {};
-          } catch {
-            input = {};
-          }
-          content.push({
-            type: "tool_use",
-            id: toolCall.id,
-            name: fn.name,
-            input,
-          } as any);
-        }
-      }
-
-      if (content.length === 0) continue;
-      conversation.push({
-        role: role === "assistant" ? "assistant" : "user",
-        content:
-          content.length === 1 && content[0].type === "text"
-            ? content[0].text
-            : content,
-      } as Anthropic.MessageParam);
+  private normalizeToolChoice(
+    toolChoice: unknown,
+  ): OpenAI.Chat.ChatCompletionToolChoiceOption {
+    if (!toolChoice) return "auto";
+    if (typeof toolChoice === "string") {
+      return toolChoice as OpenAI.Chat.ChatCompletionToolChoiceOption;
     }
 
-    return { system, messages: conversation };
-  }
+    const name =
+      (toolChoice as any)?.function?.name || (toolChoice as any)?.name;
+    if (!name) return "auto";
 
-  private openAIContentToText(content: unknown): string {
-    if (typeof content === "string") return content;
-    if (!Array.isArray(content)) return content ? JSON.stringify(content) : "";
-    return content
-      .map((item: any) => {
-        if (item?.type === "text") return item.text;
-        if (item?.type === "image_url")
-          return `[image: ${item.image_url?.url ?? ""}]`;
-        if (item?.type === "input_audio") return "[audio]";
-        if (item?.type === "audio_url")
-          return `[audio: ${item.audio_url?.url ?? ""}]`;
-        return JSON.stringify(item);
-      })
-      .filter(Boolean)
-      .join("\n");
-  }
-
-  private openAIContentToAnthropicBlocks(content: unknown): any[] {
-    if (typeof content === "string") {
-      return content ? [{ type: "text", text: content }] : [];
-    }
-    if (!Array.isArray(content)) {
-      return content ? [{ type: "text", text: JSON.stringify(content) }] : [];
-    }
-
-    const blocks: any[] = [];
-    for (const item of content) {
-      if (item?.type === "text" && item.text) {
-        blocks.push({ type: "text", text: item.text });
-      } else if (item?.type === "image_url") {
-        const url =
-          typeof item.image_url === "string"
-            ? item.image_url
-            : item.image_url?.url;
-        if (url) blocks.push(this.imageBlockFromUrl(url));
-      } else if (item?.type === "input_audio") {
-        blocks.push({
-          type: "input_audio",
-          input_audio: item.input_audio,
-        });
-      } else if (item?.type === "audio_url") {
-        blocks.push({
-          type: "audio_url",
-          audio_url: item.audio_url,
-        });
-      }
-    }
-    return blocks;
-  }
-
-  private imageBlockFromUrl(url: string): any {
-    const dataUrlMatch = url.match(/^data:([^;]+);base64,(.*)$/);
-    if (dataUrlMatch) {
-      return {
-        type: "image",
-        source: {
-          type: "base64",
-          media_type: dataUrlMatch[1],
-          data: dataUrlMatch[2],
-        },
-      };
-    }
     return {
-      type: "image",
-      source: {
-        type: "url",
-        url,
-      },
+      type: "function",
+      function: { name },
     };
   }
 }
