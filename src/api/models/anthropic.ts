@@ -1,4 +1,9 @@
-import { CommandManageUtils, ListCache, Preference, RequestOptions } from "@enconvo/api";
+import {
+  CommandManageUtils,
+  ListCache,
+  Preference,
+  RequestOptions,
+} from "@enconvo/api";
 import fuzzysort from "fuzzysort";
 import { getModel, init as initRegistry } from "../../utils/model_registry.ts";
 import { getReasoningEffortPreference } from "../../utils/reasoning_effort_data.ts";
@@ -10,21 +15,45 @@ import Anthropic from "@anthropic-ai/sdk";
 // ============================================================================
 
 interface ModelTraits {
-  speed: number;        // 1-5, 5 = fastest
+  speed: number; // 1-5, 5 = fastest
   intelligence: number; // 1-5, 5 = highest
   searchToolSupported: boolean;
 }
 
 /** First matching prefix wins — order from most-specific to least-specific. */
 const traitRules: { prefix: string; traits: ModelTraits }[] = [
-  { prefix: "claude-opus-4-1", traits: { speed: 3, intelligence: 5, searchToolSupported: true } },
-  { prefix: "claude-opus-4", traits: { speed: 3, intelligence: 5, searchToolSupported: true } },
-  { prefix: "claude-sonnet-4", traits: { speed: 4, intelligence: 4, searchToolSupported: true } },
-  { prefix: "claude-3-7-sonnet", traits: { speed: 4, intelligence: 4, searchToolSupported: true } },
-  { prefix: "claude-3-5-sonnet", traits: { speed: 4, intelligence: 4, searchToolSupported: true } },
-  { prefix: "claude-3-5-haiku", traits: { speed: 5, intelligence: 3, searchToolSupported: true } },
-  { prefix: "claude-3-opus", traits: { speed: 3, intelligence: 4, searchToolSupported: false } },
-  { prefix: "claude-3-haiku", traits: { speed: 4, intelligence: 2, searchToolSupported: false } },
+  {
+    prefix: "claude-opus-4-1",
+    traits: { speed: 3, intelligence: 5, searchToolSupported: true },
+  },
+  {
+    prefix: "claude-opus-4",
+    traits: { speed: 3, intelligence: 5, searchToolSupported: true },
+  },
+  {
+    prefix: "claude-sonnet-4",
+    traits: { speed: 4, intelligence: 4, searchToolSupported: true },
+  },
+  {
+    prefix: "claude-3-7-sonnet",
+    traits: { speed: 4, intelligence: 4, searchToolSupported: true },
+  },
+  {
+    prefix: "claude-3-5-sonnet",
+    traits: { speed: 4, intelligence: 4, searchToolSupported: true },
+  },
+  {
+    prefix: "claude-3-5-haiku",
+    traits: { speed: 5, intelligence: 3, searchToolSupported: true },
+  },
+  {
+    prefix: "claude-3-opus",
+    traits: { speed: 3, intelligence: 4, searchToolSupported: false },
+  },
+  {
+    prefix: "claude-3-haiku",
+    traits: { speed: 4, intelligence: 2, searchToolSupported: false },
+  },
 ];
 
 function getTraits(modelId: string): ModelTraits {
@@ -43,8 +72,8 @@ async function fetchModels(
 ): Promise<ListCache.ListItem[]> {
   const config = await CommandManageUtils.loadCommandConfig({
     commandKey: "llm|anthropic",
-    includes: ['credentials'],
-    useAsRunParams: true
+    includes: ["credentials"],
+    useAsRunParams: true,
   });
   const credentials = config.credentials;
 
@@ -54,7 +83,11 @@ async function fetchModels(
     return [];
   }
 
-  if (credentialsType === "apiKey" && !credentials?.anthropicApiKey && !credentials?.apiKey) {
+  if (
+    credentialsType === "apiKey" &&
+    !credentials?.anthropicApiKey &&
+    !credentials?.apiKey
+  ) {
     return [];
   }
 
@@ -65,9 +98,9 @@ async function fetchModels(
     defaultHeaders:
       credentialsType === "oauth2"
         ? {
-          "anthropic-beta":
-            "oauth-2025-04-20,claude-code-20250219,interleaved-thinking-2025-05-14,fine-grained-tool-streaming-2025-05-14",
-        }
+            "anthropic-beta":
+              "oauth-2025-04-20,claude-code-20250219,interleaved-thinking-2025-05-14,fine-grained-tool-streaming-2025-05-14",
+          }
         : {},
   });
 
@@ -93,7 +126,7 @@ async function fetchModels(
           title: item.display_name,
           providerName: "anthropic",
           value: item.id,
-          context: info?.maxInputTokens ?? 200000,
+          context: Math.min(info?.maxInputTokens ?? 400000, 400000),
           maxTokens: info?.maxOutputTokens ?? 32000,
           inputPrice: info?.inputPricePerMillion ?? 1,
           outputPrice: info?.outputPricePerMillion ?? 1,
@@ -128,9 +161,9 @@ interface ModelsParams {
  * @returns List of available models, optionally filtered by fuzzy search query
  */
 export default async function main(request: Request) {
-  const params = await request.json() as ModelsParams;
+  const params = (await request.json()) as ModelsParams;
   const modelCache = new ListCache(fetchModels);
-  const models = await modelCache.getList(params);
+  const models = await modelCache.getList(params as RequestOptions);
 
   if (params.query) {
     const results = fuzzysort.go(params.query, models, {

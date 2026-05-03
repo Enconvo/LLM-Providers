@@ -1,6 +1,4 @@
-import OpenAI from "openai";
-import axios from "axios";
-import { Readable } from "node:stream";
+import Anthropic, { ClientOptions } from "@anthropic-ai/sdk";
 import {
   AssistantMessage,
   BaseChatMessage,
@@ -11,6 +9,11 @@ import {
   NativeAPI,
   Stream,
 } from "@enconvo/api";
+import {
+  MessageStreamParams,
+  TextBlockParam,
+} from "@anthropic-ai/sdk/resources/index.js";
+import { AnthropicUtil, streamFromAnthropic } from "../utils/anthropic_util.ts";
 import { OpenAIUtil } from "../utils/openai_util.ts";
 
 const MLX_LOCAL_BASE_URL =
@@ -35,16 +38,20 @@ const VISION_NAME_PATTERNS = [
   /smolvlm/i,
 ];
 
+const AUDIO_NAME_PATTERNS = [
+  /audio/i,
+  /gemma-?4/i,
+  /phi-?4-?mm/i,
+  /phi-?4-?multimodal/i,
+  /qwen2-?audio/i,
+];
+
 function guessVisionFromId(modelId: string): boolean {
   return VISION_NAME_PATTERNS.some((p) => p.test(modelId));
 }
 
-async function readNodeStreamAsText(stream: Readable): Promise<string> {
-  const chunks: Buffer[] = [];
-  for await (const chunk of stream) {
-    chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
-  }
-  return Buffer.concat(chunks).toString("utf8");
+function guessAudioFromId(modelId: string): boolean {
+  return AUDIO_NAME_PATTERNS.some((p) => p.test(modelId));
 }
 
 export default function main(options: any) {
@@ -95,40 +102,11 @@ export class ChatMLXProvider extends LLMProvider {
   ): Promise<Stream<BaseChatMessageChunk>> {
     const params = await this.initParams(content);
     const route = await this.routeFor(params.model);
-    const url = `${MLX_LOCAL_BASE_URL}/${route}`;
-
-    const axiosResp = await axios.post(
-      url,
-      { ...params, stream: true, stream_options: { include_usage: true } },
-      {
-        responseType: "stream",
-        signal: content.signal as AbortSignal | undefined,
-        headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
-        validateStatus: () => true,
-        maxBodyLength: Infinity,
-      },
-    );
-    if (axiosResp.status < 200 || axiosResp.status >= 300) {
-      const errText = await readNodeStreamAsText(axiosResp.data).catch(
-        () => `status ${axiosResp.status}`,
-      );
-      throw new Error(`MLX ${route} failed (${axiosResp.status}): ${errText}`);
-    }
-
-    const webBody = Readable.toWeb(axiosResp.data) as ReadableStream<Uint8Array>;
-    const fetchLikeResp = new Response(webBody, {
-      status: axiosResp.status,
-      statusText: axiosResp.statusText,
-      headers: new Headers(axiosResp.headers as Record<string, string>),
+    const anthropic = this.createAnthropicClient(route);
+    const stream = anthropic.messages.stream(params, {
+      signal: content.signal as AbortSignal | undefined,
     });
-
-    const ac = new AbortController();
-    const sseStream = Stream.fromSSEResponse<OpenAI.Chat.ChatCompletionChunk>(
-      fetchLikeResp,
-      ac,
-    );
-    // @ts-ignore
-    return OpenAIUtil.streamFromOpenAI(sseStream, ac, this.options);
+    return streamFromAnthropic(stream, stream.controller);
   }
 
   protected async _call(
@@ -136,65 +114,34 @@ export class ChatMLXProvider extends LLMProvider {
   ): Promise<BaseChatMessage> {
     const params = await this.initParams(content);
     const route = await this.routeFor(params.model);
-    const url = `${MLX_LOCAL_BASE_URL}/${route}`;
+    const anthropic = this.createAnthropicClient(route);
+    const message = await anthropic.messages.create(params as any, {
+      signal: content.signal as AbortSignal | undefined,
+    });
+    return this.messageFromAnthropic(message);
+  }
 
-    const axiosResp = await axios.post(
-      url,
-      { ...params, stream: false },
-      {
-        signal: content.signal as AbortSignal | undefined,
-        headers: { "Content-Type": "application/json" },
-        validateStatus: () => true,
-        maxBodyLength: Infinity,
-      },
-    );
-    if (axiosResp.status < 200 || axiosResp.status >= 300) {
-      const errText =
-        typeof axiosResp.data === "string"
-          ? axiosResp.data
-          : JSON.stringify(axiosResp.data);
-      throw new Error(`MLX ${route} failed (${axiosResp.status}): ${errText}`);
-    }
-    const data = axiosResp.data as {
-      choices?: {
-        message?: {
-          content?: string;
-          reasoning_content?: string;
-          tool_calls?: {
-            id: string;
-            type?: string;
-            function: { name: string; arguments: string };
-          }[];
-        };
-      }[];
-    };
-    const message = data?.choices?.[0]?.message ?? {};
+  private messageFromAnthropic(message: Anthropic.Message): BaseChatMessage {
     const messageContents: ChatMessageContent[] = [];
 
-    if (message.reasoning_content) {
-      messageContents.push(
-        ChatMessageContent.thinking({
-          content: message.reasoning_content,
-          time: 0,
-          status: "success",
-        }),
-      );
-    }
-
-    if (message.content) {
-      messageContents.push({ type: "text", text: message.content });
-    }
-
-    if (message.tool_calls?.length) {
-      for (const tc of message.tool_calls) {
-        let input: unknown = {};
-        try {
-          input = JSON.parse(tc.function?.arguments || "{}");
-        } catch {
-          input = {};
-        }
+    for (const block of message.content ?? []) {
+      if (block.type === "text" && block.text) {
+        messageContents.push({ type: "text", text: block.text });
+      } else if (block.type === "thinking" && block.thinking) {
         messageContents.push(
-          new ChatMessageContentToolUse(tc.function.name, input, tc.id),
+          ChatMessageContent.thinking({
+            content: block.thinking,
+            time: 0,
+            status: "success",
+          }),
+        );
+      } else if (block.type === "tool_use") {
+        messageContents.push(
+          new ChatMessageContentToolUse(
+            block.name,
+            block.input ?? {},
+            block.id,
+          ),
         );
       }
     }
@@ -205,47 +152,263 @@ export class ChatMLXProvider extends LLMProvider {
   private async routeFor(modelId: string): Promise<string> {
     const isVision = await this.detectVision(modelId);
     return isVision
-      ? "mlx_manage/mlx_vlm/stream_chat"
-      : "mlx_manage/mlx_lm/stream_chat";
+      ? "mlx_manage/mlx_vlm/anthropic_messages"
+      : "mlx_manage/mlx_lm/anthropic_messages";
   }
 
-  protected async initParams(content: LLMProvider.ResolvedParams) {
-    const modelOptions = this.options.modelName;
+  private createAnthropicClient(route: string): Anthropic {
+    const localFetch: ClientOptions["fetch"] = async (input, init) => {
+      const upstreamRequest =
+        input instanceof Request ? input : new Request(input, init);
+      const body =
+        upstreamRequest.method === "GET" || upstreamRequest.method === "HEAD"
+          ? undefined
+          : await upstreamRequest.text();
+      const headers = new Headers(upstreamRequest.headers);
+      headers.set("Content-Type", "application/json");
 
-    const messages = await OpenAIUtil.convertMessagesToOpenAIMessages(
-      this.options,
+      const response = await fetch(`${MLX_LOCAL_BASE_URL}/${route}`, {
+        method: upstreamRequest.method,
+        headers,
+        body,
+        signal:
+          (init?.signal as AbortSignal | undefined) ?? upstreamRequest.signal,
+      });
+
+      if (!response.ok) {
+        const text = await response.text().catch(() => response.statusText);
+        throw new Error(`MLX ${route} failed (${response.status}): ${text}`);
+      }
+      return response;
+    };
+
+    return new Anthropic({
+      apiKey: "mlx-local",
+      baseURL: "http://mlx.local",
+      maxRetries: 0,
+      fetch: localFetch,
+    });
+  }
+
+  protected async initParams(
+    content: LLMProvider.ResolvedParams,
+  ): Promise<MessageStreamParams> {
+    const modelOptions = this.options.modelName;
+    const model = modelOptions?.value;
+    if (!model) {
+      throw new Error("MLX modelName is required");
+    }
+    const isVision = await this.detectVision(model);
+    const effectiveOptions = {
+      ...this.options,
+      modelName: {
+        ...modelOptions,
+        visionEnable: isVision || modelOptions?.visionEnable === true,
+        audioEnable:
+          modelOptions?.audioEnable === true ||
+          (isVision && guessAudioFromId(model)),
+      },
+    } as LLMProvider.LLMOptions;
+
+    const openAIMessages = await OpenAIUtil.convertMessagesToOpenAIMessages(
+      effectiveOptions,
       content.messages,
       content,
     );
+    const { system, messages } = this.convertOpenAIToAnthropic(openAIMessages);
 
-    const tools = OpenAIUtil.convertToolsToOpenAITools(content.tools);
-
-    let temperature = this.options.temperature?.value;
+    let temperature = Number(this.options.temperature?.value);
     try {
       temperature =
         typeof temperature === "string" ? parseFloat(temperature) : temperature;
     } catch {
       temperature = 0.5;
     }
+    if (Number.isNaN(temperature)) temperature = 0.7;
+    temperature = Math.max(0, Math.min(temperature, 1));
 
     const reasoningEffort =
       this.options?.reasoning_effort?.value ||
       this.options?.reasoning_effort_new?.value;
-    const enableThinking = Boolean(reasoningEffort) && reasoningEffort !== "off";
+    const enableThinking =
+      Boolean(reasoningEffort) && reasoningEffort !== "off";
+    const maxTokens = Number(
+      modelOptions?.maxTokens || modelOptions?.max_tokens || 8192,
+    );
 
-    const params: any = {
-      model: modelOptions?.value,
+    const params: MessageStreamParams & {
+      chat_template_kwargs?: Record<string, unknown>;
+    } = {
+      model,
       temperature,
+      max_tokens: Number.isFinite(maxTokens) ? maxTokens : 8192,
+      system,
       messages,
       chat_template_kwargs: { enable_thinking: enableThinking },
     };
 
-    if (tools && tools.length > 0 && modelOptions?.toolUse === true) {
-      params.tools = tools;
-      params.tool_choice = content.tool_choice;
-      params.parallel_tool_calls = false;
+    if (enableThinking) {
+      params.thinking = {
+        type: "adaptive",
+      } as any;
+    } else {
+      params.thinking = {
+        type: "disabled",
+      };
     }
 
-    return params;
+    const tools = AnthropicUtil.convertToolsToAnthropicTools(content.tools);
+    if (tools && tools.length > 0 && modelOptions?.toolUse === true) {
+      params.tools = tools;
+      if (content.tool_choice && typeof content.tool_choice !== "string") {
+        params.tool_choice = {
+          type: "tool",
+          name: content.tool_choice.function.name,
+          disable_parallel_tool_use: true,
+        } as any;
+      } else {
+        params.tool_choice = {
+          type: "auto",
+          disable_parallel_tool_use: true,
+        } as any;
+      }
+    }
+
+    return params as MessageStreamParams;
+  }
+
+  private convertOpenAIToAnthropic(messages: any[]): {
+    system: TextBlockParam[];
+    messages: Anthropic.MessageParam[];
+  } {
+    const system: TextBlockParam[] = [];
+    const conversation: Anthropic.MessageParam[] = [];
+
+    for (const message of messages) {
+      const role = message.role;
+      if (role === "system" || role === "developer") {
+        const text = this.openAIContentToText(message.content);
+        if (text) system.push({ type: "text", text });
+        continue;
+      }
+
+      if (role === "tool") {
+        conversation.push({
+          role: "user",
+          content: [
+            {
+              type: "tool_result",
+              tool_use_id: message.tool_call_id,
+              content: this.openAIContentToText(message.content),
+            },
+          ],
+        });
+        continue;
+      }
+
+      const content = this.openAIContentToAnthropicBlocks(message.content);
+      if (role === "assistant" && Array.isArray(message.tool_calls)) {
+        for (const toolCall of message.tool_calls) {
+          const fn = toolCall.function ?? {};
+          let input: unknown = {};
+          try {
+            input =
+              typeof fn.arguments === "string"
+                ? JSON.parse(fn.arguments || "{}")
+                : fn.arguments || {};
+          } catch {
+            input = {};
+          }
+          content.push({
+            type: "tool_use",
+            id: toolCall.id,
+            name: fn.name,
+            input,
+          } as any);
+        }
+      }
+
+      if (content.length === 0) continue;
+      conversation.push({
+        role: role === "assistant" ? "assistant" : "user",
+        content:
+          content.length === 1 && content[0].type === "text"
+            ? content[0].text
+            : content,
+      } as Anthropic.MessageParam);
+    }
+
+    return { system, messages: conversation };
+  }
+
+  private openAIContentToText(content: unknown): string {
+    if (typeof content === "string") return content;
+    if (!Array.isArray(content)) return content ? JSON.stringify(content) : "";
+    return content
+      .map((item: any) => {
+        if (item?.type === "text") return item.text;
+        if (item?.type === "image_url")
+          return `[image: ${item.image_url?.url ?? ""}]`;
+        if (item?.type === "input_audio") return "[audio]";
+        if (item?.type === "audio_url")
+          return `[audio: ${item.audio_url?.url ?? ""}]`;
+        return JSON.stringify(item);
+      })
+      .filter(Boolean)
+      .join("\n");
+  }
+
+  private openAIContentToAnthropicBlocks(content: unknown): any[] {
+    if (typeof content === "string") {
+      return content ? [{ type: "text", text: content }] : [];
+    }
+    if (!Array.isArray(content)) {
+      return content ? [{ type: "text", text: JSON.stringify(content) }] : [];
+    }
+
+    const blocks: any[] = [];
+    for (const item of content) {
+      if (item?.type === "text" && item.text) {
+        blocks.push({ type: "text", text: item.text });
+      } else if (item?.type === "image_url") {
+        const url =
+          typeof item.image_url === "string"
+            ? item.image_url
+            : item.image_url?.url;
+        if (url) blocks.push(this.imageBlockFromUrl(url));
+      } else if (item?.type === "input_audio") {
+        blocks.push({
+          type: "input_audio",
+          input_audio: item.input_audio,
+        });
+      } else if (item?.type === "audio_url") {
+        blocks.push({
+          type: "audio_url",
+          audio_url: item.audio_url,
+        });
+      }
+    }
+    return blocks;
+  }
+
+  private imageBlockFromUrl(url: string): any {
+    const dataUrlMatch = url.match(/^data:([^;]+);base64,(.*)$/);
+    if (dataUrlMatch) {
+      return {
+        type: "image",
+        source: {
+          type: "base64",
+          media_type: dataUrlMatch[1],
+          data: dataUrlMatch[2],
+        },
+      };
+    }
+    return {
+      type: "image",
+      source: {
+        type: "url",
+        url,
+      },
+    };
   }
 }

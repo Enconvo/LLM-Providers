@@ -5,7 +5,8 @@ const MLX_BASE_URL = "http://127.0.0.1:54535/mlx_manage/model";
 
 interface MlxModelEntry {
   size: string;
-  downloadSize: string
+  downloadSize: string;
+  context: number;
 }
 
 const AVAILABLE_MODELS: (MlxModelEntry & ListCache.ListItem)[] = [
@@ -15,50 +16,101 @@ const AVAILABLE_MODELS: (MlxModelEntry & ListCache.ListItem)[] = [
     description:
       "Qwen3.5-4B with OptiQ optimized quantization — compact, fast, strong reasoning for the size",
     size: "4B",
-    downloadSize: "2.4 GB",
+    downloadSize: "3.0 GB",
     context: 128000,
-    toolUse: true,
+    toolUse: false,
   },
   {
-    title: "Gemma 4 E2B IT",
-    value: "google/gemma-4-e2b-it",
+    title: "Gemma 4 E2B IT (4bit)",
+    value: "mlx-community/gemma-4-e2b-it-4bit",
     description:
-      "Google Gemma 4 dense 2B — text + image + audio + thinking; lightweight multimodal",
+      "Google Gemma 4 dense 2B — MLX 4bit quantized, text + image + audio + thinking",
     size: "2B",
-    downloadSize: "5.0 GB",
+    downloadSize: "3.6 GB",
     context: 128000,
-    toolUse: true,
-    visionEnable: true
+    toolUse: false,
+    visionEnable: true,
+    audioEnable: true,
   },
   {
-    title: "Gemma 4 E4B IT",
-    value: "google/gemma-4-e4b-it",
+    title: "Gemma 4 E2B IT (8bit)",
+    value: "mlx-community/gemma-4-e2b-it-8bit",
     description:
-      "Google Gemma 4 dense 4B — text + image + audio + thinking; balanced multimodal",
+      "Google Gemma 4 dense 2B — MLX 8bit quantized, text + image + audio + thinking",
+    size: "2B",
+    downloadSize: "5.9 GB",
+    context: 128000,
+    toolUse: false,
+    visionEnable: true,
+    audioEnable: true,
+  },
+  {
+    title: "Gemma 4 E4B IT (4bit)",
+    value: "mlx-community/gemma-4-e4b-it-4bit",
+    description:
+      "Google Gemma 4 dense 4B — MLX 4bit quantized, text + image + audio + thinking",
     size: "4B",
-    downloadSize: "16.0 GB",
+    downloadSize: "5.2 GB",
     context: 128000,
-    toolUse: true,
+    toolUse: false,
+    visionEnable: true,
+    audioEnable: true,
   },
   {
-    title: "Gemma 4 26B-A4B IT (MoE)",
-    value: "google/gemma-4-26b-a4b-it",
+    title: "Gemma 4 E4B IT (8bit)",
+    value: "mlx-community/gemma-4-e4b-it-8bit",
     description:
-      "Google Gemma 4 sparse MoE — 26B params, ~4B active per token; text + image + thinking",
+      "Google Gemma 4 dense 4B — MLX 8bit quantized, text + image + audio + thinking",
+    size: "4B",
+    downloadSize: "9.0 GB",
+    context: 128000,
+    toolUse: false,
+    visionEnable: true,
+    audioEnable: true,
+  },
+  {
+    title: "Gemma 4 26B-A4B IT (4bit)",
+    value: "mlx-community/gemma-4-26b-a4b-it-4bit",
+    description:
+      "Google Gemma 4 sparse MoE — MLX 4bit quantized, 26B params with about 4B active per token",
     size: "26B",
-    downloadSize: "52.0 GB",
+    downloadSize: "15.6 GB",
     context: 128000,
-    toolUse: true,
+    toolUse: false,
+    visionEnable: true,
   },
   {
-    title: "Gemma 4 31B IT",
-    value: "google/gemma-4-31b-it",
+    title: "Gemma 4 26B-A4B IT (8bit)",
+    value: "mlx-community/gemma-4-26b-a4b-it-8bit",
     description:
-      "Google Gemma 4 dense 31B — text + image + thinking; bandwidth-bound on consumer hardware",
-    size: "31B",
-    downloadSize: "63.0 GB",
+      "Google Gemma 4 sparse MoE — MLX 8bit quantized, 26B params with about 4B active per token",
+    size: "26B",
+    downloadSize: "28.0 GB",
     context: 128000,
-    toolUse: true,
+    toolUse: false,
+    visionEnable: true,
+  },
+  {
+    title: "Gemma 4 31B IT (4bit)",
+    value: "mlx-community/gemma-4-31b-it-4bit",
+    description:
+      "Google Gemma 4 dense 31B — MLX 4bit quantized, text + image + thinking",
+    size: "31B",
+    downloadSize: "18.4 GB",
+    context: 128000,
+    toolUse: false,
+    visionEnable: true,
+  },
+  {
+    title: "Gemma 4 31B IT (8bit)",
+    value: "mlx-community/gemma-4-31b-it-8bit",
+    description:
+      "Google Gemma 4 dense 31B — MLX 8bit quantized, text + image + thinking",
+    size: "31B",
+    downloadSize: "33.8 GB",
+    context: 128000,
+    toolUse: false,
+    visionEnable: true,
   },
   {
     title: "Qwen3.5-9B (4bit)",
@@ -66,9 +118,9 @@ const AVAILABLE_MODELS: (MlxModelEntry & ListCache.ListItem)[] = [
     description:
       "Qwen3.5-9B MLX 4bit — strong reasoning and instruction-following, optimized for Apple Silicon",
     size: "9B",
-    downloadSize: "5.0 GB",
+    downloadSize: "6.0 GB",
     context: 128000,
-    toolUse: true,
+    toolUse: false,
   },
   {
     title: "Qwen3.5-27B Claude-4.6-Opus Distilled (4bit)",
@@ -78,7 +130,7 @@ const AVAILABLE_MODELS: (MlxModelEntry & ListCache.ListItem)[] = [
     size: "27B",
     downloadSize: "15.2 GB",
     context: 128000,
-    toolUse: true,
+    toolUse: false,
   },
   {
     title: "Qwen3.6-27B (4bit)",
@@ -86,94 +138,18 @@ const AVAILABLE_MODELS: (MlxModelEntry & ListCache.ListItem)[] = [
     description:
       "Qwen3.6-27B sensitivity-aware mixed-precision quantization (avg 4.5 bpw) — same size, higher quality",
     size: "4B",
-    downloadSize: "2.8 GB",
+    downloadSize: "16.1 GB",
     context: 128000,
     toolUse: false,
-  },
-  {
-    title: "Qwen3 8B (4bit)",
-    value: "mlx-community/Qwen3-8B-4bit",
-    description: "Latest Qwen3 — hybrid thinking mode, 100+ languages",
-    size: "8B",
-    downloadSize: "4.3 GB",
-    context: 32768,
-    toolUse: true,
-  },
-  {
-    title: "Qwen2.5 7B Instruct (4bit)",
-    value: "mlx-community/Qwen2.5-7B-Instruct-4bit",
-    description: "Alibaba Qwen2.5 — high-quality multilingual chat, coding, math",
-    size: "7B",
-    downloadSize: "4.0 GB",
-    context: 32768,
-    toolUse: true,
-  },
-  {
-    title: "Llama 3.3 70B Instruct (4bit)",
-    value: "mlx-community/Llama-3.3-70B-Instruct-4bit",
-    description: "Meta Llama 3.3 — powerful multilingual instruction-following",
-    size: "70B",
-    downloadSize: "37.0 GB",
-    context: 128000,
-    toolUse: true,
-  },
-  {
-    title: "Llama 4 Scout 17B (4bit)",
-    value: "mlx-community/Llama-4-Scout-17B-16E-Instruct-4bit",
-    description: "Meta Llama 4 Scout — mixture of experts",
-    size: "17B",
-    downloadSize: "56.9 GB",
-    context: 128000,
-    toolUse: true,
   },
   {
     title: "Mistral 7B Instruct v0.3 (4bit)",
     value: "mlx-community/Mistral-7B-Instruct-v0.3-4bit",
     description: "Mistral AI — efficient chat and instruction-following",
     size: "7B",
-    downloadSize: "3.8 GB",
+    downloadSize: "4.1 GB",
     context: 32768,
-    toolUse: true,
-  },
-  {
-    title: "Gemma 2 9B IT (4bit)",
-    value: "mlx-community/gemma-2-9b-it-4bit",
-    description: "Google Gemma 2 — compact yet capable, multilingual",
-    size: "9B",
-    downloadSize: "4.9 GB",
-    context: 8192,
-  },
-  {
-    title: "Phi-4 Mini Instruct (4bit)",
-    value: "mlx-community/phi-4-mini-instruct-4bit",
-    description: "Microsoft Phi-4 Mini — small and fast, strong reasoning",
-    size: "3.8B",
-    downloadSize: "2.0 GB",
-    context: 128000,
-  },
-  {
-    title: "DeepSeek R1 Distill Qwen 7B (4bit)",
-    value: "mlx-community/DeepSeek-R1-Distill-Qwen-7B-4bit",
-    description: "DeepSeek R1 distilled — chain-of-thought reasoning",
-    size: "7B",
-    downloadSize: "4.0 GB",
-    context: 32768,
-  },
-  {
-    title: "DeepSeek R1 Distill Llama 8B (4bit)",
-    value: "mlx-community/DeepSeek-R1-Distill-Llama-8B-4bit",
-    description: "DeepSeek R1 distilled on Llama — strong reasoning",
-    size: "8B",
-    downloadSize: "4.2 GB",
-    context: 32768,
-  },
-  {
-    title: "SmolLM2 1.7B Instruct",
-    value: "mlx-community/SmolLM2-1.7B-Instruct-bf16",
-    description: "HuggingFace SmolLM2 — ultra lightweight, fast responses",
-    size: "1.7B",
-    downloadSize: "3.4 GB",
-    context: 8192,
+    toolUse: false,
   },
 ];
 
@@ -209,7 +185,7 @@ async function fetchModels(
     status: statuses.get(m.value) ?? "not_downloaded",
     providerName: "mlx",
     context: m.context,
-    toolUse: m.toolUse,
+    toolUse: false,
     systemMessageEnable: true,
     download_size: m.downloadSize,
   }));
@@ -229,7 +205,10 @@ interface ModelsParams {
 export default async function main(request: Request) {
   const params = (await request.json().catch(() => ({}))) as ModelsParams;
   const cache = new ListCache(fetchModels);
-  const models = await cache.getList({ ...params, forceRefresh: true });
+  const models = await cache.getList({
+    ...params,
+    forceRefresh: true,
+  } as unknown as RequestOptions);
 
   if (params.query) {
     const results = fuzzysort.go(params.query, models, {

@@ -14,24 +14,18 @@ import {
 } from "@enconvo/api";
 import { convertContextTypeMessageContent } from "./context_item_util.js";
 import path from "path";
-import os from "os";
-import fs from "fs";
 import mime from "mime";
 import { MessageUtils } from "./message_utils.ts";
 
-
-
 export namespace AnthropicUtil {
-
   export const serverTools = [
     {
-      name: 'web_search',
-      title: 'Claude Web Search',
-      icon: 'https://file.enconvo.com/extensions/internet_browsing/assets/icon.png',
-      description: '',
-    }
-  ]
-
+      name: "web_search",
+      title: "Claude Web Search",
+      icon: "https://file.enconvo.com/extensions/internet_browsing/assets/icon.png",
+      description: "",
+    },
+  ];
 
   export const convertToolsToAnthropicTools = (
     tools?: AITool[],
@@ -213,13 +207,9 @@ export const convertMessageToAnthropicMessage = async (
     let parts: MessageContentType[] = [];
     const isAgentMode = Runtime.isAgentMode();
 
-
     async function handleImageContentItem(url: string, description?: string) {
       const newParts: MessageContentType[] = [];
-      if (
-        role === "user" &&
-        options.modelName.visionEnable === true
-      ) {
+      if (role === "user" && options.modelName.visionEnable === true) {
         if (url.startsWith("http://") || url.startsWith("https://")) {
           const mimeType =
             (mime.getType(url) as
@@ -259,9 +249,18 @@ export const convertMessageToAnthropicMessage = async (
       }
 
       if (!description) {
-        const imageGenerationToolEnabled = params.imageGenerationToolEnabled && params.imageGenerationToolEnabled !== 'disabled';
-        const videoGenerationToolEnabled = params.videoGenerationToolEnabled && params.videoGenerationToolEnabled !== 'disabled';
-        if ((Runtime.isAgentMode() || imageGenerationToolEnabled || videoGenerationToolEnabled) && params.addImageAdditionalInfo !== false) {
+        const imageGenerationToolEnabled =
+          params.imageGenerationToolEnabled &&
+          params.imageGenerationToolEnabled !== "disabled";
+        const videoGenerationToolEnabled =
+          params.videoGenerationToolEnabled &&
+          params.videoGenerationToolEnabled !== "disabled";
+        if (
+          (Runtime.isAgentMode() ||
+            imageGenerationToolEnabled ||
+            videoGenerationToolEnabled) &&
+          params.addImageAdditionalInfo !== false
+        ) {
           newParts.push({
             type: "text",
             text: `The above image's url is ${url} , only used for reference when you use tool.`,
@@ -276,10 +275,11 @@ export const convertMessageToAnthropicMessage = async (
       return newParts;
     }
 
+    message.content = await MessageUtils.preHandleMessageContent(
+      message.content,
+    );
 
-    message.content = await MessageUtils.preHandleMessageContent(message.content);
-
-    if (message.additional?.contentType === 'additional') {
+    if (message.additional?.contentType === "additional") {
       parts.push({
         type: "text",
         text: '<supplementary-message description="This is a supplementary message from the user, appended while prior tasks may still be in progress. Consider it in the context of all previous messages and adjust your actions accordingly.">',
@@ -287,27 +287,36 @@ export const convertMessageToAnthropicMessage = async (
     }
 
     for (const item of message.content) {
-      if (item.type === 'context') {
-        const contextItems = item.items
+      if (item.type === "context") {
+        const contextItems = item.items;
         for (const contextItem of contextItems) {
-          if (contextItem.type === 'screenshot') {
+          if (contextItem.type === "screenshot") {
             const description = `[Context Item] This is a screenshot, url is ${contextItem.url}`;
-            const newParts = await handleImageContentItem(contextItem.url, description);
+            const newParts = await handleImageContentItem(
+              contextItem.url,
+              description,
+            );
             parts.push(...newParts);
-          } else if (contextItem.type === 'file') {
+          } else if (contextItem.type === "file") {
             const url = contextItem.url.replace("file://", "");
             if (FileUtil.isImageFile(url)) {
               const description = `[Context Item] This is a image file , url is ${url}`;
               const newParts = await handleImageContentItem(url, description);
               parts.push(...newParts);
             } else {
-              const text = await convertContextTypeMessageContent(contextItem, isAgentMode);
+              const text = await convertContextTypeMessageContent(
+                contextItem,
+                isAgentMode,
+              );
               if (text) {
                 parts.push({ type: "text", text });
               }
             }
           } else {
-            const text = await convertContextTypeMessageContent(contextItem, isAgentMode);
+            const text = await convertContextTypeMessageContent(
+              contextItem,
+              isAgentMode,
+            );
             if (text) {
               parts.push({ type: "text", text });
             }
@@ -391,9 +400,9 @@ export const convertMessageToAnthropicMessage = async (
         const readableContent = isAgentMode
           ? []
           : await AttachmentUtils.getAttachmentsReadableContent({
-            files: [url],
-            loading: true,
-          });
+              files: [url],
+              loading: true,
+            });
 
         if (readableContent.length > 0) {
           const text = readableContent[0].contents
@@ -414,9 +423,9 @@ export const convertMessageToAnthropicMessage = async (
         const readableContent = isAgentMode
           ? []
           : await AttachmentUtils.getAttachmentsReadableContent({
-            files: [url],
-            loading: true,
-          });
+              files: [url],
+              loading: true,
+            });
 
         if (readableContent.length > 0) {
           const text = readableContent[0].contents
@@ -444,9 +453,9 @@ export const convertMessageToAnthropicMessage = async (
         const readableContent = isAgentMode
           ? []
           : await AttachmentUtils.getAttachmentsReadableContent({
-            files: [url],
-            loading: true,
-          });
+              files: [url],
+              loading: true,
+            });
 
         if (readableContent.length > 0) {
           const text = readableContent[0].contents
@@ -470,10 +479,10 @@ export const convertMessageToAnthropicMessage = async (
       }
     }
 
-    if (message.additional?.contentType === 'additional') {
+    if (message.additional?.contentType === "additional") {
       parts.push({
         type: "text",
-        text: '</supplementary-message>',
+        text: "</supplementary-message>",
       });
     }
 
@@ -489,13 +498,11 @@ export const convertMessageToAnthropicMessage = async (
   }
 };
 
-
 export const convertMessagesToAnthropicMessages = async (
   messages: BaseChatMessageLike[],
   options: LLMProvider.LLMOptions,
   params: LLMProvider.Params,
 ): Promise<Anthropic.Messages.MessageParam[]> => {
-
   let newMessages = (
     await Promise.all(
       messages.map((message) =>
@@ -610,6 +617,21 @@ export function streamFromAnthropic(
 ): Stream<BaseChatMessageChunk> {
   let consumed = false;
 
+  function isUserAbortError(error: unknown): boolean {
+    const err = error as {
+      name?: string;
+      type?: string | null;
+      message?: string;
+      constructor?: { name?: string };
+    };
+    return (
+      err?.name === "AbortError" ||
+      err?.name === "APIUserAbortError" ||
+      err?.constructor?.name === "APIUserAbortError" ||
+      err?.message === "Request was aborted."
+    );
+  }
+
   async function* iterator(): AsyncIterator<
     BaseChatMessageChunk,
     any,
@@ -638,23 +660,24 @@ export function streamFromAnthropic(
         // console.log("chunk", JSON.stringify(chunk, null, 2))
         if (chunk.type === "message_start") {
           // Capture input token usage from message_start
-          const msgUsage = (chunk.message).usage;
+          const msgUsage = chunk.message.usage;
           if (msgUsage) {
             accumulatedInputTokens += msgUsage.input_tokens || 0;
-            accumulatedCacheCreationTokens += msgUsage.cache_creation_input_tokens || 0;
+            accumulatedCacheCreationTokens +=
+              msgUsage.cache_creation_input_tokens || 0;
             accumulatedCacheReadTokens += msgUsage.cache_read_input_tokens || 0;
           }
           yield {
-            type: 'message_start',
+            type: "message_start",
             message: {
               role: chunk.message.role,
               content: [],
               model: chunk.message.model,
-            }
-          }
+            },
+          };
         } else if (chunk.type === "message_delta") {
           // Capture output token usage from message_delta
-          const deltaUsage = (chunk).usage;
+          const deltaUsage = chunk.usage;
           if (deltaUsage) {
             accumulatedOutputTokens += deltaUsage.output_tokens || 0;
           }
@@ -667,83 +690,92 @@ export function streamFromAnthropic(
           currentSourceBlockType = chunk.content_block.type;
           if (chunk.content_block.type === "text") {
             yield {
-              type: 'content_block_start',
+              type: "content_block_start",
               content_block: chunk.content_block,
-            }
-
+            };
           } else if (chunk.content_block.type === "thinking") {
             yield {
-              type: 'content_block_start',
+              type: "content_block_start",
               content_block: chunk.content_block,
-            }
+            };
           } else if (chunk.content_block.type === "tool_use") {
             yield {
-              type: 'content_block_start',
+              type: "content_block_start",
               content_block: chunk.content_block,
-            }
+            };
           } else if (chunk.content_block.type === "server_tool_use") {
-            const chunkContentBlock = chunk.content_block as Anthropic.ServerToolUseBlock;
-            const serverTool = AnthropicUtil.serverTools.find((tool) => tool.name === chunkContentBlock.name);
+            const chunkContentBlock =
+              chunk.content_block as Anthropic.ServerToolUseBlock;
+            const serverTool = AnthropicUtil.serverTools.find(
+              (tool) => tool.name === chunkContentBlock.name,
+            );
             yield {
-              type: 'content_block_start',
+              type: "content_block_start",
               content_block: {
-                type: 'server_tool_use',
+                type: "server_tool_use",
                 name: chunk.content_block.name,
                 input: chunk.content_block.input,
                 id: chunk.content_block.id,
-                ...serverTool
+                ...serverTool,
               },
-            }
-
+            };
           } else if (chunk.content_block.type === "web_search_tool_result") {
             // console.log("web_search_tool_result", JSON.stringify(chunk.content_block, null, 2))
             const groundingMetadata = chunk.content_block.content;
             if (Array.isArray(groundingMetadata)) {
-              const items: ChatMessageContentListItem[] = groundingMetadata.map((block: Anthropic.WebSearchResultBlock) => ({
-                url: block.url,
-                title: block.title,
-                icon: `https://www.google.com/s2/favicons?domain=${block.url}&sz=${128}`,
-              })) || [];
+              const items: ChatMessageContentListItem[] =
+                groundingMetadata.map(
+                  (block: Anthropic.WebSearchResultBlock) => ({
+                    url: block.url,
+                    title: block.title,
+                    icon: `https://www.google.com/s2/favicons?domain=${block.url}&sz=${128}`,
+                  }),
+                ) || [];
 
               const messageContent = ChatMessageContent.searchResultList({
                 items,
               });
-              const serverTool = AnthropicUtil.serverTools.find((tool) => tool.name === 'web_search');
+              const serverTool = AnthropicUtil.serverTools.find(
+                (tool) => tool.name === "web_search",
+              );
 
               yield {
-                type: 'content_block_start',
+                type: "content_block_start",
                 content_block: {
-                  type: 'server_tool_use_result',
+                  type: "server_tool_use_result",
                   message_contents: [messageContent],
                   tool: {
-                    name: 'web_search',
+                    name: "web_search",
                     ...serverTool,
                     id: chunk.content_block.tool_use_id,
-                  }
+                  },
                 },
-              }
-
+              };
             } else {
-
             }
           }
         } else if (chunk.type === "content_block_stop") {
           // Flush remaining think tag buffer
           if (thinkBuffer.length > 0) {
             if (isInsideThinkTag) {
-              yield { type: 'content_block_delta', delta: { type: 'thinking_delta', thinking: thinkBuffer } };
+              yield {
+                type: "content_block_delta",
+                delta: { type: "thinking_delta", thinking: thinkBuffer },
+              };
             } else {
-              yield { type: 'content_block_delta', delta: { type: 'text_delta', text: thinkBuffer } };
+              yield {
+                type: "content_block_delta",
+                delta: { type: "text_delta", text: thinkBuffer },
+              };
             }
             thinkBuffer = "";
           }
           isInsideThinkTag = false;
           currentSourceBlockType = null;
           yield {
-            type: 'content_block_stop',
-          }
+            type: "content_block_stop",
+          };
         } else if (chunk.type === "content_block_delta") {
-
           if (chunk.delta.type === "text_delta") {
             if (currentSourceBlockType === "text") {
               // Buffer text and detect <think>/<\/think> tag transitions
@@ -755,23 +787,43 @@ export function streamFromAnthropic(
                   if (openIdx !== -1) {
                     const before = thinkBuffer.substring(0, openIdx);
                     if (before.length > 0) {
-                      yield { type: 'content_block_delta', delta: { type: 'text_delta', text: before } };
+                      yield {
+                        type: "content_block_delta",
+                        delta: { type: "text_delta", text: before },
+                      };
                     }
                     // Close text block, open thinking block
-                    yield { type: 'content_block_stop' };
-                    yield { type: 'content_block_start', content_block: { type: 'thinking', thinking: '' } };
+                    yield { type: "content_block_stop" };
+                    yield {
+                      type: "content_block_start",
+                      content_block: { type: "thinking", thinking: "" },
+                    };
                     isInsideThinkTag = true;
                     thinkBuffer = thinkBuffer.substring(openIdx + 7);
                   } else {
-                    const partialLen = getPartialTagMatchLength(thinkBuffer, "<think>");
+                    const partialLen = getPartialTagMatchLength(
+                      thinkBuffer,
+                      "<think>",
+                    );
                     if (partialLen > 0) {
-                      const safeText = thinkBuffer.substring(0, thinkBuffer.length - partialLen);
+                      const safeText = thinkBuffer.substring(
+                        0,
+                        thinkBuffer.length - partialLen,
+                      );
                       if (safeText.length > 0) {
-                        yield { type: 'content_block_delta', delta: { type: 'text_delta', text: safeText } };
+                        yield {
+                          type: "content_block_delta",
+                          delta: { type: "text_delta", text: safeText },
+                        };
                       }
-                      thinkBuffer = thinkBuffer.substring(thinkBuffer.length - partialLen);
+                      thinkBuffer = thinkBuffer.substring(
+                        thinkBuffer.length - partialLen,
+                      );
                     } else {
-                      yield { type: 'content_block_delta', delta: { type: 'text_delta', text: thinkBuffer } };
+                      yield {
+                        type: "content_block_delta",
+                        delta: { type: "text_delta", text: thinkBuffer },
+                      };
                       thinkBuffer = "";
                     }
                     break;
@@ -781,23 +833,46 @@ export function streamFromAnthropic(
                   if (closeIdx !== -1) {
                     const before = thinkBuffer.substring(0, closeIdx);
                     if (before.length > 0) {
-                      yield { type: 'content_block_delta', delta: { type: 'thinking_delta', thinking: before } };
+                      yield {
+                        type: "content_block_delta",
+                        delta: { type: "thinking_delta", thinking: before },
+                      };
                     }
                     // Close thinking block, open text block
-                    yield { type: 'content_block_stop' };
-                    yield { type: 'content_block_start', content_block: { type: 'text', text: '' } };
+                    yield { type: "content_block_stop" };
+                    yield {
+                      type: "content_block_start",
+                      content_block: { type: "text", text: "" },
+                    };
                     isInsideThinkTag = false;
                     thinkBuffer = thinkBuffer.substring(closeIdx + 8);
                   } else {
-                    const partialLen = getPartialTagMatchLength(thinkBuffer, "</think>");
+                    const partialLen = getPartialTagMatchLength(
+                      thinkBuffer,
+                      "</think>",
+                    );
                     if (partialLen > 0) {
-                      const safeText = thinkBuffer.substring(0, thinkBuffer.length - partialLen);
+                      const safeText = thinkBuffer.substring(
+                        0,
+                        thinkBuffer.length - partialLen,
+                      );
                       if (safeText.length > 0) {
-                        yield { type: 'content_block_delta', delta: { type: 'thinking_delta', thinking: safeText } };
+                        yield {
+                          type: "content_block_delta",
+                          delta: { type: "thinking_delta", thinking: safeText },
+                        };
                       }
-                      thinkBuffer = thinkBuffer.substring(thinkBuffer.length - partialLen);
+                      thinkBuffer = thinkBuffer.substring(
+                        thinkBuffer.length - partialLen,
+                      );
                     } else {
-                      yield { type: 'content_block_delta', delta: { type: 'thinking_delta', thinking: thinkBuffer } };
+                      yield {
+                        type: "content_block_delta",
+                        delta: {
+                          type: "thinking_delta",
+                          thinking: thinkBuffer,
+                        },
+                      };
                       thinkBuffer = "";
                     }
                     break;
@@ -805,53 +880,63 @@ export function streamFromAnthropic(
                 }
               }
             } else {
-              yield { type: 'content_block_delta', delta: chunk.delta };
+              yield { type: "content_block_delta", delta: chunk.delta };
             }
           } else if (chunk.delta.type === "thinking_delta") {
             yield {
-              type: 'content_block_delta',
-              delta: chunk.delta
-            }
+              type: "content_block_delta",
+              delta: chunk.delta,
+            };
           } else if (chunk.delta.type === "signature_delta") {
             // CacheUtils.set(chunk.delta.signature, chunk.delta.signature)
             // CacheUtils.save()
             yield {
-              type: 'content_block_delta',
-              delta: chunk.delta
-            }
+              type: "content_block_delta",
+              delta: chunk.delta,
+            };
           } else if (chunk.delta.type === "input_json_delta") {
             yield {
-              type: 'content_block_delta',
-              delta: chunk.delta
-            }
+              type: "content_block_delta",
+              delta: chunk.delta,
+            };
           }
         }
       }
     } catch (e) {
-      console.log('anthropic stream e', e)
+      if (isUserAbortError(e)) {
+        return;
+      }
+      console.log("anthropic stream e", e);
       throw e;
     }
 
     // Yield usage OUTSIDE try/finally — only when stream completed normally.
     // yield inside finally causes issues when consumer calls .return() on the generator.
     if (accumulatedInputTokens > 0 || accumulatedOutputTokens > 0) {
-      const totalTokens = accumulatedInputTokens + accumulatedOutputTokens + accumulatedCacheCreationTokens + accumulatedCacheReadTokens;
+      const totalTokens =
+        accumulatedInputTokens +
+        accumulatedOutputTokens +
+        accumulatedCacheCreationTokens +
+        accumulatedCacheReadTokens;
       yield {
-        type: 'usage' as const,
+        type: "usage" as const,
         usage: {
           input_tokens: accumulatedInputTokens,
           output_tokens: accumulatedOutputTokens,
-          cache_creation_input_tokens: accumulatedCacheCreationTokens || undefined,
+          cache_creation_input_tokens:
+            accumulatedCacheCreationTokens || undefined,
           cache_read_input_tokens: accumulatedCacheReadTokens || undefined,
           total_tokens: totalTokens,
-        }
+        },
       };
     }
 
     // If stream ended without message_stop/message_delta (server closed connection early),
     // signal an incomplete stream so the consumer can retry
     if (!streamCompleted) {
-      throw new Error("context overflow: Anthropic stream ended prematurely without completing the response");
+      throw new Error(
+        "context overflow: Anthropic stream ended prematurely without completing the response",
+      );
     }
   }
 
