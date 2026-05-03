@@ -48,6 +48,7 @@ Just use the `local_api` tool to request these APIs.
 | `llm/models/moonshot` | Fetch and search Moonshot model list. Params: `forceRefresh` (boolean, default: false), `query` (string) |
 | `llm/models/ollama` | Fetch and search Ollama model list. Params: `forceRefresh` (boolean, default: false), `query` (string) |
 | `llm/models/open_ai` | Fetch and search OpenAI-compatible model list. Params: `forceRefresh` (boolean, default: false), `query` (string) |
+| `llm/models/openclaw` | Fuzzy search query to filter models by name. _No params_ |
 | `llm/models/openrouter` | Fetch and search OpenRouter model list. Params: `forceRefresh` (boolean, default: false), `query` (string) |
 | `llm/models/poe` | Fetch and search Poe model list. Params: `forceRefresh` (boolean, default: false), `query` (string) |
 | `llm/models/qwen` | Fetch and search Qwen model list. Params: `forceRefresh` (boolean, default: false), `query` (string) |

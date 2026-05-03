@@ -376,6 +376,16 @@
         "routePath": "llm/models/open_ai"
       },
       {
+        "name": "openclaw",
+        "description": "Fuzzy search query to filter models by name",
+        "parameters": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        },
+        "routePath": "llm/models/openclaw"
+      },
+      {
         "name": "openrouter",
         "description": "Fetch and search OpenRouter model list",
         "parameters": {
