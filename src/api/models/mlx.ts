@@ -11,16 +11,6 @@ interface MlxModelEntry {
 
 const AVAILABLE_MODELS: (MlxModelEntry & ListCache.ListItem)[] = [
   {
-    title: "Qwen3.5-4B OptiQ (4bit)",
-    value: "mlx-community/Qwen3.5-4B-OptiQ-4bit",
-    description:
-      "Qwen3.5-4B with OptiQ optimized quantization — compact, fast, strong reasoning for the size",
-    size: "4B",
-    downloadSize: "3.0 GB",
-    context: 128000,
-    toolUse: false,
-  },
-  {
     title: "Gemma 4 E2B IT (4bit)",
     value: "mlx-community/gemma-4-e2b-it-4bit",
     description:
@@ -31,6 +21,16 @@ const AVAILABLE_MODELS: (MlxModelEntry & ListCache.ListItem)[] = [
     toolUse: false,
     visionEnable: true,
     audioEnable: true,
+  },
+  {
+    title: "Qwen3.5-4B OptiQ (4bit)",
+    value: "mlx-community/Qwen3.5-4B-OptiQ-4bit",
+    description:
+      "Qwen3.5-4B with OptiQ optimized quantization — compact, fast, strong reasoning for the size",
+    size: "4B",
+    downloadSize: "3.0 GB",
+    context: 128000,
+    toolUse: false,
   },
   {
     title: "Gemma 4 E2B IT (8bit)",
@@ -67,6 +67,16 @@ const AVAILABLE_MODELS: (MlxModelEntry & ListCache.ListItem)[] = [
     toolUse: false,
     visionEnable: true,
     audioEnable: true,
+  },
+  {
+    title: "Qwen3.5-9B (4bit)",
+    value: "mlx-community/Qwen3.5-9B-MLX-4bit",
+    description:
+      "Qwen3.5-9B MLX 4bit — strong reasoning and instruction-following, optimized for Apple Silicon",
+    size: "9B",
+    downloadSize: "6.0 GB",
+    context: 128000,
+    toolUse: false,
   },
   {
     title: "Gemma 4 26B-A4B IT (4bit)",
@@ -111,16 +121,6 @@ const AVAILABLE_MODELS: (MlxModelEntry & ListCache.ListItem)[] = [
     context: 128000,
     toolUse: false,
     visionEnable: true,
-  },
-  {
-    title: "Qwen3.5-9B (4bit)",
-    value: "mlx-community/Qwen3.5-9B-MLX-4bit",
-    description:
-      "Qwen3.5-9B MLX 4bit — strong reasoning and instruction-following, optimized for Apple Silicon",
-    size: "9B",
-    downloadSize: "6.0 GB",
-    context: 128000,
-    toolUse: false,
   },
   {
     title: "Qwen3.5-27B Claude-4.6-Opus Distilled (4bit)",
