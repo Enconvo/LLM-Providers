@@ -266,6 +266,16 @@
         "routePath": "llm/models/groq"
       },
       {
+        "name": "hermes",
+        "description": "Fuzzy search query to filter models by name",
+        "parameters": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        },
+        "routePath": "llm/models/hermes"
+      },
+      {
         "name": "minimax",
         "description": "Fetch and search Minimax model list",
         "parameters": {
