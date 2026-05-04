@@ -31,6 +31,8 @@ import {
 } from "openai/resources/responses/responses.mjs";
 import mime from "mime";
 import path from "path";
+import os from "os";
+import fs from "fs";
 import { saveBinaryFile } from "./google_util.ts";
 import { v4 as uuidv4 } from 'uuid';
 
@@ -967,6 +969,17 @@ export namespace OpenAIUtil {
     }
 
     newMessages = ensureFirstMessageIsUser(newMessages);
+    try {
+      const _logDir = path.join(os.homedir(), '.cache', 'enconvo', 'llm');
+      const _logFile = path.join(_logDir, 'openai_testmessge.jsonl');
+      if (!fs.existsSync(_logDir)) fs.mkdirSync(_logDir, { recursive: true });
+      const _stats = fs.existsSync(_logFile) ? fs.statSync(_logFile) : null;
+      if (_stats && _stats.size > 10 * 1024 * 1024) {
+        fs.writeFileSync(_logFile, JSON.stringify(newMessages) + '\n');
+      } else {
+        fs.appendFileSync(_logFile, JSON.stringify(newMessages) + '\n');
+      }
+    } catch { }
 
     // console.log("openai Completions newMessages", JSON.stringify(newMessages, null, 2))
     return newMessages;
