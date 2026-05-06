@@ -14,6 +14,7 @@ const FALLBACK_MODELS: ListCache.ListItem[] = [
     value: DEFAULT_AGENT,
     context: 128000,
     toolUse: false,
+    visionEnable: true,
     systemMessageEnable: true,
   },
 ];
@@ -139,6 +140,7 @@ async function fetchModels(
       value: agent,
       context: 128000,
       toolUse: false,
+      visionEnable: true,
       systemMessageEnable: true,
     }));
   } catch {

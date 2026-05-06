@@ -4,7 +4,7 @@ description: >
   LLM provider integrations for 20+ services including OpenAI, Anthropic, Google, Ollama, Groq, Mistral, and more, with unified streaming chat completion and model management APIs.
 metadata:
   author: ysnows
-  version: "1.3.379"
+  version: "1.3.381"
 ---
 
 ## Architecture
@@ -30,6 +30,8 @@ Just use the `local_api` tool to request these APIs.
 | Endpoint | Description |
 |----------|-------------|
 | `llm/enconvo_ai` | Chat using EnconvoAI which provide LLM service, , learn more : [docs](https://www.enconvo.com/cloud-plan). _No params_ |
+| `llm/local_provider_start` | Start or stop a supported local provider service. _6 params — use `check_local_api_schemas` tool_ |
+| `llm/local_provider_status` | Check whether a local provider is installed and whether its local API is running. _4 params — use `check_local_api_schemas` tool_ |
 | `llm/models/1minai` | Fetch and search 1min AI model list. Params: `forceRefresh` (boolean, default: false), `query` (string) |
 | `llm/models/aimagicx` | Fetch and search Aimagicx model list. Params: `forceRefresh` (boolean, default: false), `query` (string) |
 | `llm/models/anthropic` | Fetch and search Anthropic model list. Params: `forceRefresh` (boolean, default: false), `query` (string) |

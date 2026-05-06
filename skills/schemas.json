@@ -6,6 +6,75 @@
     "routePath": "llm/enconvo_ai"
   },
   {
+    "name": "local_provider_start",
+    "title": "local_provider_start",
+    "description": "Start or stop a supported local provider service",
+    "routePath": "llm/local_provider_start",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "provider": {
+          "type": "string",
+          "description": "Provider to control: openclaw, hermes, or ollama"
+        },
+        "action": {
+          "type": "string",
+          "description": "Control action",
+          "default": "start"
+        },
+        "lan": {
+          "type": "boolean",
+          "description": "Return a LAN base URL when available"
+        },
+        "host": {
+          "type": "string",
+          "description": "Override the host used for API probes"
+        },
+        "port": {
+          "type": "number",
+          "description": "Override the provider API port"
+        },
+        "timeoutMs": {
+          "type": "number",
+          "description": "Command timeout in milliseconds"
+        }
+      },
+      "required": [
+        "provider"
+      ]
+    }
+  },
+  {
+    "name": "local_provider_status",
+    "title": "local_provider_status",
+    "description": "Check whether a local provider is installed and whether its local API is running",
+    "routePath": "llm/local_provider_status",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "provider": {
+          "type": "string",
+          "description": "Provider to inspect: openclaw, hermes, or ollama"
+        },
+        "lan": {
+          "type": "boolean",
+          "description": "Return a LAN base URL when available"
+        },
+        "host": {
+          "type": "string",
+          "description": "Override the host used for API probes"
+        },
+        "port": {
+          "type": "number",
+          "description": "Override the provider API port"
+        }
+      },
+      "required": [
+        "provider"
+      ]
+    }
+  },
+  {
     "name": "models",
     "title": "models",
     "description": "Router for models",
