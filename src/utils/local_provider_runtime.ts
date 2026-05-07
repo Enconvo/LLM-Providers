@@ -54,6 +54,9 @@ const HERMES_ENV_PATH = "~/.hermes/.env";
 const OPENCLAW_DEFAULT_PORT = 18789;
 const HERMES_DEFAULT_PORT = 8642;
 const OLLAMA_DEFAULT_PORT = 11434;
+const PROVIDER_START_STATUS_TIMEOUT_MS = 30000;
+const PROVIDER_STOP_STATUS_TIMEOUT_MS = 10000;
+const PROVIDER_STATUS_POLL_INTERVAL_MS = 1000;
 const OLLAMA_BUNDLE_ID = "com.electron.ollama";
 const OLLAMA_APP_PATHS = [
   "/System/Volumes/Data/Applications/Ollama.app",
@@ -247,6 +250,10 @@ function wait(ms: number) {
   });
 }
 
+function shellQuote(value: string) {
+  return `'${value.replace(/'/g, "'\\''")}'`;
+}
+
 async function findOpenClawExecutable() {
   return findExecutable("openclaw", [
     "~/.local/bin/openclaw",
@@ -293,6 +300,37 @@ async function getOllamaInstallPaths() {
   };
 }
 
+function resolveOpenClawPort(
+  params: LocalProviderRuntimeParams,
+  config: Record<string, unknown> | null,
+) {
+  return (
+    params.port ||
+    readNumber(getNestedValue(config, ["gateway", "http", "port"])) ||
+    readNumber(getNestedValue(config, ["gateway", "port"])) ||
+    OPENCLAW_DEFAULT_PORT
+  );
+}
+
+async function getConfiguredOpenClawPort(params: LocalProviderRuntimeParams) {
+  return resolveOpenClawPort(params, await readJsonFile(OPENCLAW_CONFIG_PATH));
+}
+
+function resolveHermesPort(
+  params: LocalProviderRuntimeParams,
+  envText: string,
+) {
+  return (
+    params.port ||
+    parsePort(readEnvValue(envText, "API_SERVER_PORT")) ||
+    HERMES_DEFAULT_PORT
+  );
+}
+
+async function getConfiguredHermesPort(params: LocalProviderRuntimeParams) {
+  return resolveHermesPort(params, await readEnvFile(HERMES_ENV_PATH));
+}
+
 async function getOpenClawStatus(
   params: LocalProviderRuntimeParams,
 ): Promise<LocalProviderStatusResult> {
@@ -316,26 +354,25 @@ async function getOpenClawStatus(
   const apiKey = readString(
     getNestedValue(config, ["gateway", "auth", "token"]),
   );
-  const port =
-    params.port ||
-    readNumber(getNestedValue(config, ["gateway", "http", "port"])) ||
-    readNumber(getNestedValue(config, ["gateway", "port"])) ||
-    OPENCLAW_DEFAULT_PORT;
-  const baseUrl = `http://${getHost(params)}:${port}/v1`;
-  const health = apiKey
+  const port = resolveOpenClawPort(params, config);
+  const gatewayUrl = `http://${getHost(params)}:${port}`;
+  const baseUrl = `${gatewayUrl}/v1`;
+  const health = await probeHttp(`${gatewayUrl}/health`);
+  const models = apiKey
     ? await probeHttp(`${baseUrl}/models`, apiKey)
     : { ok: false, error: "Missing OpenClaw gateway token" };
 
   return {
     provider: "openclaw",
     installed: true,
-    running: health.ok === true,
+    running: health.ok === true || models.ok === true,
     executable,
     baseUrl,
     checks: {
       configPath: OPENCLAW_CONFIG_PATH,
       apiKeyFound: Boolean(apiKey),
       health,
+      models,
     },
     warnings: [],
     errors: [],
@@ -364,10 +401,7 @@ async function getHermesStatus(
 
   const envText = await readEnvFile(HERMES_ENV_PATH);
   const apiKey = readEnvValue(envText, "API_SERVER_KEY");
-  const port =
-    params.port ||
-    parsePort(readEnvValue(envText, "API_SERVER_PORT")) ||
-    HERMES_DEFAULT_PORT;
+  const port = resolveHermesPort(params, envText);
   const baseUrl = `http://${getHost(params)}:${port}/v1`;
   const health = await probeHttp(`${baseUrl}/health`);
   const models = await probeHttp(`${baseUrl}/models`, apiKey);
@@ -489,6 +523,33 @@ async function stopOllama(timeoutMs: number): Promise<CommandResult> {
   );
 }
 
+async function stopGatewayProcess(
+  executable: string,
+  processName: "openclaw" | "hermes",
+  port: number,
+  timeoutMs: number,
+): Promise<CommandResult> {
+  const gatewayRunPattern = `${processName} gateway ru[n]`;
+  const lsofListenerCommand = `/usr/sbin/lsof -tiTCP:${port} -sTCP:LISTEN 2>/dev/null | /usr/bin/sort -u`;
+
+  return runCommand(
+    "/bin/sh",
+    [
+      "-lc",
+      [
+        `${shellQuote(executable)} gateway stop >/dev/null 2>&1 || true`,
+        "sleep 1",
+        `pgrep -f ${shellQuote(gatewayRunPattern)} | while read -r pid; do /bin/kill -TERM "$pid" >/dev/null 2>&1 || true; done`,
+        `${lsofListenerCommand} | while read -r pid; do /bin/kill -TERM "$pid" >/dev/null 2>&1 || true; done`,
+        "sleep 1",
+        `pgrep -f ${shellQuote(gatewayRunPattern)} | while read -r pid; do /bin/kill -KILL "$pid" >/dev/null 2>&1 || true; done`,
+        `${lsofListenerCommand} | while read -r pid; do /bin/kill -KILL "$pid" >/dev/null 2>&1 || true; done`,
+      ].join("; "),
+    ],
+    timeoutMs,
+  );
+}
+
 async function runControlCommand(
   params: LocalProviderRuntimeParams & { action: LocalProviderControlAction },
   executable: string,
@@ -500,7 +561,48 @@ async function runControlCommand(
       : stopOllama(timeoutMs);
   }
 
+  if (
+    (params.provider === "openclaw" || params.provider === "hermes") &&
+    params.action === "stop"
+  ) {
+    const port =
+      params.provider === "openclaw"
+        ? await getConfiguredOpenClawPort(params)
+        : await getConfiguredHermesPort(params);
+
+    return stopGatewayProcess(executable, params.provider, port, timeoutMs);
+  }
+
   return runCommand(executable, ["gateway", params.action], timeoutMs);
+}
+
+function providerReachedExpectedState(
+  status: LocalProviderStatusResult,
+  action: LocalProviderControlAction,
+) {
+  return action === "start" ? status.running : !status.running;
+}
+
+async function waitForProviderState(
+  params: LocalProviderRuntimeParams,
+  action: LocalProviderControlAction,
+): Promise<LocalProviderStatusResult> {
+  const deadline =
+    Date.now() +
+    (action === "start"
+      ? PROVIDER_START_STATUS_TIMEOUT_MS
+      : PROVIDER_STOP_STATUS_TIMEOUT_MS);
+  let status = await getLocalProviderStatus(params);
+
+  while (
+    !providerReachedExpectedState(status, action) &&
+    Date.now() < deadline
+  ) {
+    await wait(PROVIDER_STATUS_POLL_INTERVAL_MS);
+    status = await getLocalProviderStatus(params);
+  }
+
+  return status;
 }
 
 export async function controlLocalProvider(
@@ -539,8 +641,7 @@ export async function controlLocalProvider(
     );
   }
 
-  await wait(params.provider === "ollama" ? 2500 : 1500);
-  const status = await getLocalProviderStatus(params);
+  const status = await waitForProviderState(params, action);
   if (action === "start" && !status.running) {
     warnings.push(
       `${params.provider} did not report a running API after start.`,

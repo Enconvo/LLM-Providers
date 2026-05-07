@@ -34,18 +34,22 @@ import path from "path";
 import os from "os";
 import fs from "fs";
 import { saveBinaryFile } from "./google_util.ts";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
+import {
+  usageFromOpenAIChatUsage,
+  usageFromOpenAIResponseUsage,
+} from "./usage_util.ts";
+import { shouldAddImageSource } from "./image_source_util.js";
 
 export namespace OpenAIUtil {
-
   export const serverTools = [
     {
-      name: 'web_search',
-      title: 'OpenAI Web Search',
-      icon: 'https://file.enconvo.com/extensions/internet_browsing/assets/icon.png',
-      description: '',
-    }
-  ]
+      name: "web_search",
+      title: "OpenAI Web Search",
+      icon: "https://file.enconvo.com/extensions/internet_browsing/assets/icon.png",
+      description: "",
+    },
+  ];
 
   export const convertMessageToOpenAIResponseMessage = async (
     llmOptions: LLMProvider.LLMOptions,
@@ -69,7 +73,7 @@ export namespace OpenAIUtil {
         };
       } else {
         const id = message.id || `msg_${uuidv4()}`;
-        console.log("id", id)
+        console.log("id", id);
         newMessage = {
           id: id.startsWith("msg_") ? id : `msg_${id}`,
           type: "message",
@@ -88,6 +92,7 @@ export namespace OpenAIUtil {
         | ResponseOutputText
         | ResponseOutputRefusal
       )[] = [];
+      const seenImageSources = new Set<string>();
 
       const handleMessageContent = () => {
         if (messageContents.length > 0) {
@@ -100,7 +105,7 @@ export namespace OpenAIUtil {
             });
           } else if (role === "assistant") {
             let id = message.id || `msg_${uuidv4()}`;
-            if (id.endsWith('_')) {
+            if (id.endsWith("_")) {
               id = id.slice(0, -1);
             }
             // console.log("msg_id", message.id, id)
@@ -120,12 +125,21 @@ export namespace OpenAIUtil {
       };
 
       async function handleImageContentItem(url: string, description?: string) {
-        const newMessageContents: (ResponseInputContent | ResponseOutputText)[] = [];
+        const newMessageContents: (
+          | ResponseInputContent
+          | ResponseOutputText
+        )[] = [];
+        const shouldAddImage = shouldAddImageSource(seenImageSources, url);
         if (
+          shouldAddImage &&
           role === "user" &&
           llmOptions.modelName.visionEnable === true
         ) {
-          if (url.startsWith("http://") || url.startsWith("https://")) {
+          if (
+            url.startsWith("http://") ||
+            url.startsWith("https://") ||
+            url.startsWith("data:image/")
+          ) {
             newMessageContents.push({
               type: "input_image",
               detail: "auto",
@@ -139,7 +153,7 @@ export namespace OpenAIUtil {
               newMessageContents.push({
                 type: "input_image",
                 detail: "auto",
-                image_url: `data:image/${mimeType};base64,${base64}`,
+                image_url: `data:${mimeType};base64,${base64}`,
               });
             }
           }
@@ -158,9 +172,19 @@ export namespace OpenAIUtil {
             });
           }
         } else {
-          const imageGenerationToolEnabled = params.imageGenerationToolEnabled && params.imageGenerationToolEnabled !== 'disabled';
-          const videoGenerationToolEnabled = params.videoGenerationToolEnabled && params.videoGenerationToolEnabled !== 'disabled';
-          if ((isAgentMode || imageGenerationToolEnabled || videoGenerationToolEnabled) && params.addImageAdditionalInfo !== false) {
+          const imageGenerationToolEnabled =
+            params.imageGenerationToolEnabled &&
+            params.imageGenerationToolEnabled !== "disabled";
+          const videoGenerationToolEnabled =
+            params.videoGenerationToolEnabled &&
+            params.videoGenerationToolEnabled !== "disabled";
+          if (
+            shouldAddImage &&
+            (isAgentMode ||
+              imageGenerationToolEnabled ||
+              videoGenerationToolEnabled) &&
+            params.addImageAdditionalInfo !== false
+          ) {
             if (role === "user" || role === "system") {
               newMessageContents.push({
                 type: "input_text",
@@ -178,8 +202,7 @@ export namespace OpenAIUtil {
         return newMessageContents;
       }
 
-
-      if (message.additional?.contentType === 'additional') {
+      if (message.additional?.contentType === "additional") {
         if (role === "user" || role === "system") {
           messageContents.push({
             type: "input_text",
@@ -200,31 +223,57 @@ export namespace OpenAIUtil {
           for (const contextItem of contextItems) {
             if (contextItem.type === "screenshot") {
               const description = `[Context Item] This is a screenshot, url is ${contextItem.url}`;
-              const newMessageContents = await handleImageContentItem(contextItem.url, description);
+              const newMessageContents = await handleImageContentItem(
+                contextItem.url,
+                description,
+              );
               messageContents.push(...newMessageContents);
             } else if (contextItem.type === "file") {
               const url = contextItem.url.replace("file://", "");
               if (FileUtil.isImageFile(url)) {
                 const description = `[Context Item] This is a image file , url is ${url}`;
-                const newMessageContents = await handleImageContentItem(url, description);
+                const newMessageContents = await handleImageContentItem(
+                  url,
+                  description,
+                );
                 messageContents.push(...newMessageContents);
               } else {
-                const textContent = await convertContextTypeMessageContent(contextItem, isAgentMode);
+                const textContent = await convertContextTypeMessageContent(
+                  contextItem,
+                  isAgentMode,
+                );
                 if (textContent) {
                   if (role === "user" || role === "system") {
-                    messageContents.push({ type: "input_text", text: textContent });
+                    messageContents.push({
+                      type: "input_text",
+                      text: textContent,
+                    });
                   } else if (role === "assistant") {
-                    messageContents.push({ type: "output_text", text: textContent, annotations: [] });
+                    messageContents.push({
+                      type: "output_text",
+                      text: textContent,
+                      annotations: [],
+                    });
                   }
                 }
               }
             } else {
-              const textContent = await convertContextTypeMessageContent(contextItem, isAgentMode);
+              const textContent = await convertContextTypeMessageContent(
+                contextItem,
+                isAgentMode,
+              );
               if (textContent) {
                 if (role === "user" || role === "system") {
-                  messageContents.push({ type: "input_text", text: textContent });
+                  messageContents.push({
+                    type: "input_text",
+                    text: textContent,
+                  });
                 } else if (role === "assistant") {
-                  messageContents.push({ type: "output_text", text: textContent, annotations: [] });
+                  messageContents.push({
+                    type: "output_text",
+                    text: textContent,
+                    annotations: [],
+                  });
                 }
               }
             }
@@ -275,14 +324,18 @@ export namespace OpenAIUtil {
           }
         } else if (item.type === "audio") {
           const url = item.file_url.url.replace("file://", "");
-          let readableContent = isAgentMode ? [] : await AttachmentUtils.getAttachmentsReadableContent({
-            files: [url],
-            loading: true,
-          })
+          let readableContent = isAgentMode
+            ? []
+            : await AttachmentUtils.getAttachmentsReadableContent({
+                files: [url],
+                loading: true,
+              });
 
           if (role === "user" || role === "system") {
             if (readableContent.length > 0) {
-              const text = readableContent[0].contents.map((item) => item.text).join("\n")
+              const text = readableContent[0].contents
+                .map((item) => item.text)
+                .join("\n");
               messageContents.push({
                 type: "input_text",
                 text: `# audio file url: ${url}\n # audio file transcript: ${text}`,
@@ -295,7 +348,9 @@ export namespace OpenAIUtil {
             }
           } else if (role === "assistant") {
             if (readableContent.length > 0) {
-              const text = readableContent[0].contents.map((item) => item.text).join("\n")
+              const text = readableContent[0].contents
+                .map((item) => item.text)
+                .join("\n");
               messageContents.push({
                 type: "output_text",
                 text: `# audio file url: ${url}\n # audio file transcript: ${text}`,
@@ -311,14 +366,18 @@ export namespace OpenAIUtil {
           }
         } else if (item.type === "video") {
           const url = item.file_url.url.replace("file://", "");
-          let readableContent = isAgentMode ? [] : await AttachmentUtils.getAttachmentsReadableContent({
-            files: [url],
-            loading: true,
-          })
+          let readableContent = isAgentMode
+            ? []
+            : await AttachmentUtils.getAttachmentsReadableContent({
+                files: [url],
+                loading: true,
+              });
 
           if (role === "user" || role === "system") {
             if (readableContent.length > 0) {
-              const text = readableContent[0].contents.map((item) => item.text).join("\n")
+              const text = readableContent[0].contents
+                .map((item) => item.text)
+                .join("\n");
               messageContents.push({
                 type: "input_text",
                 text: `# video file url: ${url}\n # video file transcript: ${text}`,
@@ -331,7 +390,9 @@ export namespace OpenAIUtil {
             }
           } else if (role === "assistant") {
             if (readableContent.length > 0) {
-              const text = readableContent[0].contents.map((item) => item.text).join("\n")
+              const text = readableContent[0].contents
+                .map((item) => item.text)
+                .join("\n");
               messageContents.push({
                 type: "output_text",
                 text: `# video file url: ${url}\n # video file transcript: ${text}`,
@@ -352,14 +413,18 @@ export namespace OpenAIUtil {
             messageContents.push(...newMessageContents);
             continue;
           }
-          let readableContent = isAgentMode ? [] : await AttachmentUtils.getAttachmentsReadableContent({
-            files: [url],
-            loading: true,
-          })
+          let readableContent = isAgentMode
+            ? []
+            : await AttachmentUtils.getAttachmentsReadableContent({
+                files: [url],
+                loading: true,
+              });
 
           if (role === "user" || role === "system") {
             if (readableContent.length > 0) {
-              const text = readableContent[0].contents.map((item) => item.text).join("\n")
+              const text = readableContent[0].contents
+                .map((item) => item.text)
+                .join("\n");
               messageContents.push({
                 type: "input_text",
                 text: `# file url: ${url}\n # file content: ${text}`,
@@ -372,7 +437,9 @@ export namespace OpenAIUtil {
             }
           } else if (role === "assistant") {
             if (readableContent.length > 0) {
-              const text = readableContent[0].contents.map((item) => item.text).join("\n")
+              const text = readableContent[0].contents
+                .map((item) => item.text)
+                .join("\n");
               messageContents.push({
                 type: "output_text",
                 text: `# file url: ${url}\n # file content: ${text}`,
@@ -403,16 +470,16 @@ export namespace OpenAIUtil {
         }
       }
 
-      if (message.additional?.contentType === 'additional') {
+      if (message.additional?.contentType === "additional") {
         if (role === "user" || role === "system") {
           messageContents.push({
             type: "input_text",
-            text: '</supplementary-message>',
+            text: "</supplementary-message>",
           });
         } else if (role === "assistant") {
           messageContents.push({
             type: "output_text",
-            text: '</supplementary-message>',
+            text: "</supplementary-message>",
             annotations: [],
           });
         }
@@ -456,14 +523,21 @@ export namespace OpenAIUtil {
       let newMessages: OpenAI.Chat.ChatCompletionMessageParam[] = [];
       let messageContents: OpenAI.Chat.ChatCompletionContentPart[] = [];
       const isAgentMode = Runtime.isAgentMode();
+      const seenImageSources = new Set<string>();
 
       async function handleImageContentItem(url: string, description?: string) {
         const newMessageContents: OpenAI.Chat.ChatCompletionContentPart[] = [];
+        const shouldAddImage = shouldAddImageSource(seenImageSources, url);
         if (
+          shouldAddImage &&
           role === "user" &&
           llmOptions.modelName.visionEnable === true
         ) {
-          if (url.startsWith("http://") || url.startsWith("https://")) {
+          if (
+            url.startsWith("http://") ||
+            url.startsWith("https://") ||
+            url.startsWith("data:image/")
+          ) {
             // Handle remote URLs directly
             newMessageContents.push({
               type: "image_url",
@@ -495,9 +569,19 @@ export namespace OpenAIUtil {
           return newMessageContents;
         }
 
-        const imageGenerationToolEnabled = params.imageGenerationToolEnabled && params.imageGenerationToolEnabled !== 'disabled';
-        const videoGenerationToolEnabled = params.videoGenerationToolEnabled && params.videoGenerationToolEnabled !== 'disabled';
-        if ((isAgentMode || imageGenerationToolEnabled || videoGenerationToolEnabled) && params.addImageAdditionalInfo !== false) {
+        const imageGenerationToolEnabled =
+          params.imageGenerationToolEnabled &&
+          params.imageGenerationToolEnabled !== "disabled";
+        const videoGenerationToolEnabled =
+          params.videoGenerationToolEnabled &&
+          params.videoGenerationToolEnabled !== "disabled";
+        if (
+          shouldAddImage &&
+          (isAgentMode ||
+            imageGenerationToolEnabled ||
+            videoGenerationToolEnabled) &&
+          params.addImageAdditionalInfo !== false
+        ) {
           newMessageContents.push({
             type: "text",
             text: `The above image's url is ${url} , this url is only used for reference when you use tool, if not , ignore this .`,
@@ -506,7 +590,7 @@ export namespace OpenAIUtil {
         return newMessageContents;
       }
 
-      if (message.additional?.contentType === 'additional') {
+      if (message.additional?.contentType === "additional") {
         messageContents.push({
           type: "text",
           text: '<supplementary-message description="This is a supplementary message from the user, appended while prior tasks may still be in progress. Consider it in the context of all previous messages and adjust your actions accordingly.">',
@@ -535,13 +619,19 @@ export namespace OpenAIUtil {
                 );
                 messageContents.push(...newMessageContents);
               } else {
-                const textContent = await convertContextTypeMessageContent(contextItem, isAgentMode);
+                const textContent = await convertContextTypeMessageContent(
+                  contextItem,
+                  isAgentMode,
+                );
                 if (textContent) {
                   messageContents.push({ type: "text", text: textContent });
                 }
               }
             } else {
-              const textContent = await convertContextTypeMessageContent(contextItem, isAgentMode);
+              const textContent = await convertContextTypeMessageContent(
+                contextItem,
+                isAgentMode,
+              );
               if (textContent) {
                 messageContents.push({ type: "text", text: textContent });
               }
@@ -621,9 +711,9 @@ export namespace OpenAIUtil {
           const readableContent = isAgentMode
             ? []
             : await AttachmentUtils.getAttachmentsReadableContent({
-              files: [url],
-              loading: true,
-            });
+                files: [url],
+                loading: true,
+              });
 
           if (readableContent.length > 0) {
             const text = readableContent[0].contents
@@ -647,9 +737,9 @@ export namespace OpenAIUtil {
           const readableContent = isAgentMode
             ? []
             : await AttachmentUtils.getAttachmentsReadableContent({
-              files: [url],
-              loading: true,
-            });
+                files: [url],
+                loading: true,
+              });
 
           if (readableContent.length > 0) {
             const text = readableContent[0].contents
@@ -662,8 +752,7 @@ export namespace OpenAIUtil {
           } else {
             messageContents.push({
               type: "text",
-              text:
-                `This is a video file , url is ${url} , only used for reference when you use tool, if not , ignore this .`,
+              text: `This is a video file , url is ${url} , only used for reference when you use tool, if not , ignore this .`,
             });
           }
         } else if (item.type === "file") {
@@ -676,9 +765,9 @@ export namespace OpenAIUtil {
           const readableContent = isAgentMode
             ? []
             : await AttachmentUtils.getAttachmentsReadableContent({
-              files: [url],
-              loading: true,
-            });
+                files: [url],
+                loading: true,
+              });
 
           if (readableContent.length > 0) {
             const text = readableContent[0].contents
@@ -691,8 +780,7 @@ export namespace OpenAIUtil {
           } else {
             messageContents.push({
               type: "text",
-              text:
-                `This is a file , url is ${url} , only used for reference when you use tool, if not , ignore this .`,
+              text: `This is a file , url is ${url} , only used for reference when you use tool, if not , ignore this .`,
             });
           }
         } else if (item.type === "thinking") {
@@ -705,10 +793,10 @@ export namespace OpenAIUtil {
         }
       }
 
-      if (message.additional?.contentType === 'additional') {
+      if (message.additional?.contentType === "additional") {
         messageContents.push({
           type: "text",
-          text: '</supplementary-message>',
+          text: "</supplementary-message>",
         });
       }
 
@@ -743,7 +831,6 @@ export namespace OpenAIUtil {
       return newMessages;
     }
   };
-
 
   export const convertToolsToOpenAIResponseTools = (
     tools?: AITool[],
@@ -915,23 +1002,24 @@ export namespace OpenAIUtil {
     const systemMessage =
       allSystemMessages.length > 1
         ? {
-          role: "system",
-          content: allSystemMessages
-            .map((message) => {
-              if (typeof message.content === "string") {
-                return message.content;
-              } else {
-                return message.content
-                  .map((item) => {
-                    if (item.type === "text") {
-                      return item.text;
-                    }
-                  })
-                  .join("\n\n");
-              }
-            })
-            .join("\n\n"),
-        }
+            role: "system",
+            content: allSystemMessages
+              .map((message) => {
+                if (typeof message.content === "string") {
+                  return message.content;
+                } else {
+                  return message.content
+                    .map((item) => {
+                      if (item.type === "text") {
+                        return item.text;
+                      }
+                      return JSON.stringify(item);
+                    })
+                    .join("\n\n");
+                }
+              })
+              .join("\n\n"),
+          }
         : allSystemMessages.length > 0
           ? allSystemMessages[0]
           : undefined;
@@ -970,18 +1058,21 @@ export namespace OpenAIUtil {
 
     newMessages = ensureFirstMessageIsUser(newMessages);
     try {
-      const _logDir = path.join(os.homedir(), '.cache', 'enconvo', 'llm');
-      const _logFile = path.join(_logDir, 'openai_testmessge.jsonl');
+      const _logDir = path.join(os.homedir(), ".cache", "enconvo", "llm");
+      const _logFile = path.join(_logDir, "openai_testmessge.jsonl");
       if (!fs.existsSync(_logDir)) fs.mkdirSync(_logDir, { recursive: true });
       const _stats = fs.existsSync(_logFile) ? fs.statSync(_logFile) : null;
       if (_stats && _stats.size > 10 * 1024 * 1024) {
-        fs.writeFileSync(_logFile, JSON.stringify(newMessages) + '\n');
+        fs.writeFileSync(_logFile, JSON.stringify(newMessages) + "\n");
       } else {
-        fs.appendFileSync(_logFile, JSON.stringify(newMessages) + '\n');
+        fs.appendFileSync(_logFile, JSON.stringify(newMessages) + "\n");
       }
-    } catch { }
+    } catch {}
 
-    // console.log("openai Completions newMessages", JSON.stringify(newMessages, null, 2))
+    console.log(
+      "openai Completions newMessages",
+      JSON.stringify(newMessages, null, 2),
+    );
     return newMessages;
   };
 
@@ -994,20 +1085,18 @@ export namespace OpenAIUtil {
       await Promise.all(
         messages.map((message) =>
           convertMessageToOpenAIResponseMessage(options, message, params),
-        )
+        ),
       )
     ).flat();
 
     // console.log("openai Responses newMessages", JSON.stringify(newMessages, null, 2))
-    return newMessages;
+    return newMessages as ResponseInputItem[];
   };
-
-
 
   export function streamFromOpenAI(
     response: AsyncIterable<OpenAI.Chat.ChatCompletionChunk>,
     controller: AbortController,
-    options?: RequestOptions,
+    _options?: RequestOptions,
   ): Stream<BaseChatMessageChunk> {
     let consumed = false;
 
@@ -1023,220 +1112,228 @@ export namespace OpenAIUtil {
       }
       consumed = true;
       let done = false;
-      let runningContentBlockType: BaseChatMessageChunk.ContentBlock['type'] | undefined;
+      let runningContentBlockType:
+        | BaseChatMessageChunk.ContentBlock["type"]
+        | undefined;
       // Track usage from OpenAI stream (sent when stream_options.include_usage is true)
-      let streamUsage: { input_tokens: number; output_tokens: number; total_tokens: number; cache_read_input_tokens?: number } | undefined;
+      let streamUsage: any;
 
       try {
         for await (const chunk of response) {
-          // console.log("chunk", JSON.stringify(chunk, null, 2), options?.commandName)
+          console.log("chunk", JSON.stringify(chunk, null, 2));
           if (done) continue;
 
           // Capture final usage chunk (OpenAI sends this with empty choices when include_usage is true)
           if (chunk.usage) {
-            streamUsage = {
-              input_tokens: chunk.usage.prompt_tokens,
-              output_tokens: chunk.usage.completion_tokens,
-              total_tokens: chunk.usage.total_tokens,
-              cache_read_input_tokens: chunk.usage.prompt_tokens_details?.cached_tokens || undefined,
-            };
+            streamUsage = usageFromOpenAIChatUsage(chunk.usage);
           }
 
-          if (chunk.choices.length > 0) {
-            const choice = chunk.choices[0];
+          const choices = Array.isArray(chunk.choices) ? chunk.choices : [];
+          if (choices.length > 0) {
+            const choice = choices[0];
+            const choiceDelta = choice.delta as any;
             if (choice.delta.content) {
-              if (runningContentBlockType !== 'text') {
+              if (runningContentBlockType !== "text") {
                 if (runningContentBlockType !== undefined) {
                   yield {
-                    type: 'content_block_stop',
-                  }
+                    type: "content_block_stop",
+                  };
                 }
-                runningContentBlockType = 'text';
+                runningContentBlockType = "text";
                 yield {
-                  type: 'content_block_start',
+                  type: "content_block_start",
                   content_block: {
-                    type: 'text',
-                    text: '',
-                  }
-                }
+                    type: "text",
+                    text: "",
+                  },
+                };
                 yield {
-                  type: 'content_block_delta',
+                  type: "content_block_delta",
                   delta: {
-                    type: 'text_delta',
+                    type: "text_delta",
                     text: choice.delta.content,
-                  }
-                }
+                  },
+                };
               } else {
                 yield {
-                  type: 'content_block_delta',
+                  type: "content_block_delta",
                   delta: {
-                    type: 'text_delta',
+                    type: "text_delta",
                     text: choice.delta.content,
-                  }
-                }
+                  },
+                };
               }
-            } else if (choice.delta.tool_calls && choice.delta.tool_calls.length > 0) {
+            } else if (
+              choice.delta.tool_calls &&
+              choice.delta.tool_calls.length > 0
+            ) {
               const toolCall = choice.delta.tool_calls[0];
               const toolFunction = toolCall.function;
-              if (runningContentBlockType !== 'tool_use') {
+              if (runningContentBlockType !== "tool_use") {
                 if (runningContentBlockType !== undefined) {
                   yield {
-                    type: 'content_block_stop',
-                  }
+                    type: "content_block_stop",
+                  };
                 }
-                runningContentBlockType = 'tool_use';
+                runningContentBlockType = "tool_use";
                 if (toolFunction?.name) {
                   let input = undefined;
                   if (toolFunction.arguments) {
                     try {
                       input = JSON.parse(toolFunction.arguments);
                     } catch (e) {
-                      input = {}
+                      input = {};
                     }
                   }
 
                   yield {
-                    type: 'content_block_start',
+                    type: "content_block_start",
                     content_block: {
-                      type: 'tool_use',
+                      type: "tool_use",
                       name: toolFunction.name,
                       input: input || {},
-                      id: toolCall.id || '',
+                      id: toolCall.id || "",
+                    },
+                  };
+                }
+              } else {
+                yield {
+                  type: "content_block_delta",
+                  delta: {
+                    type: "input_json_delta",
+                    partial_json: toolFunction?.arguments || "",
+                  },
+                };
+              }
+            } else if (
+              choiceDelta.reasoning_content &&
+              choiceDelta.reasoning_content !== ""
+            ) {
+              if (runningContentBlockType !== "thinking") {
+                if (runningContentBlockType !== undefined) {
+                  yield {
+                    type: "content_block_stop",
+                  };
+                }
+                runningContentBlockType = "thinking";
+                yield {
+                  type: "content_block_start",
+                  content_block: {
+                    type: "thinking",
+                    thinking: "",
+                  },
+                };
+                yield {
+                  type: "content_block_delta",
+                  delta: {
+                    type: "thinking_delta",
+                    thinking: choiceDelta.reasoning_content,
+                  },
+                };
+              } else {
+                yield {
+                  type: "content_block_delta",
+                  delta: {
+                    type: "thinking_delta",
+                    thinking: choiceDelta.reasoning_content,
+                  },
+                };
+              }
+            } else if (choiceDelta.reasoning && choiceDelta.reasoning !== "") {
+              if (runningContentBlockType !== "thinking") {
+                if (runningContentBlockType !== undefined) {
+                  yield {
+                    type: "content_block_stop",
+                  };
+                }
+                runningContentBlockType = "thinking";
+                yield {
+                  type: "content_block_start",
+                  content_block: {
+                    type: "thinking",
+                    thinking: "",
+                  },
+                };
+                yield {
+                  type: "content_block_delta",
+                  delta: {
+                    type: "thinking_delta",
+                    thinking: choiceDelta.reasoning,
+                  },
+                };
+              } else {
+                yield {
+                  type: "content_block_delta",
+                  delta: {
+                    type: "thinking_delta",
+                    thinking: choiceDelta.reasoning,
+                  },
+                };
+              }
+            } else if (
+              choiceDelta.images &&
+              Array.isArray(choiceDelta.images) &&
+              choiceDelta.images.length > 0
+            ) {
+              if (runningContentBlockType !== "message_content") {
+                if (runningContentBlockType !== undefined) {
+                  yield {
+                    type: "content_block_stop",
+                  };
+                }
+
+                const respImages = choiceDelta.images as any[];
+
+                const images = await Promise.all(
+                  respImages.map(async (image) => {
+                    const fileName = uuidv4();
+                    let fileExtension = "png";
+                    let base64Data = "";
+                    let imageUrl = "";
+
+                    if (typeof image.image_url === "string") {
+                      imageUrl = image.image_url;
+                    } else {
+                      imageUrl = image.image_url?.url || "";
                     }
-                  }
-                }
-              } else {
+
+                    // Extract mime type from data URL header
+                    const dataUrlMatch = imageUrl.match(
+                      /^data:image\/([a-zA-Z]+);base64,/,
+                    );
+                    if (dataUrlMatch) {
+                      fileExtension = dataUrlMatch[1];
+                      base64Data = imageUrl.replace(
+                        /^data:image\/[a-zA-Z]+;base64,/,
+                        "",
+                      );
+                    } else {
+                      // Fallback if no data URL header found
+                      base64Data = imageUrl;
+                    }
+
+                    const buffer = Buffer.from(base64Data, "base64");
+
+                    const cachePath = environment.cachePath;
+                    const filePath = path.join(
+                      cachePath,
+                      `${fileName}.${fileExtension}`,
+                    );
+                    await saveBinaryFile(filePath, buffer);
+                    return ChatMessageContent.imageUrl({
+                      url: filePath,
+                    });
+                  }),
+                );
+
+                runningContentBlockType = "message_content";
                 yield {
-                  type: 'content_block_delta',
-                  delta: {
-                    type: 'input_json_delta',
-                    partial_json: toolFunction?.arguments || '',
-                  }
-                }
-              }
-              //@ts-ignore
-            } else if (choice.delta.reasoning_content && choice.delta.reasoning_content !== '') {
-              if (runningContentBlockType !== 'thinking') {
-                if (runningContentBlockType !== undefined) {
-                  yield {
-                    type: 'content_block_stop',
-                  }
-                }
-                runningContentBlockType = 'thinking';
-                yield {
-                  type: 'content_block_start',
+                  type: "content_block_start",
                   content_block: {
-                    type: 'thinking',
-                    thinking: '',
-                  }
-                }
-                yield {
-                  type: 'content_block_delta',
-                  delta: {
-                    type: 'thinking_delta',
-                    //@ts-ignore
-                    thinking: choice.delta.reasoning_content,
-                  }
-                }
-              } else {
-                yield {
-                  type: 'content_block_delta',
-                  delta: {
-                    type: 'thinking_delta',
-                    //@ts-ignore
-                    thinking: choice.delta.reasoning_content,
-                  }
-                }
-              }
-              //@ts-ignore
-            } else if (choice.delta.reasoning && choice.delta.reasoning !== '') {
-              if (runningContentBlockType !== 'thinking') {
-                if (runningContentBlockType !== undefined) {
-                  yield {
-                    type: 'content_block_stop',
-                  }
-                }
-                runningContentBlockType = 'thinking';
-                yield {
-                  type: 'content_block_start',
-                  content_block: {
-                    type: 'thinking',
-                    thinking: '',
-                  }
-                }
-                yield {
-                  type: 'content_block_delta',
-                  delta: {
-                    type: 'thinking_delta',
-                    //@ts-ignore
-                    thinking: choice.delta.reasoning,
-                  }
-                }
-              } else {
-                yield {
-                  type: 'content_block_delta',
-                  delta: {
-                    type: 'thinking_delta',
-                    //@ts-ignore
-                    thinking: choice.delta.reasoning,
-                  }
-                }
-              }
-              //@ts-ignore
-            } else if (choice.delta.images && Array.isArray(choice.delta.images) && choice.delta.images.length > 0) {
-              if (runningContentBlockType !== 'message_content') {
-                if (runningContentBlockType !== undefined) {
-                  yield {
-                    type: 'content_block_stop',
-                  }
-                }
-
-                //@ts-ignore
-                const respImages = choice.delta.images as any[];
-
-                const images = await Promise.all(respImages.map(async (image) => {
-                  const fileName = uuidv4();
-                  let fileExtension = "png";
-                  let base64Data = "";
-                  let imageUrl = "";
-
-                  if (typeof image.image_url === 'string') {
-                    imageUrl = image.image_url;
-                  } else {
-                    imageUrl = image.image_url?.url || "";
-                  }
-
-                  // Extract mime type from data URL header
-                  const dataUrlMatch = imageUrl.match(/^data:image\/([a-zA-Z]+);base64,/);
-                  if (dataUrlMatch) {
-                    fileExtension = dataUrlMatch[1];
-                    base64Data = imageUrl.replace(/^data:image\/[a-zA-Z]+;base64,/, "");
-                  } else {
-                    // Fallback if no data URL header found
-                    base64Data = imageUrl;
-                  }
-
-                  const buffer = Buffer.from(base64Data, "base64");
-
-                  const cachePath = environment.cachePath;
-                  const filePath = path.join(
-                    cachePath,
-                    `${fileName}.${fileExtension}`,
-                  );
-                  await saveBinaryFile(filePath, buffer);
-                  return ChatMessageContent.imageUrl({
-                    url: filePath,
-                  })
-                }));
-
-                runningContentBlockType = 'message_content';
-                yield {
-                  type: 'content_block_start',
-                  content_block: {
-                    type: 'message_content',
+                    type: "message_content",
                     content: images,
-                  }
-                }
+                  },
+                };
               }
             }
           }
@@ -1249,19 +1346,14 @@ export namespace OpenAIUtil {
       } finally {
         if (runningContentBlockType !== undefined) {
           yield {
-            type: 'content_block_stop',
-          }
+            type: "content_block_stop",
+          };
         }
         // Yield accumulated usage at end of stream
         if (streamUsage) {
           yield {
-            type: 'usage' as const,
-            usage: {
-              input_tokens: streamUsage.input_tokens,
-              output_tokens: streamUsage.output_tokens,
-              total_tokens: streamUsage.total_tokens,
-              cache_read_input_tokens: streamUsage.cache_read_input_tokens,
-            }
+            type: "usage" as const,
+            usage: streamUsage,
           };
         }
         if (!done) controller.abort();
@@ -1290,8 +1382,11 @@ export namespace OpenAIUtil {
       }
       consumed = true;
       let done = false;
+      let runningContentBlockType:
+        | BaseChatMessageChunk.ContentBlock["type"]
+        | undefined;
       // Track usage from OpenAI Response API
-      let responseUsage: { input_tokens: number; output_tokens: number; total_tokens: number } | undefined;
+      let responseUsage: any;
 
       try {
         for await (const chunk of response) {
@@ -1307,117 +1402,204 @@ export namespace OpenAIUtil {
 
           if (chunk.type === "response.output_item.added") {
             if (chunk.item.type === "function_call") {
+              if (runningContentBlockType !== undefined) {
+                yield {
+                  type: "content_block_stop",
+                };
+              }
+              runningContentBlockType = "tool_use";
               yield {
-                type: 'content_block_start',
+                type: "content_block_start",
                 content_block: {
-                  type: 'tool_use',
+                  type: "tool_use",
                   name: chunk.item.name,
                   input: {},
                   id: chunk.item.call_id,
-                }
+                },
+              };
+            } else if (chunk.item.type === "web_search_call") {
+              const serverTool = OpenAIUtil.serverTools.find(
+                (tool) => tool.name === "web_search",
+              );
+              if (runningContentBlockType !== undefined) {
+                yield {
+                  type: "content_block_stop",
+                };
               }
-            } else if (chunk.item.type === 'web_search_call') {
-              const serverTool = OpenAIUtil.serverTools.find((tool) => tool.name === 'web_search');
+              runningContentBlockType = "server_tool_use";
               yield {
-                type: 'content_block_start',
+                type: "content_block_start",
                 content_block: {
-                  type: 'server_tool_use',
-                  name: 'web_search',
+                  type: "server_tool_use",
+                  name: "web_search",
                   input: {},
                   id: chunk.item.id,
-                  ...serverTool
+                  ...serverTool,
                 },
-              }
+              };
             }
           } else if (chunk.type === "response.output_item.done") {
-            if (chunk.item.type === 'function_call') {
-              yield {
-                type: 'content_block_stop',
+            if (chunk.item.type === "function_call") {
+              if (runningContentBlockType !== undefined) {
+                yield {
+                  type: "content_block_stop",
+                };
+                runningContentBlockType = undefined;
               }
-            } else if (chunk.item.type === 'web_search_call') {
-              const serverTool = OpenAIUtil.serverTools.find((tool) => tool.name === 'web_search');
+            } else if (chunk.item.type === "web_search_call") {
+              const serverTool = OpenAIUtil.serverTools.find(
+                (tool) => tool.name === "web_search",
+              );
 
+              if (runningContentBlockType !== undefined) {
+                yield {
+                  type: "content_block_stop",
+                };
+              }
+              runningContentBlockType = "server_tool_use_result";
               yield {
-                type: 'content_block_start',
+                type: "content_block_start",
                 content_block: {
-                  type: 'server_tool_use_result',
+                  type: "server_tool_use_result",
                   message_contents: [],
                   tool: {
-                    name: 'web_search',
+                    name: "web_search",
                     ...serverTool,
                     //@ts-ignore
                     input: { query: chunk.item?.action?.query },
                     id: chunk.item.id,
-                  }
+                  },
                 },
-              }
+              };
             }
           } else if (chunk.type === "response.content_part.added") {
-            if (chunk.part.type === 'output_text') {
-              yield {
-                type: 'content_block_start',
-                content_block: {
-                  type: 'text',
-                  text: chunk.part.text,
-                }
+            if (chunk.part.type === "output_text") {
+              if (runningContentBlockType !== undefined) {
+                yield {
+                  type: "content_block_stop",
+                };
               }
+              runningContentBlockType = "text";
+              yield {
+                type: "content_block_start",
+                content_block: {
+                  type: "text",
+                  text: chunk.part.text,
+                },
+              };
             }
           } else if (chunk.type === "response.content_part.done") {
-            yield {
-              type: 'content_block_stop',
+            if (runningContentBlockType !== undefined) {
+              yield {
+                type: "content_block_stop",
+              };
+              runningContentBlockType = undefined;
             }
           } else if (chunk.type === "response.output_text.delta") {
-            yield {
-              type: 'content_block_delta',
-              delta: {
-                type: 'text_delta',
-                text: chunk.delta,
+            if (runningContentBlockType !== "text") {
+              if (runningContentBlockType !== undefined) {
+                yield {
+                  type: "content_block_stop",
+                };
               }
+              runningContentBlockType = "text";
+              yield {
+                type: "content_block_start",
+                content_block: {
+                  type: "text",
+                  text: "",
+                },
+              };
+            }
+            yield {
+              type: "content_block_delta",
+              delta: {
+                type: "text_delta",
+                text: chunk.delta,
+              },
+            };
+          } else if (chunk.type === "response.output_text.done") {
+            if (runningContentBlockType === "text") {
+              yield {
+                type: "content_block_stop",
+              };
+              runningContentBlockType = undefined;
             }
           } else if (chunk.type === "response.reasoning_summary_part.added") {
-            if (chunk.part.type === 'summary_text') {
-              yield {
-                type: 'content_block_start',
-                content_block: {
-                  type: 'thinking',
-                  thinking: chunk.part.text,
-                }
+            if (chunk.part.type === "summary_text") {
+              if (runningContentBlockType !== undefined) {
+                yield {
+                  type: "content_block_stop",
+                };
               }
+              runningContentBlockType = "thinking";
+              yield {
+                type: "content_block_start",
+                content_block: {
+                  type: "thinking",
+                  thinking: chunk.part.text,
+                },
+              };
             }
           } else if (chunk.type === "response.reasoning_summary_text.delta") {
-            yield {
-              type: 'content_block_delta',
-              delta: {
-                type: 'thinking_delta',
-                thinking: chunk.delta,
+            if (runningContentBlockType !== "thinking") {
+              if (runningContentBlockType !== undefined) {
+                yield {
+                  type: "content_block_stop",
+                };
               }
+              runningContentBlockType = "thinking";
+              yield {
+                type: "content_block_start",
+                content_block: {
+                  type: "thinking",
+                  thinking: "",
+                },
+              };
             }
+            yield {
+              type: "content_block_delta",
+              delta: {
+                type: "thinking_delta",
+                thinking: chunk.delta,
+              },
+            };
           } else if (chunk.type === "response.completed") {
             // Capture usage from response.completed
             const respUsage = chunk.response.usage;
             if (respUsage) {
-              responseUsage = {
-                input_tokens: respUsage.input_tokens,
-                output_tokens: respUsage.output_tokens,
-                total_tokens: respUsage.input_tokens + respUsage.output_tokens,
-              };
+              responseUsage = usageFromOpenAIResponseUsage(respUsage);
             }
 
-            const item = chunk.response.output.find((item) => item.type === 'message' && item.content.some((item) => item.type === 'output_text' && item.annotations));
-            if (item && item.type === 'message') {
-              const withAnnotationsContentItem = item.content.find((item) => item.type === 'output_text' && item.annotations);
-              if (withAnnotationsContentItem?.type === 'output_text' && withAnnotationsContentItem.annotations) {
-                const items: ChatMessageContentListItem[] = withAnnotationsContentItem.annotations.map((block) => {
-                  if (block.type === 'url_citation') {
-                    return {
-                      url: block.url,
-                      title: block.title,
-                      user: (new URL(block.url)).hostname,
-                      icon: `https://www.google.com/s2/favicons?domain=${block.url}&sz=${128}`,
-                    }
-                  }
-                  return undefined
-                }).filter((item) => item !== undefined) || [];
+            const item = chunk.response.output.find(
+              (item) =>
+                item.type === "message" &&
+                item.content.some(
+                  (item) => item.type === "output_text" && item.annotations,
+                ),
+            );
+            if (item && item.type === "message") {
+              const withAnnotationsContentItem = item.content.find(
+                (item) => item.type === "output_text" && item.annotations,
+              );
+              if (
+                withAnnotationsContentItem?.type === "output_text" &&
+                withAnnotationsContentItem.annotations
+              ) {
+                const items: ChatMessageContentListItem[] =
+                  withAnnotationsContentItem.annotations
+                    .map((block) => {
+                      if (block.type === "url_citation") {
+                        return {
+                          url: block.url,
+                          title: block.title,
+                          user: new URL(block.url).hostname,
+                          icon: `https://www.google.com/s2/favicons?domain=${block.url}&sz=${128}`,
+                        };
+                      }
+                      return undefined;
+                    })
+                    .filter((item) => item !== undefined) || [];
 
                 if (items.length > 0) {
                   const messageContent = ChatMessageContent.searchResultList({
@@ -1425,23 +1607,41 @@ export namespace OpenAIUtil {
                   });
 
                   yield {
-                    type: 'content_block_start',
+                    type: "content_block_start",
                     content_block: {
-                      type: 'message_content',
+                      type: "message_content",
                       content: [messageContent],
-                    }
-                  }
+                    },
+                  };
+                  runningContentBlockType = "message_content";
                 }
               }
             }
           } else if (chunk.type === "response.function_call_arguments.delta") {
-            yield {
-              type: 'content_block_delta',
-              delta: {
-                type: 'input_json_delta',
-                partial_json: chunk.delta,
+            if (runningContentBlockType !== "tool_use") {
+              if (runningContentBlockType !== undefined) {
+                yield {
+                  type: "content_block_stop",
+                };
               }
+              runningContentBlockType = "tool_use";
+              yield {
+                type: "content_block_start",
+                content_block: {
+                  type: "tool_use",
+                  name: "",
+                  input: {},
+                  id: "",
+                },
+              };
             }
+            yield {
+              type: "content_block_delta",
+              delta: {
+                type: "input_json_delta",
+                partial_json: chunk.delta,
+              },
+            };
           }
         }
         done = true;
@@ -1450,15 +1650,16 @@ export namespace OpenAIUtil {
         if (e instanceof Error && e.name === "AbortError") return;
         throw e;
       } finally {
+        if (runningContentBlockType !== undefined) {
+          yield {
+            type: "content_block_stop",
+          };
+        }
         // Yield accumulated usage at end of stream
         if (responseUsage) {
           yield {
-            type: 'usage' as const,
-            usage: {
-              input_tokens: responseUsage.input_tokens,
-              output_tokens: responseUsage.output_tokens,
-              total_tokens: responseUsage.total_tokens,
-            }
+            type: "usage" as const,
+            usage: responseUsage,
           };
         }
         if (!done) controller.abort();

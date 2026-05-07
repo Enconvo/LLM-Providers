@@ -22,6 +22,7 @@ export default function main(options: any) {
   options.modelName = {
     ...options.modelName,
     autoContextCompact: false,
+    visionEnable: false,
   };
 
   return new ChatOpenAIProvider(options);
