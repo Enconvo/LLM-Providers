@@ -19,6 +19,10 @@ export default function main(options: any) {
   options.credentials.baseUrl = normalizeBaseUrl(
     options.credentials.baseUrl || DEFAULT_BASE_URL,
   );
+  options.modelName = {
+    ...options.modelName,
+    autoContextCompact: false,
+  };
 
   return new ChatOpenAIProvider(options);
 }

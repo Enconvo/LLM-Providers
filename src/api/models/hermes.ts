@@ -13,6 +13,7 @@ const FALLBACK_MODELS: ListCache.ListItem[] = [
     context: 128000,
     toolUse: false,
     visionEnable: true,
+    autoContextCompact: false,
     systemMessageEnable: true,
   },
 ];
@@ -96,6 +97,7 @@ async function fetchModels(
       context: 128000,
       toolUse: false,
       visionEnable: true,
+      autoContextCompact: false,
       systemMessageEnable: true,
     }));
   } catch {
