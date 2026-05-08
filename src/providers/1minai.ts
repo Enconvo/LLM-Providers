@@ -6,11 +6,15 @@ import {
   LLMProvider,
   Stream,
 } from "@enconvo/api";
+import {
+  additionalWithProviderUsage,
+  usageFromResponseEnvelope,
+} from "../utils/usage_util.ts";
+import { getOutputTokenLimit } from "../utils/provider_param_util.ts";
 
 export default function main(options: any) {
   return new MinaiProvider(options);
 }
-
 
 export class MinaiProvider extends LLMProvider {
   private baseUrl: string;
@@ -25,17 +29,29 @@ export class MinaiProvider extends LLMProvider {
     }
   }
 
-  protected async _call(content: LLMProvider.ResolvedParams): Promise<BaseChatMessage> {
+  protected async _call(
+    content: LLMProvider.ResolvedParams,
+  ): Promise<BaseChatMessage> {
     const requestPayload = this.buildRequestPayload(content);
-    const response = await this.makeApiRequest(requestPayload, false, content.signal);
-    const json = await response.json()
+    const response = await this.makeApiRequest(
+      requestPayload,
+      false,
+      content.signal,
+    );
+    const json = await response.json();
 
     if (json.error) {
       throw new Error(`1min AI API error: ${json.error}`);
     }
 
     const messageContent = this.extractResponseContent(json);
-    return new AssistantMessage(messageContent);
+    return new AssistantMessage({
+      content: messageContent,
+      additional: additionalWithProviderUsage(
+        undefined,
+        usageFromResponseEnvelope(json),
+      ),
+    });
   }
 
   protected async _stream(
@@ -47,7 +63,9 @@ export class MinaiProvider extends LLMProvider {
     const controller = new AbortController();
 
     if (content.signal) {
-      content.signal.addEventListener('abort', () => controller.abort(), { once: true });
+      content.signal.addEventListener("abort", () => controller.abort(), {
+        once: true,
+      });
     }
 
     async function* iterator(
@@ -86,7 +104,7 @@ export class MinaiProvider extends LLMProvider {
             if (done) break;
 
             buffer = decoder.decode(value, { stream: true });
-            console.log("buffer", buffer)
+            console.log("buffer", buffer);
 
             if (buffer.startsWith("🌐 Crawling site")) {
               continue;
@@ -106,11 +124,7 @@ export class MinaiProvider extends LLMProvider {
               type: "content_block_delta",
               delta: { type: "text_delta", text: buffer },
             };
-
-
           }
-
-
         } finally {
           reader.releaseLock();
           yield { type: "content_block_stop" };
@@ -124,7 +138,6 @@ export class MinaiProvider extends LLMProvider {
     return new Stream(iterator.bind(this), controller);
   }
 
-
   private buildRequestPayload(content: LLMProvider.ResolvedParams) {
     const messages = content.messages || [];
     const modelName = this.options.modelName?.value || "gpt-4o-mini";
@@ -137,8 +150,12 @@ export class MinaiProvider extends LLMProvider {
       webSearch: false,
       numOfSite: 5,
     };
+    const outputTokenLimit = getOutputTokenLimit(content.modelParams);
+    if (outputTokenLimit) {
+      promptObject.maxTokens = outputTokenLimit;
+    }
 
-    console.log("obj", promptObject)
+    console.log("obj", promptObject);
     return {
       type: "CHAT_WITH_AI",
       model: modelName,
@@ -149,29 +166,28 @@ export class MinaiProvider extends LLMProvider {
   private formatMessagesAsPrompt(messages: BaseChatMessageLike[]): string {
     if (messages.length === 0) return "";
 
-    console.log("messages", JSON.stringify(messages, null, 2))
+    console.log("messages", JSON.stringify(messages, null, 2));
     const parts: string[] = [];
     for (const msg of messages) {
       const role = msg.role;
       if (role === "system") {
-        parts.push('System Instruction:\n')
-      } else if (role === 'user') {
-        parts.push('User Message:\n')
-      } else if (role === 'assistant') {
-        parts.push('Assistant Message:\n')
+        parts.push("System Instruction:\n");
+      } else if (role === "user") {
+        parts.push("User Message:\n");
+      } else if (role === "assistant") {
+        parts.push("Assistant Message:\n");
       }
       for (const msgContent of msg.content) {
-        if (msgContent.type === 'text') {
+        if (msgContent.type === "text") {
           parts.push(msgContent.text);
         } else {
-          parts.push('raw content:' + JSON.stringify(msgContent))
+          parts.push("raw content:" + JSON.stringify(msgContent));
         }
       }
     }
 
     return parts.join("\n\n");
   }
-
 
   private async makeApiRequest(
     payload: any,

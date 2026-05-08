@@ -16,6 +16,11 @@ import { codex_instructions } from "../utils/instructions.ts";
 import { saveBinaryFile } from "../utils/google_util.ts";
 import path from "path";
 import { ReasoningEffort } from "openai/resources/index.mjs";
+import {
+  additionalWithProviderUsage,
+  usageFromOpenAIChatUsage,
+} from "../utils/usage_util.ts";
+import { getOutputTokenLimit } from "../utils/provider_param_util.ts";
 
 export default function main(options: any) {
   return new ChatOpenAIProvider(options);
@@ -30,14 +35,18 @@ export class ChatOpenAIProvider extends LLMProvider {
       return await this._call(content);
     }
 
-
     this.client = await this._createOpenaiClient(this.options);
     const credentialsType = this.options.credentials?.credentials_type?.value;
     const apiType = this.options.credentials?.api_type?.value || "completions";
 
-    const isCodex = credentialsType === "oauth2" && this.options.originCommandName === "open_ai"
-    const isUseEnconvoResponsesAPI = this.options.modelName.providerName === 'openai' && this.options.originCommandName === "enconvo_ai"
+    const isCodex =
+      credentialsType === "oauth2" &&
+      this.options.originCommandName === "open_ai";
+    const isUseEnconvoResponsesAPI =
+      this.options.modelName.providerName === "openai" &&
+      this.options.originCommandName === "enconvo_ai";
 
+    console.log('isCodex',isCodex,apiType)
     if (isCodex || apiType === "responses" || isUseEnconvoResponsesAPI) {
       const credentials = this.options.credentials;
       if (!credentials?.access_token && isCodex) {
@@ -49,15 +58,18 @@ export class ChatOpenAIProvider extends LLMProvider {
     const params = await this.initParams(content);
 
     let chatCompletion: any;
-    chatCompletion = await this.client.chat.completions.create({
-      ...params,
-      stream: true,
-      stream_options: {
-        include_usage: true,
+    chatCompletion = await this.client.chat.completions.create(
+      {
+        ...params,
+        stream: true,
+        stream_options: {
+          include_usage: true,
+        },
       },
-    }, {
-      signal: content.signal
-    });
+      {
+        signal: content.signal,
+      },
+    );
 
     const ac = new AbortController();
     //@ts-ignore
@@ -74,11 +86,14 @@ export class ChatOpenAIProvider extends LLMProvider {
     isCodex: boolean = false,
   ): Promise<Stream<BaseChatMessageChunk>> {
     const params = await this.initResponseParams(content, isCodex);
-    const response = await this.client.responses.create({
-      ...params
-    }, {
-      signal: content.signal
-    });
+    const response = await this.client.responses.create(
+      {
+        ...params,
+      },
+      {
+        signal: content.signal,
+      },
+    );
 
     const ac = new AbortController();
     //@ts-ignore
@@ -88,19 +103,24 @@ export class ChatOpenAIProvider extends LLMProvider {
 
   client: OpenAI;
 
-  protected async _call(content: LLMProvider.ResolvedParams): Promise<BaseChatMessage> {
+  protected async _call(
+    content: LLMProvider.ResolvedParams,
+  ): Promise<BaseChatMessage> {
     this.client = await this._createOpenaiClient(this.options);
     const params = await this.initParams(content);
 
-    const chatCompletion = await this.client.chat.completions.create({
-      ...params,
-    }, {
-      signal: content.signal
-    });
+    const chatCompletion = await this.client.chat.completions.create(
+      {
+        ...params,
+      },
+      {
+        signal: content.signal,
+      },
+    );
 
     const result = chatCompletion.choices[0];
 
-    const text = result?.message?.content || ""
+    const text = result?.message?.content || "";
     const messageContents: ChatMessageContent[] = [];
     if (text) {
       messageContents.push({
@@ -111,46 +131,47 @@ export class ChatOpenAIProvider extends LLMProvider {
     //@ts-ignore
     const images: any[] = result?.message?.images || [];
 
-    const imageContents: ChatMessageContent[] = await Promise.all(images.map(async (image) => {
-      const fileName = uuid();
-      let fileExtension = "png";
-      let base64Data = "";
-      let imageUrl = "";
+    const imageContents: ChatMessageContent[] = await Promise.all(
+      images.map(async (image) => {
+        const fileName = uuid();
+        let fileExtension = "png";
+        let base64Data = "";
+        let imageUrl = "";
 
-      if (typeof image.image_url === 'string') {
-        imageUrl = image.image_url;
-      } else {
-        imageUrl = image.image_url?.url || "";
-      }
+        if (typeof image.image_url === "string") {
+          imageUrl = image.image_url;
+        } else {
+          imageUrl = image.image_url?.url || "";
+        }
 
-      // Extract mime type from data URL header
-      const dataUrlMatch = imageUrl.match(/^data:image\/([a-zA-Z]+);base64,/);
-      if (dataUrlMatch) {
-        fileExtension = dataUrlMatch[1];
-        base64Data = imageUrl.replace(/^data:image\/[a-zA-Z]+;base64,/, "");
-      } else {
-        // Fallback if no data URL header found
-        base64Data = imageUrl;
-      }
+        // Extract mime type from data URL header
+        const dataUrlMatch = imageUrl.match(/^data:image\/([a-zA-Z]+);base64,/);
+        if (dataUrlMatch) {
+          fileExtension = dataUrlMatch[1];
+          base64Data = imageUrl.replace(/^data:image\/[a-zA-Z]+;base64,/, "");
+        } else {
+          // Fallback if no data URL header found
+          base64Data = imageUrl;
+        }
 
-      const buffer = Buffer.from(base64Data, "base64");
+        const buffer = Buffer.from(base64Data, "base64");
 
-      const cachePath = environment.cachePath;
-      const filePath = path.join(
-        cachePath,
-        `${fileName}.${fileExtension}`,
-      );
-      await saveBinaryFile(filePath, buffer);
-      return ChatMessageContent.imageUrl({
-        url: filePath,
-      })
-    }),
+        const cachePath = environment.cachePath;
+        const filePath = path.join(cachePath, `${fileName}.${fileExtension}`);
+        await saveBinaryFile(filePath, buffer);
+        return ChatMessageContent.imageUrl({
+          url: filePath,
+        });
+      }),
     );
 
     messageContents.push(...imageContents);
 
+    const usage = usageFromOpenAIChatUsage(chatCompletion.usage);
+
     return new AssistantMessage({
       content: messageContents,
+      additional: additionalWithProviderUsage(undefined, usage),
     });
   }
 
@@ -158,27 +179,34 @@ export class ChatOpenAIProvider extends LLMProvider {
     content: LLMProvider.ResolvedParams,
     isCodex: boolean = false,
   ): Promise<OpenAI.Responses.ResponseCreateParamsStreaming> {
-
     const modelOptions = this.options.modelName;
 
-    let instructions = '';
+    let instructions = "";
     if (isCodex) {
       instructions = codex_instructions;
     } else {
-      const systemMessages = content.messages.filter(message => message.role === "system");
-      content.messages = content.messages.filter(message => message.role !== "system");
-      instructions = systemMessages.map(message => {
-        if (typeof message.content === "string") {
-          return message.content;
-        } else {
-          return message.content.map(item => {
-            if (item.type === "text") {
-              return item.text;
-            }
-            return JSON.stringify(item);
-          }).join("\n\n");
-        }
-      }).join("\n\n");
+      const systemMessages = content.messages.filter(
+        (message) => message.role === "system",
+      );
+      content.messages = content.messages.filter(
+        (message) => message.role !== "system",
+      );
+      instructions = systemMessages
+        .map((message) => {
+          if (typeof message.content === "string") {
+            return message.content;
+          } else {
+            return message.content
+              .map((item) => {
+                if (item.type === "text") {
+                  return item.text;
+                }
+                return JSON.stringify(item);
+              })
+              .join("\n\n");
+          }
+        })
+        .join("\n\n");
     }
 
     const messages = await OpenAIUtil.convertMessagesToOpenAIResponseMessages(
@@ -197,15 +225,19 @@ export class ChatOpenAIProvider extends LLMProvider {
       include: [],
       // prompt_cache_key: "d36d744d-0c64-4b25-9c5a-3e132dbb2e18",
     };
+    const outputTokenLimit = getOutputTokenLimit(content.modelParams);
+    if (outputTokenLimit) {
+      params.max_output_tokens = outputTokenLimit;
+    }
 
+    let tools: OpenAI.Responses.Tool[] = [];
 
-    let tools: OpenAI.Responses.Tool[] = []
-
-    const newTools = OpenAIUtil.convertToolsToOpenAIResponseTools(content.tools);
+    const newTools = OpenAIUtil.convertToolsToOpenAIResponseTools(
+      content.tools,
+    );
     if (newTools) {
       tools.push(...newTools);
     }
-
 
     params.input = messages;
 
@@ -213,11 +245,19 @@ export class ChatOpenAIProvider extends LLMProvider {
       params.tools = tools;
     }
 
-    const modelNameConfig: { reasoning_effort: ReasoningEffort } = this.options?.modelName_preferences?.[params.model || '']
-    let reasoning_effort = modelNameConfig?.reasoning_effort
+    const modelNameConfig: { reasoning_effort: ReasoningEffort } =
+      this.options?.modelName_preferences?.[params.model || ""];
+    let reasoning_effort = modelNameConfig?.reasoning_effort;
     if (reasoning_effort) {
-      if (reasoning_effort === 'minimal' && tools.some(tool => tool.type === 'web_search_preview' || tool.type === 'image_generation')) {
-        reasoning_effort = 'low';
+      if (
+        reasoning_effort === "minimal" &&
+        tools.some(
+          (tool) =>
+            tool.type === "web_search_preview" ||
+            tool.type === "image_generation",
+        )
+      ) {
+        reasoning_effort = "low";
       }
 
       params.reasoning = {
@@ -268,6 +308,14 @@ export class ChatOpenAIProvider extends LLMProvider {
       temperature: temperature,
       messages,
     };
+    const outputTokenLimit = getOutputTokenLimit(content.modelParams);
+    if (outputTokenLimit) {
+      if (usesMaxCompletionTokens(modelOptions?.value)) {
+        params.max_completion_tokens = outputTokenLimit;
+      } else {
+        params.max_tokens = outputTokenLimit;
+      }
+    }
 
     let reasoning_effort =
       this.options?.reasoning_effort?.value ||
@@ -293,7 +341,6 @@ export class ChatOpenAIProvider extends LLMProvider {
       // })
     }
 
-
     return params;
   }
 
@@ -314,7 +361,7 @@ export class ChatOpenAIProvider extends LLMProvider {
           "OpenAI-Beta": "responses=experimental",
           session_id: "a55064f6-4010-4e60-876d-a7ca1cb8d401",
         },
-        fetch: async (url, init) => {
+        fetch: async (_url, init) => {
           return fetch("https://chatgpt.com/backend-api/codex/responses", init);
         },
       });
@@ -375,7 +422,6 @@ export class ChatOpenAIProvider extends LLMProvider {
       baseURL = "https://api.straico.com/v2";
     }
 
-
     const client = new OpenAI({
       apiKey: apiKey, // This is the default and can be omitted
       // baseURL: "http://127.0.0.1:8181/v1",
@@ -385,4 +431,8 @@ export class ChatOpenAIProvider extends LLMProvider {
 
     return client;
   }
+}
+
+function usesMaxCompletionTokens(model?: string): boolean {
+  return Boolean(model && /(^|[/:-])(gpt-5|o1|o3|o4)/i.test(model));
 }

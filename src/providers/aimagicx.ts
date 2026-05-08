@@ -4,9 +4,13 @@ import {
   BaseChatMessageChunk,
   LLMProvider,
   Stream,
-  uuid,
 } from "@enconvo/api";
 import { AimagicxUtil } from "../utils/aimagicx_util.ts";
+import {
+  additionalWithProviderUsage,
+  usageFromResponseEnvelope,
+} from "../utils/usage_util.ts";
+import { getOutputTokenLimit } from "../utils/provider_param_util.ts";
 
 export default function main(options: any) {
   return new AimagicxProvider(options);
@@ -29,7 +33,9 @@ export class AimagicxProvider extends LLMProvider {
     }
   }
 
-  protected async _call(content: LLMProvider.ResolvedParams): Promise<BaseChatMessage> {
+  protected async _call(
+    content: LLMProvider.ResolvedParams,
+  ): Promise<BaseChatMessage> {
     const messageData = AimagicxUtil.convertMessagesToSingleMessage(
       content.messages,
     );
@@ -45,7 +51,13 @@ export class AimagicxProvider extends LLMProvider {
     }
 
     const messageContent = responseData.choices[0].message?.content || "";
-    return new AssistantMessage(messageContent);
+    return new AssistantMessage({
+      content: messageContent,
+      additional: additionalWithProviderUsage(
+        undefined,
+        usageFromResponseEnvelope(responseData),
+      ),
+    });
   }
 
   protected async _stream(
@@ -83,6 +95,7 @@ export class AimagicxProvider extends LLMProvider {
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let buffer = "";
+        let streamUsage: unknown;
 
         try {
           while (true) {
@@ -95,49 +108,64 @@ export class AimagicxProvider extends LLMProvider {
             // Keep incomplete line in buffer
             buffer = lines.pop() || "";
 
-            let runningContentBlockType: BaseChatMessageChunk.ContentBlock['type'] | undefined;
+            let runningContentBlockType:
+              | BaseChatMessageChunk.ContentBlock["type"]
+              | undefined;
 
             for (const line of lines) {
               if (line.trim() === "") continue;
 
               if (line.startsWith("data: ")) {
                 const data = line.slice(6).trim();
-                if (data === "[DONE]") return;
+                if (data === "[DONE]") {
+                  const providerUsage = usageFromResponseEnvelope({
+                    usage: streamUsage,
+                  });
+                  if (providerUsage) {
+                    yield {
+                      type: "usage" as const,
+                      usage: providerUsage,
+                    };
+                  }
+                  return;
+                }
 
                 try {
                   const parsed = JSON.parse(data);
+                  streamUsage =
+                    usageFromResponseEnvelope(parsed) || streamUsage;
                   // Handle content chunks
                   if (parsed.choices?.[0]?.delta?.content) {
-                    if (runningContentBlockType !== 'text') {
+                    if (runningContentBlockType !== "text") {
                       if (runningContentBlockType !== undefined) {
                         yield {
-                          type: 'content_block_stop',
-                        }
+                          type: "content_block_stop",
+                        };
                       }
-                      runningContentBlockType = 'text';
+                      runningContentBlockType = "text";
                       yield {
-                        type: 'content_block_start',
+                        type: "content_block_start",
                         content_block: {
-                          type: 'text',
-                          text: '',
-                        }
-                      }
+                          type: "text",
+                          text: "",
+                        },
+                      };
 
                       yield {
-                        type: 'content_block_delta',
+                        type: "content_block_delta",
                         delta: {
-                          type: 'text_delta',
+                          type: "text_delta",
                           text: parsed.choices[0].delta.content,
-                        }
-                      }
+                        },
+                      };
                     } else {
                       yield {
-                        type: 'content_block_delta',
+                        type: "content_block_delta",
                         delta: {
-                          type: 'text_delta',
+                          type: "text_delta",
                           text: parsed.choices[0].delta.content,
-                        }
-                      }
+                        },
+                      };
                     }
                   }
 
@@ -169,6 +197,15 @@ export class AimagicxProvider extends LLMProvider {
                 }
               }
             }
+          }
+          const providerUsage = usageFromResponseEnvelope({
+            usage: streamUsage,
+          });
+          if (providerUsage) {
+            yield {
+              type: "usage" as const,
+              usage: providerUsage,
+            };
           }
         } finally {
           reader.releaseLock();
@@ -209,7 +246,10 @@ export class AimagicxProvider extends LLMProvider {
     }
 
     // Handle maxTokens (AIMagicX uses maxTokens, not max_tokens)
-    if (this.options.maxTokens?.value) {
+    const outputTokenLimit = getOutputTokenLimit(content.modelParams);
+    if (outputTokenLimit) {
+      params.maxTokens = outputTokenLimit;
+    } else if (this.options.maxTokens?.value) {
       params.maxTokens = this.options.maxTokens.value;
     }
 

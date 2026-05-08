@@ -32,7 +32,11 @@ import { Config } from "../utils/gemini-cli/code_assist/oauth2.ts";
 import { CodeAssistServer } from "../utils/gemini-cli/code_assist/server.ts";
 import mime from "mime";
 import path from "path";
-
+import {
+  additionalWithProviderUsage,
+  usageFromGoogleUsageMetadata,
+} from "../utils/usage_util.ts";
+import { getOutputTokenLimit } from "../utils/provider_param_util.ts";
 
 export default function main(options: any) {
   return new GoogleGeminiProvider(options);
@@ -45,15 +49,17 @@ export class GoogleGeminiProvider extends LLMProvider {
   constructor(options: LLMProvider.LLMOptions) {
     super(options);
     const credentials = options.credentials;
-    const google = new GoogleGenAI({ apiKey: credentials?.apiKey, vertexai: false });
+    const google = new GoogleGenAI({
+      apiKey: credentials?.apiKey,
+      vertexai: false,
+    });
 
     this.ai = google;
   }
 
-
   async initCodeAssistServer() {
     const configParams = {
-      sessionId: 'Enconvo',
+      sessionId: "Enconvo",
       model: DEFAULT_GEMINI_FLASH_LITE_MODEL,
     };
     const config = new Config(configParams);
@@ -61,13 +67,15 @@ export class GoogleGeminiProvider extends LLMProvider {
     this.server = await getCodeAssistServer(config);
   }
 
-
-  protected async _call(content: LLMProvider.ResolvedParams): Promise<BaseChatMessage> {
+  protected async _call(
+    content: LLMProvider.ResolvedParams,
+  ): Promise<BaseChatMessage> {
     const params = await this.initParams(content);
 
-    const credentialsType = this.options.credentials?.credentials_type?.value || 'apiKey'
-    let result
-    if (credentialsType === 'oauth2') {
+    const credentialsType =
+      this.options.credentials?.credentials_type?.value || "apiKey";
+    let result;
+    if (credentialsType === "oauth2") {
       if (!this.server) {
         await this.initCodeAssistServer();
       }
@@ -78,25 +86,25 @@ export class GoogleGeminiProvider extends LLMProvider {
 
     // console.log("google result", JSON.stringify(result, null, 2))
 
-    const candidate = result.candidates?.[0]
-    const groundingMetadata = candidate?.groundingMetadata
-    let additional: BaseChatMessage['additional'] = { metadata: {} }
+    const candidate = result.candidates?.[0];
+    const groundingMetadata = candidate?.groundingMetadata;
+    let additional: BaseChatMessage["additional"] = { metadata: {} };
     if (groundingMetadata) {
       const searchData: BaseChatMessage.Additional.Metadata.Search = {
         querys: groundingMetadata.webSearchQueries,
-        chunks: groundingMetadata.groundingChunks?.map(chunk => ({
+        chunks: groundingMetadata.groundingChunks?.map((chunk) => ({
           web: {
             url: chunk.web?.uri,
             title: chunk.web?.title,
-            domain: chunk.web?.domain || chunk.web?.title
-          }
+            domain: chunk.web?.domain || chunk.web?.title,
+          },
         })),
-        texts: groundingMetadata.groundingSupports?.map(text => ({
+        texts: groundingMetadata.groundingSupports?.map((text) => ({
           segment: text.segment,
-          groundingChunkIndices: text.groundingChunkIndices
-        }))
-      }
-      additional.metadata!.search = searchData
+          groundingChunkIndices: text.groundingChunkIndices,
+        })),
+      };
+      additional.metadata!.search = searchData;
     }
 
     const messageContents: ChatMessageContent[] = [];
@@ -121,49 +129,53 @@ export class GoogleGeminiProvider extends LLMProvider {
           let buffer = Buffer.from(inlineData.data || "", "base64");
 
           const cachePath = environment.cachePath;
-          const filePath = path.join(
-            cachePath,
-            `${fileName}.${fileExtension}`,
-          );
+          const filePath = path.join(cachePath, `${fileName}.${fileExtension}`);
           await saveBinaryFile(filePath, buffer);
-          messageContents.push(ChatMessageContent.imageUrl({
-            url: filePath,
-          }));
+          messageContents.push(
+            ChatMessageContent.imageUrl({
+              url: filePath,
+            }),
+          );
         } else if (isAudio) {
           const fileName = uuid();
           let fileExtension = "wav";
           let buffer = Buffer.from(inlineData.data || "", "base64");
 
           const cachePath = environment.cachePath;
-          const filePath = path.join(
-            cachePath,
-            `${fileName}.${fileExtension}`,
-          );
+          const filePath = path.join(cachePath, `${fileName}.${fileExtension}`);
           await saveWaveFile(filePath, buffer);
-          messageContents.push(ChatMessageContent.audio({
-            url: filePath,
-          }));
+          messageContents.push(
+            ChatMessageContent.audio({
+              url: filePath,
+            }),
+          );
         }
       }
     }
+
+    additional =
+      additionalWithProviderUsage(
+        additional as any,
+        usageFromGoogleUsageMetadata(result?.usageMetadata),
+      ) ?? additional;
 
     // console.log("google messageContents", JSON.stringify(messageContents, null, 2))
 
     return new AssistantMessage({
       content: messageContents,
-      additional
+      additional,
     });
   }
-
 
   protected async _stream(
     content: LLMProvider.ResolvedParams,
   ): Promise<Stream<BaseChatMessageChunk>> {
     const params = await this.initParams(content);
-    const credentialsType = this.options.credentials?.credentials_type?.value || 'apiKey'
+    const credentialsType =
+      this.options.credentials?.credentials_type?.value || "apiKey";
 
-    let result
-    if (credentialsType === 'oauth2') {
+    let result;
+    if (credentialsType === "oauth2") {
       if (!this.server) {
         await this.initCodeAssistServer();
       }
@@ -173,7 +185,6 @@ export class GoogleGeminiProvider extends LLMProvider {
         console.error("Error generating content stream from Google:", error);
         throw error;
       }
-
     } else {
       result = await this.ai.models.generateContentStream(params);
     }
@@ -184,9 +195,11 @@ export class GoogleGeminiProvider extends LLMProvider {
   async initParams(
     params: LLMProvider.DynamicParams,
   ): Promise<GenerateContentParameters> {
+    const dynamicParams = params as LLMProvider.DynamicParams &
+      Record<string, any>;
     const credentials = this.options.credentials;
-    const credentialsType = credentials?.credentials_type?.value || 'apiKey'
-    if (!credentials?.apiKey && credentialsType === 'apiKey') {
+    const credentialsType = credentials?.credentials_type?.value || "apiKey";
+    if (!credentials?.apiKey && credentialsType === "apiKey") {
       throw new Error("Google API key is required");
     }
 
@@ -200,21 +213,21 @@ export class GoogleGeminiProvider extends LLMProvider {
     let system =
       systemMessages.length > 0
         ? systemMessages
-          .map((message) => {
-            if (typeof message.content === "string") {
-              return message.content;
-            } else {
-              return message.content
-                .map((item) => {
-                  if (item.type === "text") {
-                    return item.text;
-                  }
-                  return JSON.stringify(item);
-                })
-                .join("\n\n");
-            }
-          })
-          .join("\n\n")
+            .map((message) => {
+              if (typeof message.content === "string") {
+                return message.content;
+              } else {
+                return message.content
+                  .map((item) => {
+                    if (item.type === "text") {
+                      return item.text;
+                    }
+                    return JSON.stringify(item);
+                  })
+                  .join("\n\n");
+              }
+            })
+            .join("\n\n")
         : undefined;
 
     function makeFirstMessageBeUserRole(messages: BaseChatMessageLike[]) {
@@ -254,10 +267,9 @@ export class GoogleGeminiProvider extends LLMProvider {
       model = model.split("/")[1];
     }
 
-
     let tools: Tool[] = [];
     // console.log("google_search", params.searchToolEnabled, params.tools?.length);
-    if (params.searchToolEnabled === 'auto') {
+    if (dynamicParams.searchToolEnabled === "auto") {
       if (this.options.modelName.searchToolSupported === true) {
         // Define the grounding tool
         const groundingTool = {
@@ -269,25 +281,29 @@ export class GoogleGeminiProvider extends LLMProvider {
         }
         if (!params.tools || params.tools.length === 0) {
           tools.push(groundingTool);
-        } else if (params.tools?.length === 1 && params.tools[0].name === "google_web_search") {
+        } else if (
+          params.tools?.length === 1 &&
+          params.tools[0].name === "google_web_search"
+        ) {
           tools.push(groundingTool);
-          params.tools = params.tools?.filter(tool => tool.name !== "google_web_search") || [];
+          params.tools =
+            params.tools?.filter((tool) => tool.name !== "google_web_search") ||
+            [];
         }
       }
     }
 
-    const newParamsTools = GoogleUtil.convertToolsToGoogleTools(params.tools)
+    const newParamsTools = GoogleUtil.convertToolsToGoogleTools(params.tools);
     if (newParamsTools) {
       tools.push(...newParamsTools);
     }
 
-
     let toolConfig: ToolConfig | undefined = undefined;
-    if (typeof params.tool_choice === "object") {
+    if (typeof dynamicParams.tool_choice === "object") {
       toolConfig = {
         functionCallingConfig: {
           mode: FunctionCallingConfigMode.ANY,
-          allowedFunctionNames: [params.tool_choice.function.name],
+          allowedFunctionNames: [dynamicParams.tool_choice.function.name],
         },
       };
     }
@@ -307,7 +323,7 @@ export class GoogleGeminiProvider extends LLMProvider {
 
     // console.log("google tools", JSON.stringify(tools, null, 2))
     // console.log("url_context", params.webFetchToolEnabled);
-    if (params.webFetchToolEnabled === 'auto') {
+    if (dynamicParams.webFetchToolEnabled === "auto") {
       // Define the grounding tool
       const urlContextTool = {
         urlContext: {},
@@ -319,15 +335,17 @@ export class GoogleGeminiProvider extends LLMProvider {
       }
     }
 
-
     // const maxTokens =  250;
-    const maxTokens = this.options.maxTokens || 65536;
+    const maxTokens =
+      getOutputTokenLimit((params as any).modelParams) ||
+      Number(this.options.maxTokens?.value ?? this.options.maxTokens) ||
+      65536;
     // console.log("maxTokens", maxTokens)
     const temperature = this.options.temperature?.value || 0;
 
-
-    const modelNameConfig: { reasoning_effort: string } = this.options?.modelName_preferences?.[model || '']
-    let reasoning_effort = modelNameConfig?.reasoning_effort
+    const modelNameConfig: { reasoning_effort: string } =
+      this.options?.modelName_preferences?.[model || ""];
+    let reasoning_effort = modelNameConfig?.reasoning_effort;
     // console.log("reasoning_effort", reasoning_effort)
 
     let geminiParams: GenerateContentParameters = {
@@ -344,7 +362,7 @@ export class GoogleGeminiProvider extends LLMProvider {
           headers: headers,
         },
         responseModalities: responseModalities,
-        abortSignal: params.signal
+        abortSignal: dynamicParams.signal,
       },
     };
 
@@ -355,10 +373,13 @@ export class GoogleGeminiProvider extends LLMProvider {
         thinkingBudget:
           reasoning_effort === "auto"
             ? -1
-            : (reasoning_effort === "disabled" || reasoning_effort === "none")
+            : reasoning_effort === "disabled" || reasoning_effort === "none"
               ? 0
               : parseInt(reasoning_effort),
-        includeThoughts: (reasoning_effort !== "disabled" && reasoning_effort !== "none") && this.options.show_thoughts === true,
+        includeThoughts:
+          reasoning_effort !== "disabled" &&
+          reasoning_effort !== "none" &&
+          this.options.show_thoughts === true,
       };
     }
 
@@ -366,9 +387,8 @@ export class GoogleGeminiProvider extends LLMProvider {
       geminiParams.config!.thinkingConfig = {
         thinkingLevel: reasoning_effort as ThinkingLevel,
         includeThoughts: this.options.show_thoughts === true,
-      }
+      };
     }
-
 
     // console.log("gemini params", JSON.stringify(geminiParams, null, 2))
     return geminiParams;

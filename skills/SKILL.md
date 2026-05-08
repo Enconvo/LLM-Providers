@@ -4,7 +4,7 @@ description: >
   LLM provider integrations for 20+ services including OpenAI, Anthropic, Google, Ollama, Groq, Mistral, and more, with unified streaming chat completion and model management APIs.
 metadata:
   author: ysnows
-  version: "1.3.381"
+  version: "1.3.385"
 ---
 
 ## Architecture
@@ -49,7 +49,7 @@ Just use the `local_api` tool to request these APIs.
 | `llm/models/mistral` | Fetch and search Mistral model list. Params: `forceRefresh` (boolean, default: false), `query` (string) |
 | `llm/models/mlx` | List MLX-LM models served by the local mlx_manage extension.. _No params_ |
 | `llm/models/moonshot` | Fetch and search Moonshot model list. Params: `forceRefresh` (boolean, default: false), `query` (string) |
-| `llm/models/ollama` | Fetch and search Ollama model list. Params: `forceRefresh` (boolean, default: false), `query` (string) |
+| `llm/models/ollama` | Fetch and search Ollama model list. _No params_ |
 | `llm/models/open_ai` | Fetch and search OpenAI-compatible model list. Params: `forceRefresh` (boolean, default: false), `query` (string) |
 | `llm/models/openclaw` | Fuzzy search query to filter models by name. _No params_ |
 | `llm/models/openrouter` | Fetch and search OpenRouter model list. Params: `forceRefresh` (boolean, default: false), `query` (string) |

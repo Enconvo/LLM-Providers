@@ -419,17 +419,7 @@
         "description": "Fetch and search Ollama model list",
         "parameters": {
           "type": "object",
-          "properties": {
-            "forceRefresh": {
-              "type": "boolean",
-              "description": "Force refresh the cached model list",
-              "default": false
-            },
-            "query": {
-              "type": "string",
-              "description": "Fuzzy search query to filter models by name"
-            }
-          },
+          "properties": {},
           "required": []
         },
         "routePath": "llm/models/ollama"

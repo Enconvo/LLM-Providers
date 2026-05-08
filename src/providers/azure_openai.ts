@@ -1,12 +1,17 @@
 import {
+  AssistantMessage,
   BaseChatMessage,
   BaseChatMessageChunk,
   LLMProvider,
   Stream,
-  UserMessage,
 } from "@enconvo/api";
 import { AzureOpenAI } from "openai";
 import { OpenAIUtil } from "../utils/openai_util.ts";
+import {
+  additionalWithProviderUsage,
+  usageFromOpenAIChatUsage,
+} from "../utils/usage_util.ts";
+import { getOutputTokenLimit } from "../utils/provider_param_util.ts";
 
 export default function main(options: any) {
   return new ChatOpenAIProvider(options);
@@ -19,10 +24,18 @@ class ChatOpenAIProvider extends LLMProvider {
     const params = await this.initParams(content);
     // console.log("params", params)
 
-    const chatCompletion = await this.client.chat.completions.create({
-      ...params,
-      stream: true,
-    });
+    const chatCompletion = await this.client.chat.completions.create(
+      {
+        ...params,
+        stream: true,
+        stream_options: {
+          include_usage: true,
+        },
+      },
+      {
+        signal: content.signal,
+      },
+    );
 
     const ac = new AbortController();
     //@ts-ignore
@@ -36,18 +49,29 @@ class ChatOpenAIProvider extends LLMProvider {
     this.client = this._createOpenaiClient(this.options);
   }
 
-  protected async _call(content: {
-    messages: BaseChatMessage[];
-  }): Promise<BaseChatMessage> {
+  protected async _call(
+    content: LLMProvider.ResolvedParams,
+  ): Promise<BaseChatMessage> {
     const params = await this.initParams(content);
 
-    const chatCompletion = await this.client.chat.completions.create({
-      ...params,
-    });
+    const chatCompletion = await this.client.chat.completions.create(
+      {
+        ...params,
+      },
+      {
+        signal: content.signal,
+      },
+    );
 
     const result = chatCompletion.choices[0];
 
-    return new UserMessage(result?.message?.content || "");
+    return new AssistantMessage({
+      content: result?.message?.content || "",
+      additional: additionalWithProviderUsage(
+        undefined,
+        usageFromOpenAIChatUsage(chatCompletion.usage),
+      ),
+    });
   }
 
   private async initParams(content: LLMProvider.ResolvedParams) {
@@ -92,6 +116,14 @@ class ChatOpenAIProvider extends LLMProvider {
       temperature: temperature,
       messages,
     };
+    const outputTokenLimit = getOutputTokenLimit(content.modelParams);
+    if (outputTokenLimit) {
+      if (usesMaxCompletionTokens(modelOptions?.value)) {
+        params.max_completion_tokens = outputTokenLimit;
+      } else {
+        params.max_tokens = outputTokenLimit;
+      }
+    }
 
     let reasoning_effort =
       this.options?.reasoning_effort?.value ||
@@ -123,4 +155,8 @@ class ChatOpenAIProvider extends LLMProvider {
 
     return client;
   }
+}
+
+function usesMaxCompletionTokens(model?: string): boolean {
+  return Boolean(model && /(^|[/:-])(gpt-5|o1|o3|o4)/i.test(model));
 }

@@ -11,6 +11,7 @@ import {
   AnthropicUtil,
   convertMessagesToAnthropicMessages,
   streamFromAnthropic,
+  stripThinkingBlocksFromAnthropicMessages,
 } from "../utils/anthropic_util.ts";
 import { env } from "process";
 
@@ -18,6 +19,12 @@ import {
   MessageStreamParams,
   TextBlockParam,
 } from "@anthropic-ai/sdk/resources/index.js";
+import { additionalWithProviderUsage } from "../utils/usage_util.ts";
+import { getOutputTokenLimit } from "../utils/provider_param_util.ts";
+import {
+  dispatchedFetch,
+  isTerminatedSocketError,
+} from "../utils/http_client.ts";
 
 export default function main(options: any) {
   return new AnthropicProvider(options);
@@ -28,11 +35,9 @@ export class AnthropicProvider extends LLMProvider {
 
   constructor(options: LLMProvider.LLMOptions) {
     super(options);
-
   }
 
   async initClient() {
-
     // if (this.anthropic) {
     //   return;
     // }
@@ -55,7 +60,6 @@ export class AnthropicProvider extends LLMProvider {
 
     let oauthCredentials: CredentialsProvider.Credentials | null = null;
     if (credentialsType === "oauth2") {
-
       const authProvider = await CredentialsProvider.create("anthropic");
       oauthCredentials = await authProvider.load();
       // console.log("loaded anthropic credentials", oauthCredentials, authProvider);
@@ -69,38 +73,56 @@ export class AnthropicProvider extends LLMProvider {
 
     const params: ClientOptions = {
       apiKey:
-        credentialsType === "apiKey" ? credentials?.anthropicApiKey || credentials?.apiKey : undefined,
+        credentialsType === "apiKey"
+          ? credentials?.anthropicApiKey || credentials?.apiKey
+          : undefined,
       authToken:
-        credentialsType === "oauth2" ? oauthCredentials?.access_token : undefined,
+        credentialsType === "oauth2"
+          ? oauthCredentials?.access_token
+          : undefined,
       baseURL: credentials?.anthropicApiUrl || credentials?.baseUrl,
       defaultHeaders: headers,
-    }
-    console.log("Anthropic client options", params);
+      fetch: dispatchedFetch,
+    };
     const anthropic = new Anthropic(params);
 
     this.anthropic = anthropic;
   }
 
-  protected async _call(content: LLMProvider.ResolvedParams): Promise<BaseChatMessage> {
+  protected async _call(
+    content: LLMProvider.ResolvedParams,
+  ): Promise<BaseChatMessage> {
     await this.initClient();
     const stream = await this._stream(content);
     let message = "";
+    let usage: any;
     for await (const chunk of stream) {
-      if (chunk.type === 'content_block_delta' && chunk.delta?.type === 'text_delta') {
+      if (
+        chunk.type === "content_block_delta" &&
+        chunk.delta?.type === "text_delta"
+      ) {
         message += chunk.delta.text;
+      } else if (chunk.type === "usage") {
+        usage = chunk.usage;
       }
     }
 
-    return new AssistantMessage(message);
+    return new AssistantMessage({
+      content: message,
+      additional: additionalWithProviderUsage(undefined, usage),
+    });
   }
-
 
   protected async _stream(
     content: LLMProvider.ResolvedParams,
   ): Promise<Stream<BaseChatMessageChunk>> {
     await this.initClient();
     const credentials = this.options.credentials;
-    if ((!credentials?.anthropicApiKey && !credentials?.apiKey) && !credentials?.access_token) {
+    if (
+      !credentials?.anthropicApiKey &&
+      !credentials?.apiKey &&
+      !credentials?.access_token
+    ) {
       console.error("Anthropic credentials are missing", credentials);
       throw new Error("Anthropic API key or OAuth is required");
     }
@@ -108,14 +130,91 @@ export class AnthropicProvider extends LLMProvider {
     const params = await this.initParams(content);
     // console.log("Final Anthropic API params", JSON.stringify(params, null, 2));
 
-    const stream = this.anthropic.messages.stream(params, {
-      signal: content.signal
-    });
-    return streamFromAnthropic(stream, stream.controller);
+    const userSignal: AbortSignal | undefined = content.signal;
+    const downstream = new AbortController();
+    if (userSignal) {
+      if (userSignal.aborted) {
+        downstream.abort();
+      } else {
+        userSignal.addEventListener("abort", () => downstream.abort(), {
+          once: true,
+        });
+      }
+    }
 
+    let activeAttemptController: AbortController | null = null;
+    downstream.signal.addEventListener(
+      "abort",
+      () => activeAttemptController?.abort(),
+      { once: true },
+    );
+
+    const anthropic = this.anthropic;
+    const maxRetries = 2;
+
+    async function* withTerminatedRetry(): AsyncIterable<Anthropic.Messages.MessageStreamEvent> {
+      let activeParams = params;
+      let retriedWithoutThinking = false;
+
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        let yieldedAny = false;
+        const stream = anthropic.messages.stream(activeParams, {
+          signal: userSignal,
+        });
+        activeAttemptController = stream.controller;
+        try {
+          for await (const chunk of stream) {
+            yieldedAny = true;
+            yield chunk;
+          }
+          return;
+        } catch (err) {
+          const aborted =
+            userSignal?.aborted === true || downstream.signal.aborted;
+          if (
+            !aborted &&
+            !yieldedAny &&
+            !retriedWithoutThinking &&
+            isInvalidThinkingSignatureError(err)
+          ) {
+            const stripped = stripThinkingBlocksFromAnthropicMessages(
+              activeParams.messages,
+            );
+            if (stripped.removed > 0) {
+              retriedWithoutThinking = true;
+              activeParams = {
+                ...activeParams,
+                messages: stripped.messages,
+              };
+              console.warn(
+                `anthropic invalid thinking signature; retrying without ${stripped.removed} thinking block(s)`,
+              );
+              continue;
+            }
+          }
+          if (
+            aborted ||
+            yieldedAny ||
+            attempt >= maxRetries ||
+            !isTerminatedSocketError(err)
+          ) {
+            throw err;
+          }
+          const backoffMs = 250 * (attempt + 1);
+          console.warn(
+            `anthropic stream terminated before any chunk (attempt ${attempt + 1}/${maxRetries + 1}); retrying in ${backoffMs}ms`,
+          );
+          await new Promise((resolve) => setTimeout(resolve, backoffMs));
+        }
+      }
+    }
+
+    return streamFromAnthropic(withTerminatedRetry(), downstream);
   }
 
-  async initParams(content: LLMProvider.ResolvedParams): Promise<MessageStreamParams> {
+  async initParams(
+    content: LLMProvider.ResolvedParams,
+  ): Promise<MessageStreamParams> {
     const messages = content.messages;
     // console.log('anthropic messages', JSON.stringify(messages, null, 2))
     const systemMessages = messages.filter(
@@ -157,7 +256,7 @@ export class AnthropicProvider extends LLMProvider {
     const newMessages = await convertMessagesToAnthropicMessages(
       conversationMessages,
       this.options,
-      content
+      content,
     );
 
     const model = this.options.modelName.value;
@@ -169,7 +268,10 @@ export class AnthropicProvider extends LLMProvider {
       temperature = 0;
     }
 
-    const defaultMaxTokens = this.options.modelName.maxTokens || 8192;
+    const defaultMaxTokens =
+      getOutputTokenLimit(content.modelParams) ||
+      this.options.modelName.maxTokens ||
+      8192;
 
     let params: MessageStreamParams = {
       system,
@@ -179,16 +281,20 @@ export class AnthropicProvider extends LLMProvider {
       messages: newMessages,
     };
 
-    const modelNameConfig: { reasoning_effort: string } = this.options?.modelName_preferences?.[params.model || '']
-    let reasoning_effort = modelNameConfig?.reasoning_effort
+    const modelNameConfig: { reasoning_effort: string } =
+      this.options?.modelName_preferences?.[params.model || ""];
+    let reasoning_effort = modelNameConfig?.reasoning_effort;
     if (reasoning_effort) {
       if (reasoning_effort === "disabled" || reasoning_effort === "none") {
         params.thinking = {
           type: "disabled",
-        }
+        };
       } else {
         const budgetTokens = parseInt(reasoning_effort);
-        if (!Number.isNaN(budgetTokens) && String(budgetTokens) === reasoning_effort) {
+        if (
+          !Number.isNaN(budgetTokens) &&
+          String(budgetTokens) === reasoning_effort
+        ) {
           params.thinking = {
             type: "enabled",
             budget_tokens: budgetTokens,
@@ -199,13 +305,17 @@ export class AnthropicProvider extends LLMProvider {
           };
           params.output_config = {
             ...(params.output_config ?? {}),
-            effort: reasoning_effort as "low" | "medium" | "high" | "xhigh" | "max",
+            effort: reasoning_effort as
+              | "low"
+              | "medium"
+              | "high"
+              | "xhigh"
+              | "max",
           };
         }
       }
     }
 
-    console.log("reasoning_effort anthropic", params.thinking, params.output_config);
     let tools: Anthropic.ToolUnion[] = [];
     const newTools = AnthropicUtil.convertToolsToAnthropicTools(content.tools);
     if (newTools) {
@@ -232,4 +342,29 @@ export class AnthropicProvider extends LLMProvider {
 
     return params;
   }
+}
+
+function isInvalidThinkingSignatureError(error: unknown): boolean {
+  const err = error as {
+    status?: number;
+    message?: string;
+    error?: {
+      message?: string;
+      error?: {
+        message?: string;
+      };
+    };
+  };
+  const message = [
+    err?.message,
+    err?.error?.message,
+    err?.error?.error?.message,
+  ]
+    .filter((value): value is string => typeof value === "string")
+    .join("\n");
+
+  return (
+    err?.status === 400 &&
+    /Invalid `?signature`? in `?thinking`? block/i.test(message)
+  );
 }

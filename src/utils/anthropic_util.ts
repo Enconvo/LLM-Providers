@@ -16,6 +16,8 @@ import { convertContextTypeMessageContent } from "./context_item_util.js";
 import path from "path";
 import mime from "mime";
 import { MessageUtils } from "./message_utils.ts";
+import { usageFromAnthropicUsage } from "./usage_util.ts";
+import { shouldAddImageSource } from "./image_source_util.js";
 
 export namespace AnthropicUtil {
   export const serverTools = [
@@ -206,10 +208,16 @@ export const convertMessageToAnthropicMessage = async (
     const contents: Anthropic.MessageParam[] = [];
     let parts: MessageContentType[] = [];
     const isAgentMode = Runtime.isAgentMode();
+    const seenImageSources = new Set<string>();
 
     async function handleImageContentItem(url: string, description?: string) {
       const newParts: MessageContentType[] = [];
-      if (role === "user" && options.modelName.visionEnable === true) {
+      const shouldAddImage = shouldAddImageSource(seenImageSources, url);
+      if (
+        shouldAddImage &&
+        role === "user" &&
+        options.modelName.visionEnable === true
+      ) {
         if (url.startsWith("http://") || url.startsWith("https://")) {
           const mimeType =
             (mime.getType(url) as
@@ -256,6 +264,7 @@ export const convertMessageToAnthropicMessage = async (
           params.videoGenerationToolEnabled &&
           params.videoGenerationToolEnabled !== "disabled";
         if (
+          shouldAddImage &&
           (Runtime.isAgentMode() ||
             imageGenerationToolEnabled ||
             videoGenerationToolEnabled) &&
@@ -602,6 +611,40 @@ export const convertMessagesToAnthropicMessages = async (
   return newMessages;
 };
 
+export function stripThinkingBlocksFromAnthropicMessages(
+  messages: Anthropic.Messages.MessageParam[],
+): { messages: Anthropic.Messages.MessageParam[]; removed: number } {
+  let removed = 0;
+  const strippedMessages: Anthropic.Messages.MessageParam[] = [];
+
+  for (const message of messages) {
+    if (!Array.isArray(message.content)) {
+      strippedMessages.push(message);
+      continue;
+    }
+
+    const content = message.content.filter((block) => {
+      if (block.type === "thinking" || block.type === "redacted_thinking") {
+        removed++;
+        return false;
+      }
+      return true;
+    });
+
+    if (content.length > 0) {
+      strippedMessages.push({
+        ...message,
+        content,
+      });
+    }
+  }
+
+  return {
+    messages: strippedMessages,
+    removed,
+  };
+}
+
 function getPartialTagMatchLength(str: string, tag: string): number {
   for (let i = Math.min(tag.length - 1, str.length); i >= 1; i--) {
     if (str.endsWith(tag.substring(0, i))) {
@@ -609,6 +652,21 @@ function getPartialTagMatchLength(str: string, tag: string): number {
     }
   }
   return 0;
+}
+
+function mergeServerToolUse(
+  current: Record<string, number> | undefined,
+  next: unknown,
+): Record<string, number> | undefined {
+  if (!next || typeof next !== "object") return current;
+
+  const result = { ...(current || {}) };
+  for (const [key, value] of Object.entries(next)) {
+    if (typeof value !== "number" || !Number.isFinite(value)) continue;
+    result[key] = Math.max(result[key] || 0, value);
+  }
+
+  return Object.keys(result).length > 0 ? result : undefined;
 }
 
 export function streamFromAnthropic(
@@ -643,11 +701,16 @@ export function streamFromAnthropic(
       );
     }
     consumed = true;
-    // Track usage from Anthropic stream events
+    // Track usage from message_delta. Some Anthropic-compatible providers
+    // report all usage there, while Anthropic reports input usage on start.
     let accumulatedInputTokens = 0;
     let accumulatedOutputTokens = 0;
     let accumulatedCacheCreationTokens = 0;
     let accumulatedCacheReadTokens = 0;
+    let pendingStartUsage: any;
+    let startUsageApplied = false;
+    let serviceTier: string | undefined;
+    let serverToolUse: Record<string, number> | undefined;
     // Track whether the stream completed normally (received message_stop or message_delta with stop_reason)
     let streamCompleted = false;
     // State for <think>/<\/think> tag detection in text deltas
@@ -657,16 +720,8 @@ export function streamFromAnthropic(
 
     try {
       for await (const chunk of response) {
-        // console.log("chunk", JSON.stringify(chunk, null, 2))
         if (chunk.type === "message_start") {
-          // Capture input token usage from message_start
-          const msgUsage = chunk.message.usage;
-          if (msgUsage) {
-            accumulatedInputTokens += msgUsage.input_tokens || 0;
-            accumulatedCacheCreationTokens +=
-              msgUsage.cache_creation_input_tokens || 0;
-            accumulatedCacheReadTokens += msgUsage.cache_read_input_tokens || 0;
-          }
+          pendingStartUsage = chunk.message.usage;
           yield {
             type: "message_start",
             message: {
@@ -676,10 +731,48 @@ export function streamFromAnthropic(
             },
           };
         } else if (chunk.type === "message_delta") {
-          // Capture output token usage from message_delta
-          const deltaUsage = chunk.usage;
+          console.log("message_delta", chunk);
+          if (!startUsageApplied && pendingStartUsage) {
+            accumulatedInputTokens = Math.max(
+              accumulatedInputTokens,
+              pendingStartUsage.input_tokens || 0,
+            );
+            accumulatedCacheCreationTokens = Math.max(
+              accumulatedCacheCreationTokens,
+              pendingStartUsage.cache_creation_input_tokens || 0,
+            );
+            accumulatedCacheReadTokens = Math.max(
+              accumulatedCacheReadTokens,
+              pendingStartUsage.cache_read_input_tokens || 0,
+            );
+            startUsageApplied = true;
+          }
+
+          const deltaUsage = chunk.usage as any;
           if (deltaUsage) {
-            accumulatedOutputTokens += deltaUsage.output_tokens || 0;
+            accumulatedInputTokens = Math.max(
+              accumulatedInputTokens,
+              deltaUsage.input_tokens || 0,
+            );
+            accumulatedOutputTokens = Math.max(
+              accumulatedOutputTokens,
+              deltaUsage.output_tokens || 0,
+            );
+            accumulatedCacheCreationTokens = Math.max(
+              accumulatedCacheCreationTokens,
+              deltaUsage.cache_creation_input_tokens || 0,
+            );
+            accumulatedCacheReadTokens = Math.max(
+              accumulatedCacheReadTokens,
+              deltaUsage.cache_read_input_tokens || 0,
+            );
+            if (typeof deltaUsage.service_tier === "string") {
+              serviceTier = deltaUsage.service_tier;
+            }
+            serverToolUse = mergeServerToolUse(
+              serverToolUse,
+              deltaUsage.server_tool_use,
+            );
           }
           streamCompleted = true;
         } else if (chunk.type === "message_stop") {
@@ -920,14 +1013,16 @@ export function streamFromAnthropic(
         accumulatedCacheReadTokens;
       yield {
         type: "usage" as const,
-        usage: {
+        usage: usageFromAnthropicUsage({
           input_tokens: accumulatedInputTokens,
           output_tokens: accumulatedOutputTokens,
           cache_creation_input_tokens:
             accumulatedCacheCreationTokens || undefined,
           cache_read_input_tokens: accumulatedCacheReadTokens || undefined,
           total_tokens: totalTokens,
-        },
+          server_tool_use: serverToolUse,
+          service_tier: serviceTier,
+        }) as any,
       };
     }
 

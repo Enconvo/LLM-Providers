@@ -29,8 +29,10 @@ import {
   UserContent,
   UserModelMessage,
 } from "ai";
+import { usageFromVercelAIUsage } from "./usage_util.ts";
+import { shouldAddImageSource } from "./image_source_util.js";
 
-export namespace VercelAIGatewayUtil { }
+export namespace VercelAIGatewayUtil {}
 
 export const convertMessageToVercelFormat = async (
   message: BaseChatMessageLike,
@@ -41,7 +43,7 @@ export const convertMessageToVercelFormat = async (
 
   if (message.role === "tool") {
     const toolMessage = message as ToolMessage;
-    const contentString = toolMessage.content as string;
+    const contentString = toolMessage.content as unknown as string;
 
     let toolResultMessage: ToolResultPart = {
       type: "tool-result",
@@ -64,13 +66,13 @@ export const convertMessageToVercelFormat = async (
       typeof systemMessage.content === "string"
         ? systemMessage.content
         : systemMessage.content
-          .map((item) => {
-            if (item.type === "text") {
-              return item.text;
-            }
-            return JSON.stringify(item);
-          })
-          .join("\n\n");
+            .map((item) => {
+              if (item.type === "text") {
+                return item.text;
+              }
+              return JSON.stringify(item);
+            })
+            .join("\n\n");
     const newModelMessage: SystemModelMessage = {
       role: "system",
       content: contentString,
@@ -125,10 +127,16 @@ export const convertMessageToVercelFormat = async (
     )[] = [];
     let parts: UserContent | AssistantContent = [];
     const isAgentMode = Runtime.isAgentMode();
+    const seenImageSources = new Set<string>();
 
     async function handleImageContentItem(url: string, description?: string) {
       const newParts: UserContent | AssistantContent = [];
-      if (role === "user" && options.modelName.visionEnable === true) {
+      const shouldAddImage = shouldAddImageSource(seenImageSources, url);
+      if (
+        shouldAddImage &&
+        role === "user" &&
+        options.modelName.visionEnable === true
+      ) {
         if (url.startsWith("http://") || url.startsWith("https://")) {
           const imagePart: ImagePart = {
             type: "image",
@@ -166,9 +174,19 @@ export const convertMessageToVercelFormat = async (
         //@ts-ignore
         newParts.push(textPart);
       } else {
-        const imageGenerationToolEnabled = params.imageGenerationToolEnabled && params.imageGenerationToolEnabled !== 'disabled';
-        const videoGenerationToolEnabled = params.videoGenerationToolEnabled && params.videoGenerationToolEnabled !== 'disabled';
-        if ((Runtime.isAgentMode() || imageGenerationToolEnabled || videoGenerationToolEnabled) && params.addImageAdditionalInfo !== false) {
+        const imageGenerationToolEnabled =
+          params.imageGenerationToolEnabled &&
+          params.imageGenerationToolEnabled !== "disabled";
+        const videoGenerationToolEnabled =
+          params.videoGenerationToolEnabled &&
+          params.videoGenerationToolEnabled !== "disabled";
+        if (
+          shouldAddImage &&
+          (Runtime.isAgentMode() ||
+            imageGenerationToolEnabled ||
+            videoGenerationToolEnabled) &&
+          params.addImageAdditionalInfo !== false
+        ) {
           const textPart: TextPart = {
             type: "text",
             text: `The above image's url is ${url} , only used for reference when you use tool.`,
@@ -180,7 +198,7 @@ export const convertMessageToVercelFormat = async (
       return newParts;
     }
 
-    if (message.additional?.contentType === 'additional') {
+    if (message.additional?.contentType === "additional") {
       parts.push({
         type: "text",
         text: '<supplementary-message description="This is a supplementary message from the user, appended while prior tasks may still be in progress. Consider it in the context of all previous messages and adjust your actions accordingly.">',
@@ -193,7 +211,10 @@ export const convertMessageToVercelFormat = async (
         for (const contextItem of contextItems) {
           if (contextItem.type === "screenshot") {
             const description = `[Context Item] This is a screenshot, url is ${contextItem.url}`;
-            const newParts = await handleImageContentItem(contextItem.url, description);
+            const newParts = await handleImageContentItem(
+              contextItem.url,
+              description,
+            );
             //@ts-ignore
             parts.push(...newParts);
           } else if (contextItem.type === "file") {
@@ -204,14 +225,20 @@ export const convertMessageToVercelFormat = async (
               //@ts-ignore
               parts.push(...newParts);
             } else {
-              const textContent = await convertContextTypeMessageContent(contextItem, isAgentMode);
+              const textContent = await convertContextTypeMessageContent(
+                contextItem,
+                isAgentMode,
+              );
               if (textContent) {
                 //@ts-ignore
                 parts.push({ type: "text", text: textContent } as TextPart);
               }
             }
           } else {
-            const textContent = await convertContextTypeMessageContent(contextItem, isAgentMode);
+            const textContent = await convertContextTypeMessageContent(
+              contextItem,
+              isAgentMode,
+            );
             if (textContent) {
               //@ts-ignore
               parts.push({ type: "text", text: textContent } as TextPart);
@@ -289,9 +316,9 @@ export const convertMessageToVercelFormat = async (
         const readableContent = isAgentMode
           ? []
           : await AttachmentUtils.getAttachmentsReadableContent({
-            files: [url],
-            loading: true,
-          });
+              files: [url],
+              loading: true,
+            });
 
         if (readableContent.length > 0) {
           const text = readableContent[0].contents
@@ -312,9 +339,9 @@ export const convertMessageToVercelFormat = async (
         const readableContent = isAgentMode
           ? []
           : await AttachmentUtils.getAttachmentsReadableContent({
-            files: [url],
-            loading: true,
-          });
+              files: [url],
+              loading: true,
+            });
 
         if (readableContent.length > 0) {
           const text = readableContent[0].contents
@@ -342,9 +369,9 @@ export const convertMessageToVercelFormat = async (
         const readableContent = isAgentMode
           ? []
           : await AttachmentUtils.getAttachmentsReadableContent({
-            files: [url],
-            loading: true,
-          });
+              files: [url],
+              loading: true,
+            });
 
         if (readableContent.length > 0) {
           const text = readableContent[0].contents
@@ -370,10 +397,10 @@ export const convertMessageToVercelFormat = async (
       }
     }
 
-    if (message.additional?.contentType === 'additional') {
+    if (message.additional?.contentType === "additional") {
       parts.push({
         type: "text",
-        text: '</supplementary-message>',
+        text: "</supplementary-message>",
       });
     }
 
@@ -397,7 +424,9 @@ export const convertMessagesToVercelFormat = async (
 ): Promise<ModelMessage[]> => {
   const newMessages = (
     await Promise.all(
-      messages.map((message) => convertMessageToVercelFormat(message, options, params)),
+      messages.map((message) =>
+        convertMessageToVercelFormat(message, options, params),
+      ),
     )
   ).flat();
 
@@ -422,7 +451,7 @@ export function streamFromVercel(
           type: "content_block_start",
           content_block: {
             type: "text",
-            text: '',
+            text: "",
           },
         };
       } else if (part.type === "text-delta") {
@@ -437,7 +466,6 @@ export function streamFromVercel(
         yield {
           type: "content_block_stop",
         };
-
       } else if (part.type === "tool-input-start") {
         yield {
           type: "content_block_start",
@@ -460,6 +488,15 @@ export function streamFromVercel(
         yield {
           type: "content_block_stop",
         };
+      } else if (part.type === "finish") {
+        const usage = (part as any).totalUsage;
+        const providerUsage = usageFromVercelAIUsage(usage);
+        if (providerUsage) {
+          yield {
+            type: "usage" as const,
+            usage: providerUsage,
+          };
+        }
       }
     }
   }

@@ -13,7 +13,7 @@ import {
   uuid,
   ChatMessageContentListItem,
   AttachmentUtils,
-  CacheUtils
+  CacheUtils,
 } from "@enconvo/api";
 import { convertContextTypeMessageContent } from "./context_item_util.js";
 import path from "path";
@@ -31,6 +31,8 @@ import {
   FinishReason,
   GroundingMetadata,
 } from "@google/genai";
+import { usageFromGoogleUsageMetadata } from "./usage_util.ts";
+import { shouldAddImageSource } from "./image_source_util.js";
 export namespace GoogleUtil {
   export const convertToolsToGoogleTools = (
     tools?: AITool[],
@@ -125,7 +127,7 @@ export namespace GoogleUtil {
         const functionDeclarationTool: FunctionDeclaration = {
           name: tool.name,
           description: tool.description,
-          parameters: tool.parameters,
+          parameters: tool.parameters as any,
         };
         return functionDeclarationTool;
       },
@@ -155,8 +157,6 @@ export const convertMessageToGoogleMessage = async (
   options: LLMProvider.LLMOptions,
   params: LLMProvider.Params,
 ): Promise<Content[]> => {
-
-
   if (typeof message.content === "string") {
     const content: Content = {
       role: convertRole(message.role),
@@ -171,21 +171,33 @@ export const convertMessageToGoogleMessage = async (
     let parts: Part[] = [];
     const contents: Content[] = [];
     const isAgentMode = Runtime.isAgentMode();
+    const seenImageSources = new Set<string>();
 
-    async function handleImageContentItem({ url, description, thoughtSignature }: { url: string; description?: string, thoughtSignature?: string }) {
+    async function handleImageContentItem({
+      url,
+      description,
+      thoughtSignature,
+    }: {
+      url: string;
+      description?: string;
+      thoughtSignature?: string;
+    }) {
       const newParts: Part[] = [];
-      url = await ImageUtil.compressImage(url);
-      const mimeType = mime.getType(url);
-      const base64 = await FileUtil.convertUrlToBase64(url);
-      if (options.modelName.visionEnable === true && base64) {
-        const image: Part = {
-          inlineData: {
-            data: base64,
-            mimeType: mimeType as string,
-          },
-          thoughtSignature: thoughtSignature,
-        };
-        newParts.push(image);
+      const shouldAddImage = shouldAddImageSource(seenImageSources, url);
+      if (shouldAddImage) {
+        url = await ImageUtil.compressImage(url);
+        const mimeType = mime.getType(url);
+        const base64 = await FileUtil.convertUrlToBase64(url);
+        if (options.modelName.visionEnable === true && base64) {
+          const image: Part = {
+            inlineData: {
+              data: base64,
+              mimeType: mimeType as string,
+            },
+            thoughtSignature: thoughtSignature,
+          };
+          newParts.push(image);
+        }
       }
 
       if (description) {
@@ -194,9 +206,19 @@ export const convertMessageToGoogleMessage = async (
         };
         newParts.push(text);
       } else {
-        const imageGenerationToolEnabled = params.imageGenerationToolEnabled && params.imageGenerationToolEnabled !== 'disabled';
-        const videoGenerationToolEnabled = params.videoGenerationToolEnabled && params.videoGenerationToolEnabled !== 'disabled';
-        if ((isAgentMode || imageGenerationToolEnabled || videoGenerationToolEnabled) && params.addImageAdditionalInfo !== false) {
+        const imageGenerationToolEnabled =
+          params.imageGenerationToolEnabled &&
+          params.imageGenerationToolEnabled !== "disabled";
+        const videoGenerationToolEnabled =
+          params.videoGenerationToolEnabled &&
+          params.videoGenerationToolEnabled !== "disabled";
+        if (
+          shouldAddImage &&
+          (isAgentMode ||
+            imageGenerationToolEnabled ||
+            videoGenerationToolEnabled) &&
+          params.addImageAdditionalInfo !== false
+        ) {
           const text: Part = {
             text: `The above image's url is ${url} , only used for reference when you use tool.`,
           };
@@ -207,7 +229,7 @@ export const convertMessageToGoogleMessage = async (
       return newParts;
     }
 
-    if (message.additional?.contentType === 'additional') {
+    if (message.additional?.contentType === "additional") {
       parts.push({
         text: '<supplementary-message description="This is a supplementary message from the user, appended while prior tasks may still be in progress. Consider it in the context of all previous messages and adjust your actions accordingly.">',
       });
@@ -219,22 +241,34 @@ export const convertMessageToGoogleMessage = async (
         for (const contextItem of contextItems) {
           if (contextItem.type === "screenshot") {
             const description = `[Context Item] This is a screenshot, url is ${contextItem.url}`;
-            const newParts = await handleImageContentItem({ url: contextItem.url, description });
+            const newParts = await handleImageContentItem({
+              url: contextItem.url,
+              description,
+            });
             parts.push(...newParts);
           } else if (contextItem.type === "file") {
             const url = contextItem.url.replace("file://", "");
             if (FileUtil.isImageFile(url)) {
               const description = `[Context Item] This is a image file , url is ${url}`;
-              const newParts = await handleImageContentItem({ url, description });
+              const newParts = await handleImageContentItem({
+                url,
+                description,
+              });
               parts.push(...newParts);
             } else {
-              const textContent = await convertContextTypeMessageContent(contextItem, isAgentMode);
+              const textContent = await convertContextTypeMessageContent(
+                contextItem,
+                isAgentMode,
+              );
               if (textContent) {
                 parts.push({ text: textContent });
               }
             }
           } else {
-            const textContent = await convertContextTypeMessageContent(contextItem, isAgentMode);
+            const textContent = await convertContextTypeMessageContent(
+              contextItem,
+              isAgentMode,
+            );
             if (textContent) {
               parts.push({ text: textContent });
             }
@@ -242,7 +276,10 @@ export const convertMessageToGoogleMessage = async (
         }
       } else if (item.type === "image_url") {
         let url = item.image_url.url.replace("file://", "");
-        const newParts = await handleImageContentItem({ url, thoughtSignature: item.thought_signature });
+        const newParts = await handleImageContentItem({
+          url,
+          thoughtSignature: item.thought_signature,
+        });
         parts.push(...newParts);
       } else if (item.type === "flow_step") {
         let args = {};
@@ -267,7 +304,9 @@ export const convertMessageToGoogleMessage = async (
             parts = [];
           }
 
-          const thoughtSignature = item.thought_signature || CacheUtils.get(item.flowName) as string | undefined;
+          const thoughtSignature =
+            item.thought_signature ||
+            (CacheUtils.get(item.flowName) as string | undefined);
           // console.log("thoughtSignature", thoughtSignature)
           const functionCall: Content = {
             role: convertRole(message.role),
@@ -341,9 +380,9 @@ export const convertMessageToGoogleMessage = async (
         const readableContent = isAgentMode
           ? []
           : await AttachmentUtils.getAttachmentsReadableContent({
-            files: [url],
-            loading: true,
-          });
+              files: [url],
+              loading: true,
+            });
 
         if (readableContent.length > 0) {
           const text = readableContent[0].contents
@@ -381,9 +420,9 @@ export const convertMessageToGoogleMessage = async (
         const readableContent = isAgentMode
           ? []
           : await AttachmentUtils.getAttachmentsReadableContent({
-            files: [url],
-            loading: true,
-          });
+              files: [url],
+              loading: true,
+            });
 
         if (readableContent.length > 0) {
           const text = readableContent[0].contents
@@ -403,16 +442,19 @@ export const convertMessageToGoogleMessage = async (
       } else if (item.type === "file") {
         const url = item.file_url.url.replace("file://", "");
         if (FileUtil.isImageFile(url)) {
-          const newParts = await handleImageContentItem({ url, thoughtSignature: item.thought_signature });
+          const newParts = await handleImageContentItem({
+            url,
+            thoughtSignature: item.thought_signature,
+          });
           parts.push(...newParts);
           continue;
         }
         const readableContent = isAgentMode
           ? []
           : await AttachmentUtils.getAttachmentsReadableContent({
-            files: [url],
-            loading: true,
-          });
+              files: [url],
+              loading: true,
+            });
 
         if (readableContent.length > 0) {
           const text = readableContent[0].contents
@@ -444,9 +486,9 @@ export const convertMessageToGoogleMessage = async (
       }
     }
 
-    if (message.additional?.contentType === 'additional') {
+    if (message.additional?.contentType === "additional") {
       parts.push({
-        text: '</supplementary-message>',
+        text: "</supplementary-message>",
       });
     }
 
@@ -471,9 +513,8 @@ export const convertMessagesToGoogleMessages = async (
   const newMessages = (
     await Promise.all(
       messages.map(async (message) => {
-        return await convertMessageToGoogleMessage(message, options, params)
-      }
-      ),
+        return await convertMessageToGoogleMessage(message, options, params);
+      }),
     )
   ).flat();
   // console.log("google newMessages", JSON.stringify(newMessages, null, 2));
@@ -524,11 +565,11 @@ export function streamFromGoogle(
     }
     consumed = true;
     let done = false;
-    let runningContentBlockType: BaseChatMessageChunk.ContentBlock['type'] | undefined;
+    let runningContentBlockType:
+      | BaseChatMessageChunk.ContentBlock["type"]
+      | undefined;
     // Track usage from Google usageMetadata (updated on each chunk)
-    let lastPromptTokenCount = 0;
-    let lastCandidatesTokenCount = 0;
-    let lastTotalTokenCount = 0;
+    let lastUsageMetadata: any;
 
     try {
       for await (const chunk of response) {
@@ -537,63 +578,64 @@ export function streamFromGoogle(
 
         // Track latest usageMetadata
         if (chunk.usageMetadata) {
-          lastPromptTokenCount = chunk.usageMetadata.promptTokenCount || 0;
-          lastCandidatesTokenCount = chunk.usageMetadata.candidatesTokenCount || 0;
-          lastTotalTokenCount = chunk.usageMetadata.totalTokenCount || 0;
+          lastUsageMetadata = chunk.usageMetadata;
         }
 
         const candidate = chunk.candidates?.[0];
 
         const functionCalls = chunk.functionCalls;
         const groundingMetadata = candidate?.groundingMetadata;
-        const thoughtSignature = candidate?.content?.parts?.[0]?.thoughtSignature;
+        const thoughtSignature =
+          candidate?.content?.parts?.[0]?.thoughtSignature;
 
         if (candidate?.finishReason === "MAX_TOKENS") {
           done = true;
           yield {
-            type: 'content_block_stop',
-            finish_reason: 'max_tokens'
+            type: "content_block_stop",
+            finish_reason: "max_tokens",
           };
         } else if (candidate?.finishReason === "STOP") {
           done = true;
-        } else if (candidate?.finishReason === FinishReason.PROHIBITED_CONTENT) {
+        } else if (
+          candidate?.finishReason === FinishReason.PROHIBITED_CONTENT
+        ) {
           done = true;
           yield {
-            type: 'content_block_start',
+            type: "content_block_start",
             content_block: {
-              type: 'message_content',
+              type: "message_content",
               content: [
                 {
-                  type: 'error',
-                  text: 'The content is prohibited',
-                  id: uuid()
-                }
-              ]
-            }
+                  type: "error",
+                  text: "The content is prohibited",
+                  id: uuid(),
+                },
+              ],
+            },
           };
         }
 
         if (functionCalls && functionCalls.length > 0) {
-          if (runningContentBlockType !== 'tool_use') {
+          if (runningContentBlockType !== "tool_use") {
             if (runningContentBlockType !== undefined) {
               yield {
-                type: 'content_block_stop',
-              }
+                type: "content_block_stop",
+              };
             }
-            runningContentBlockType = 'tool_use';
+            runningContentBlockType = "tool_use";
 
             const functionCall = functionCalls[0];
 
             yield {
-              type: 'content_block_start',
+              type: "content_block_start",
               content_block: {
-                type: 'tool_use',
+                type: "tool_use",
                 thought_signature: thoughtSignature,
                 name: functionCall.name || "",
                 input: functionCall.args || {},
-                id: functionCall.id || ""
-              }
-            }
+                id: functionCall.id || "",
+              },
+            };
           }
         } else {
           // console.log("chunk", JSON.stringify(chunk, null, 2))
@@ -619,17 +661,17 @@ export function streamFromGoogle(
               await saveBinaryFile(filePath, buffer);
 
               yield {
-                type: 'content_block_start',
+                type: "content_block_start",
                 content_block: {
-                  type: 'message_content',
+                  type: "message_content",
                   content: [
                     ChatMessageContent.imageUrl({
                       thought_signature: thoughtSignature,
                       url: filePath,
-                    })
-                  ]
-                }
-              }
+                    }),
+                  ],
+                },
+              };
             } else if (isAudio) {
               const fileName = uuid();
               let fileExtension = "wav";
@@ -643,106 +685,106 @@ export function streamFromGoogle(
               await saveWaveFile(filePath, buffer);
 
               yield {
-                type: 'content_block_start',
+                type: "content_block_start",
                 content_block: {
-                  type: 'message_content',
+                  type: "message_content",
                   content: [
                     ChatMessageContent.audio({
                       url: filePath,
                       thought_signature: thoughtSignature,
-                    })
-                  ]
-                }
-              }
+                    }),
+                  ],
+                },
+              };
             }
           } else {
             if (content?.thought === true) {
-              if (runningContentBlockType !== 'thinking') {
+              if (runningContentBlockType !== "thinking") {
                 if (runningContentBlockType !== undefined) {
                   yield {
-                    type: 'content_block_stop',
-                  }
+                    type: "content_block_stop",
+                  };
                 }
-                runningContentBlockType = 'thinking';
+                runningContentBlockType = "thinking";
                 yield {
-                  type: 'content_block_start',
+                  type: "content_block_start",
                   content_block: {
-                    type: 'thinking',
+                    type: "thinking",
                     thinking: content?.text || "",
-                  }
-                }
-              } else if (runningContentBlockType === 'thinking') {
+                  },
+                };
+              } else if (runningContentBlockType === "thinking") {
                 yield {
-                  type: 'content_block_delta',
+                  type: "content_block_delta",
                   delta: {
-                    type: 'thinking_delta',
+                    type: "thinking_delta",
                     thinking: content?.text || "",
-                  }
-                }
+                  },
+                };
               }
             } else if (content?.text && content?.text !== "") {
               // console.log("content?.text", content?.text, runningContentBlockType)
-              if (runningContentBlockType !== 'text') {
+              if (runningContentBlockType !== "text") {
                 if (runningContentBlockType !== undefined) {
                   yield {
-                    type: 'content_block_stop',
-                  }
+                    type: "content_block_stop",
+                  };
                 }
-                runningContentBlockType = 'text';
+                runningContentBlockType = "text";
                 yield {
-                  type: 'content_block_start',
+                  type: "content_block_start",
                   content_block: {
-                    type: 'text',
-                    text:  "",
+                    type: "text",
+                    text: "",
                     thought_signature: thoughtSignature,
-                  }
-                }
+                  },
+                };
                 yield {
-                  type: 'content_block_delta',
+                  type: "content_block_delta",
                   delta: {
-                    type: 'text_delta',
+                    type: "text_delta",
                     text: content?.text || "",
-                  }
-                }
-              } else if (runningContentBlockType === 'text') {
+                  },
+                };
+              } else if (runningContentBlockType === "text") {
                 yield {
-                  type: 'content_block_delta',
+                  type: "content_block_delta",
                   delta: {
-                    type: 'text_delta',
+                    type: "text_delta",
                     text: content?.text || "",
-                  }
-                }
+                  },
+                };
               }
             }
           }
         }
 
-
-        if (groundingMetadata && groundingMetadata.groundingChunks && groundingMetadata.groundingChunks.length > 0) {
-
-          const items: ChatMessageContentListItem[] = groundingMetadata.groundingChunks?.map(chunk => ({
-            url: chunk.web?.uri || "",
-            title: chunk.web?.title || "",
-            user: chunk.web?.domain || "",
-            icon: `https://www.google.com/s2/favicons?domain=${chunk.web?.domain}&sz=${128}`,
-          })) || [];
+        if (
+          groundingMetadata &&
+          groundingMetadata.groundingChunks &&
+          groundingMetadata.groundingChunks.length > 0
+        ) {
+          const items: ChatMessageContentListItem[] =
+            groundingMetadata.groundingChunks?.map((chunk) => ({
+              url: chunk.web?.uri || "",
+              title: chunk.web?.title || "",
+              user: chunk.web?.domain || "",
+              icon: `https://www.google.com/s2/favicons?domain=${chunk.web?.domain}&sz=${128}`,
+            })) || [];
           const aiResult = addCitations(groundingMetadata);
 
           const messageContent = ChatMessageContent.searchResultList({
             items,
-            aiResult
+            aiResult,
           });
 
           yield {
-            type: 'content_block_start',
+            type: "content_block_start",
             content_block: {
-              type: 'message_content',
-              content: [
-                messageContent
-              ]
-            }
-          }
-
+              type: "message_content",
+              content: [messageContent],
+            },
+          };
         }
       }
       done = true;
@@ -752,18 +794,15 @@ export function streamFromGoogle(
     } finally {
       if (runningContentBlockType !== undefined) {
         yield {
-          type: 'content_block_stop',
-        }
+          type: "content_block_stop",
+        };
       }
       // Yield accumulated usage at end of stream
-      if (lastPromptTokenCount > 0 || lastCandidatesTokenCount > 0) {
+      const usage = usageFromGoogleUsageMetadata(lastUsageMetadata);
+      if (usage) {
         yield {
-          type: 'usage' as const,
-          usage: {
-            input_tokens: lastPromptTokenCount,
-            output_tokens: lastCandidatesTokenCount,
-            total_tokens: lastTotalTokenCount || (lastPromptTokenCount + lastCandidatesTokenCount),
-          }
+          type: "usage" as const,
+          usage,
         };
       }
       if (!done) controller.abort();
@@ -773,15 +812,16 @@ export function streamFromGoogle(
   return new Stream(iterator, controller);
 }
 
-
 function addCitations(groundingMetadata: GroundingMetadata) {
   const supports = groundingMetadata.groundingSupports || [];
-  const chunks = groundingMetadata.groundingChunks || []
+  const chunks = groundingMetadata.groundingChunks || [];
 
-  let text = supports.map(support => {
-    const text = support.segment?.text;
-    return text
-  }).join()
+  let text = supports
+    .map((support) => {
+      const text = support.segment?.text;
+      return text;
+    })
+    .join();
 
   // Sort supports by end_index in descending order to avoid shifting issues when inserting.
   const sortedSupports = [...supports].sort(
@@ -795,7 +835,7 @@ function addCitations(groundingMetadata: GroundingMetadata) {
     }
 
     const citationLinks = support.groundingChunkIndices
-      .map(i => {
+      .map((i) => {
         const uri = chunks[i]?.web?.uri;
         if (uri) {
           return `[${i + 1}](${uri})`;

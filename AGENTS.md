@@ -1,10 +1,10 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
 
 ## Overview
 
-This is an Enconvo Extension that provides LLM (Large Language Model) providers for the Enconvo platform. It offers a unified interface for interacting with 20+ AI providers including OpenAI, Anthropic Claude, Google Gemini, Azure OpenAI, and many others.
+This is an Enconvo Extension that provides LLM (Large Language Model) providers for the Enconvo platform. It offers a unified interface for interacting with 20+ AI providers including OpenAI, Anthropic Codex, Google Gemini, Azure OpenAI, and many others.
 
 ## Development Commands
 
@@ -224,7 +224,7 @@ URL mapping:
 - `workerAnthropicApiUrl` (`https://api.enconvo.com/`) — for Anthropic-compatible providers (Anthropic, MiniMax, Z.AI)
 - `openAIBaseUrl` (`https://api.enconvo.com/v1/`) — for OpenAI-compatible providers
 - `googleApiUrl` (`https://api.enconvo.com`) — for Google Gemini
-- `anthropicApiUrl` (`https://api-v.enconvo.com/claude/`) — for direct Anthropic routing
+- `anthropicApiUrl` (`https://api-v.enconvo.com/Codex/`) — for direct Anthropic routing
 
 #### Step 3: API gateway — `enconvo-api-workers/src/controller/ai/OpenAIController.ts`
 

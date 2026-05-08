@@ -10,24 +10,22 @@ import { ChatOpenAIProvider } from "./open_ai.ts";
 import { createReadStream } from "fs";
 import axios from "axios";
 import FormData from "form-data";
+import { normalizeProviderUsage } from "../utils/usage_util.ts";
 
 export default function main(options: any) {
   return new StraicoProvider(options);
 }
 
 export class StraicoProvider extends ChatOpenAIProvider {
-
-
-
-
   protected async _stream(
     content: LLMProvider.ResolvedParams,
   ): Promise<Stream<BaseChatMessageChunk>> {
-
-
     const messages = await this.handleMessages(content);
 
-    const response = await this.call({ messages: messages, signal: content.signal });
+    const response = await this.call({
+      messages: messages,
+      signal: content.signal,
+    });
 
     async function* iterator(): AsyncIterator<
       BaseChatMessageChunk,
@@ -35,23 +33,33 @@ export class StraicoProvider extends ChatOpenAIProvider {
       undefined
     > {
       yield {
-        type: 'content_block_start',
+        type: "content_block_start",
         content_block: {
-          type: 'text',
-          text: '',
-        }
-      }
+          type: "text",
+          text: "",
+        },
+      };
 
       yield {
-        type: 'content_block_delta',
+        type: "content_block_delta",
         delta: {
-          type: 'text_delta',
+          type: "text_delta",
           text: response.text,
-        }
-      }
+        },
+      };
 
       yield {
-        type: 'content_block_stop',
+        type: "content_block_stop",
+      };
+
+      const usage = normalizeProviderUsage(
+        (response.additional?.metadata as any)?.providerUsage,
+      );
+      if (usage) {
+        yield {
+          type: "usage" as const,
+          usage,
+        };
       }
     }
 
@@ -120,7 +128,7 @@ export class StraicoProvider extends ChatOpenAIProvider {
       const newContent: any[] = [];
       for (const item of originalMessage.content) {
         if (item?.type === "context" && Array.isArray(item.items)) {
-          const newContextItems:ContextItem[] = [];
+          const newContextItems: ContextItem[] = [];
           for (const contextItem of item.items) {
             if (!contextItem) {
               continue;
@@ -136,10 +144,9 @@ export class StraicoProvider extends ChatOpenAIProvider {
               });
             } else if (contextItem.type === "file") {
               const rawUrl = contextItem.url;
-              const sanitizedPath =
-                rawUrl?.startsWith("file://")
-                  ? rawUrl.replace("file://", "")
-                  : rawUrl;
+              const sanitizedPath = rawUrl?.startsWith("file://")
+                ? rawUrl.replace("file://", "")
+                : rawUrl;
 
               if (
                 rawUrl &&
@@ -216,7 +223,6 @@ export class StraicoProvider extends ChatOpenAIProvider {
 
     return processedMessages;
   }
-
 
   private async uploadFile(fileUrl: string): Promise<string> {
     var data = new FormData();

@@ -21,6 +21,8 @@ import {
   streamFromVercel,
 } from "../utils/vercel_ai_gateway_util.ts";
 import { createGateway, GatewayProvider } from "@ai-sdk/gateway";
+import { additionalWithProviderUsage } from "../utils/usage_util.ts";
+import { getOutputTokenLimit } from "../utils/provider_param_util.ts";
 export default function main(options: any) {
   return new VercelAIGatewayProvider(options);
 }
@@ -40,15 +42,26 @@ export class VercelAIGatewayProvider extends LLMProvider {
     });
   }
 
-  protected async _call(content: LLMProvider.ResolvedParams): Promise<BaseChatMessage> {
+  protected async _call(
+    content: LLMProvider.ResolvedParams,
+  ): Promise<BaseChatMessage> {
     const stream = await this._stream(content);
     let message = "";
+    let usage: unknown;
     for await (const chunk of stream) {
-      if (chunk.choices?.[0]?.delta?.content) {
-        message += chunk.choices[0].delta.content;
+      if (
+        chunk.type === "content_block_delta" &&
+        chunk.delta?.type === "text_delta"
+      ) {
+        message += chunk.delta.text;
+      } else if (chunk.type === "usage") {
+        usage = chunk.usage;
       }
     }
-    return new AssistantMessage(message);
+    return new AssistantMessage({
+      content: message,
+      additional: additionalWithProviderUsage(undefined, usage),
+    });
   }
 
   async tools(aiTools: AITool[]): Promise<ToolSet> {
@@ -62,7 +75,7 @@ export class VercelAIGatewayProvider extends LLMProvider {
           properties: inputSchema?.properties ?? {},
           additionalProperties: false,
         } as JSONSchema7),
-        execute: async (args: any, options: ToolCallOptions) => {
+        execute: async (_args: any, options: ToolCallOptions) => {
           options?.abortSignal?.throwIfAborted();
         },
       });
@@ -88,28 +101,29 @@ export class VercelAIGatewayProvider extends LLMProvider {
     const messages = await convertMessagesToVercelFormat(
       content.messages,
       this.options,
-      content
+      content,
     );
 
+    let providerOptions: Record<string, Record<string, JSONValue>> = {};
 
-    let providerOptions: Record<string, Record<string, JSONValue>> = {}
+    if (params.model.startsWith("openai/")) {
+      let reasoning_effort =
+        this.options?.reasoning_effort?.value ||
+        this.options?.reasoning_effort_new?.value;
 
-    if (params.model.startsWith('openai/')) {
-      let reasoning_effort = this.options?.reasoning_effort?.value || this.options?.reasoning_effort_new?.value;
-
-      let openaiOptions: Record<string, JSONValue> = {}
+      let openaiOptions: Record<string, JSONValue> = {};
 
       if (reasoning_effort && reasoning_effort !== "off") {
         openaiOptions.reasoningSummary = "auto";
         openaiOptions.reasoningEffort = reasoning_effort;
       }
 
-      providerOptions.openai = openaiOptions
-    } else if (params.model.startsWith('anthropic/')) {
+      providerOptions.openai = openaiOptions;
+    } else if (params.model.startsWith("anthropic/")) {
       const claudeThinking = this.options.claude_thinking?.value;
       let anthropicOptions: Record<string, JSONValue> = {
-        cacheControl: { type: "ephemeral" }
-      }
+        cacheControl: { type: "ephemeral" },
+      };
 
       if (claudeThinking && claudeThinking !== "disabled") {
         anthropicOptions.thinking = {
@@ -118,10 +132,12 @@ export class VercelAIGatewayProvider extends LLMProvider {
         };
       }
 
-      providerOptions.anthropic = anthropicOptions
-    } else if (params.model.startsWith('google/')) {
-      let geminiOptions: Record<string, JSONValue> = {}
-      const geminiThinking = this.options.gemini_thinking_pro?.value || this.options.gemini_thinking?.value;
+      providerOptions.anthropic = anthropicOptions;
+    } else if (params.model.startsWith("google/")) {
+      let geminiOptions: Record<string, JSONValue> = {};
+      const geminiThinking =
+        this.options.gemini_thinking_pro?.value ||
+        this.options.gemini_thinking?.value;
 
       if (geminiThinking) {
         geminiOptions.thinkingConfig = {
@@ -135,10 +151,9 @@ export class VercelAIGatewayProvider extends LLMProvider {
         };
       }
 
-      providerOptions.google = geminiOptions
+      providerOptions.google = geminiOptions;
     }
-    console.log("providerOptions", JSON.stringify(providerOptions, null, 2))
-
+    console.log("providerOptions", JSON.stringify(providerOptions, null, 2));
 
     const result = streamText({
       model: this.gateway(params.model),
@@ -164,7 +179,10 @@ export class VercelAIGatewayProvider extends LLMProvider {
       temperature = 0;
     }
 
-    const defaultMaxTokens = this.options.modelName.maxTokens || 8192;
+    const defaultMaxTokens =
+      getOutputTokenLimit(content.modelParams) ||
+      this.options.modelName.maxTokens ||
+      8192;
 
     const params = {
       model: model,

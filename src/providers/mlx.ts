@@ -10,6 +10,11 @@ import {
 } from "@enconvo/api";
 import OpenAI from "openai";
 import { OpenAIUtil } from "../utils/openai_util.ts";
+import {
+  additionalWithProviderUsage,
+  usageFromOpenAIChatUsage,
+} from "../utils/usage_util.ts";
+import { getOutputTokenLimit } from "../utils/provider_param_util.ts";
 
 const MLX_LOCAL_BASE_URL =
   process.env.localServerBaseUrl || "http://localhost:54535";
@@ -128,11 +133,15 @@ export class ChatMLXProvider extends LLMProvider {
     const chatCompletion = await client.chat.completions.create(params, {
       signal: content.signal as AbortSignal | undefined,
     });
-    return this.messageFromOpenAI(chatCompletion.choices[0]?.message);
+    return this.messageFromOpenAI(
+      chatCompletion.choices[0]?.message,
+      chatCompletion.usage,
+    );
   }
 
   private messageFromOpenAI(
     message?: OpenAI.Chat.ChatCompletionMessage,
+    usage?: OpenAI.Chat.ChatCompletion["usage"],
   ): BaseChatMessage {
     const messageContents: ChatMessageContent[] = [];
     const text = message?.content;
@@ -176,7 +185,13 @@ export class ChatMLXProvider extends LLMProvider {
       );
     }
 
-    return new AssistantMessage({ content: messageContents });
+    return new AssistantMessage({
+      content: messageContents,
+      additional: additionalWithProviderUsage(
+        undefined,
+        usageFromOpenAIChatUsage(usage),
+      ),
+    });
   }
 
   private async routeFor(modelId: string): Promise<string> {
@@ -258,9 +273,9 @@ export class ChatMLXProvider extends LLMProvider {
       this.options?.reasoning_effort_new?.value;
     const enableThinking =
       Boolean(reasoningEffort) && reasoningEffort !== "off";
-    const maxTokens = Number(
-      modelOptions?.maxTokens || modelOptions?.max_tokens || 8192,
-    );
+    const maxTokens =
+      getOutputTokenLimit(content.modelParams) ||
+      Number(modelOptions?.maxTokens || modelOptions?.max_tokens || 8192);
 
     const params: OpenAI.Chat.ChatCompletionCreateParamsNonStreaming & {
       chat_template_kwargs?: Record<string, unknown>;
